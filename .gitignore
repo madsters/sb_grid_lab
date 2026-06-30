@@ -1,0 +1,15 @@
+# Generated outputs (regenerable cache — never source)
+results/
+
+# Simulink build/compile caches
+**/slprj/
+*.slxc
+
+# MATLAB editor backups
+*.asv
+*.autosave
+*.m~
+
+# OS cruft
+.DS_Store
+Thumbs.db
