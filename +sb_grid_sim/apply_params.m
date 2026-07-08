@@ -41,6 +41,18 @@ if isfield(p,'load') && isfield(p.load,'Pfrq') && ~isempty(p.load.Pfrq)
     applied.Pfrq = p.load.Pfrq;
 end
 
+% ESCAPE HATCH: model-specific overrides. A study can push arbitrary base-
+% workspace variables (e.g. a particular model's motor inertia MotorA_Mech) via
+% p.overrides = struct(name -> value). Written verbatim AFTER the engine vars,
+% so they take precedence. The engine does not "own" these; they are part of the
+% param identity (param_hash covers them), so results stay reproducible/deduped.
+if isfield(p,'overrides') && isstruct(p.overrides) && ~isempty(fieldnames(p.overrides))
+    ofn = fieldnames(p.overrides);
+    for i = 1:numel(ofn)
+        applied.(ofn{i}) = p.overrides.(ofn{i});
+    end
+end
+
 fn = fieldnames(applied);
 for i = 1:numel(fn)
     assignin('base', fn{i}, applied.(fn{i}));
