@@ -128,7 +128,7 @@ for ci = 1:numel(cnames)
         specs{end+1} = pt('full_cmld', fullmodel, M,SCR,dp, ...
                           compose_full_or_2x(fullmodel,phid,Hd,Rrd, lf([cn '|__full__']))); %#ok<AGROW>
         if o.Static
-            specs{end+1} = pt('static','static', M,SCR,dp, struct()); %#ok<AGROW>
+            specs{end+1} = pt('static','static', M,SCR,dp, static_mv()); %#ok<AGROW>
         end
         for k = 1:numel(reds)
             specs{end+1} = pt('full_cmld', reds{k}.model, M,SCR,dp, ...
@@ -168,6 +168,7 @@ for ci = 1:numel(cnames)
         stat = [];
         if o.Static
             ps = mkparams('static', fullfile(mdir,'static.slx'), M,SCR,dp,o);
+            ps.model_vars = static_mv();     % feed the ext-PQ load P_W/Q_var (not P0/Q0 baseline)
             try
                 rs = sb_grid_testbench.run_point(ps,'DBFile',db,'RawDir',raw);
                 stat = load_trace(rs.trace_path, dp*ps.scale.P_W);
@@ -243,6 +244,14 @@ end
 function sp = pt(lt, model, M, SCR, dp, mv)
 % One Phase-1 point spec (a struct, so it survives the sweep builder closure).
 sp = struct('lt',lt, 'model',model, 'M',M, 'SCR',SCR, 'dp',dp, 'mv',mv);
+end
+
+function mv = static_mv()
+% static.slx's ext-PQ Dynamic Load reads P0/Q0 (inherited from the CMLD scaffold,
+% PreLoadFcn-baselined to ~409/104 MW). Feed it the nominal P_W/Q_var so the
+% static reference draws 1 pu -- matches SPEC 3.1 ("constant-PQ load = P_W/Q_var").
+p  = sb_grid_sim.default_params('static');
+mv = struct('P0', p.scale.P_W, 'Q0', p.scale.Q_var);
 end
 
 % =========================== power-match calibration ========================
