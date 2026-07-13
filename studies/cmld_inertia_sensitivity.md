@@ -11,13 +11,20 @@ results, versioned). Driver: `studies/study4.m` (currently in scratchpad; to be 
 
 ## 1. Method
 
-- **Models:** legacy `T2_fullcmld.slx` as the CMLD testbed (motor params reachable as base-workspace
-  vars via `params.overrides`), `T1_static.slx` as the static reference. *(Interim — to be replaced by
-  the hand-authored models; the interface is identical.)*
+- **Models:** `T2_fullcmld.slx` as the CMLD testbed (motor params supplied as model-owned base-workspace
+  vars via `params.model_vars`), `T1_static.slx` as the static reference. *(These are the hand-authored
+  models in `models/`, registered in `load_types.m` as `full_cmld` / `static`; the engine loads them
+  read-only and resolves them by `load_type`.)*
 - **Disturbance:** fixed **+601 MW** step (= 0.25 × nominal 2405 MW), *matched absolute MW* across all
   cases so the CMLD-vs-static comparison isn't confounded by step size.
 - **Metrics:** `RoCoF advantage = (|RoCoF_static| − |RoCoF_cmld|) / |RoCoF_static|` (%); `nadir-dip
   advantage` likewise. `Vterm` (pre-disturbance terminal voltage) tracked as a covariate.
+  - **RoCoF window = 500 ms** (least-squares slope over `[t_d, t_d+0.5 s]`, per `metrics.m`), matching
+    the **AEMO standard** measurement window. NB this is the *operational* RoCoF — over 500 ms it
+    captures the motors' fast frequency support (slip response, ~0.1–0.5 s) as well as inertia, so the
+    "RoCoF advantage" here is **not pure synchronous inertia**: on a short inertial window (~50 ms) the
+    CMLD adds ≈0 (motors draw unchanged power at `t=0⁺`). Pure inertia is isolated separately via the
+    RoCoF-derived `H_eff` (see `reducing_cmld/plan.md` §5.6). The nadir advantage is window-independent.
 - **Composition knob (φ):** motor share of load scaled via `MotorX_Nom/_Pmec` (ratings), with the
   non-motor remainder rebalanced across electronic/static; per-motor equivalent-circuit ratios preserved;
   operating slip / `Tm` recomputed via `deal_slip` when `Rr` changes. Baseline empirically rebalanced
@@ -72,10 +79,54 @@ Factors screened: **H** (motor inertia), **Rr** (rotor-R scale), **Lr** (rotor-l
 
 ---
 
-## 3. Longer run plan (overnight)
+## 3. Round 1 results — 4-corner 3-level slice (2026-07-08)
+
+Run with the `sb_grid_lab` framework (`studies/study_cmld.m`; factors {H, Rr, φ}, Lr dropped;
+models resolved by `load_type`, loaded read-only). Design: 4 corners `M∈{3,5.5} × SCR∈{5,8}`,
+3³=27-point {H,Rr,φ} grid + 1 static each = **112 sims**, `capMult=1` (baseline cap).
+
+### 3a. CapC exposed (model parameterisation)
+The fixture's shunt cap was hardcoded, so `capMult` was a dead knob. Both `T2_fullcmld/CMLD`
+shunt blocks (`Feeder shunt`, `Substation shunt`) changed from `Capacitance = 0.037092` to the
+workspace var **`CapC`** (parameter-only edit; SPS blocks in a non-linked subsystem, links intact).
+`init_testbench_params` sets a baseline `CapC`; the study overrides it via `model_vars` with
+`CapC = 0.037092·(P/2405e6)·capMult`. **Validated:** Vterm tracks CapC monotonically (at one point,
+capMult 1→0.5 → Vterm 1.01→0.88). Crucially, **RoCoF/dip are only mildly voltage-sensitive**
+(~8% across a Vterm swing 1.01→0.76) → the φ↔voltage confound on the frequency metrics is minor.
+
+### 3b. Findings (Vterm ∈ [0.90, 1.10] filter → 86/108 kept)
+SCR=8 corners kept 26/27 (full ANOVA); SCR=5 kept 17/27 (underpowered — overvoltage from the fixed cap).
+
+**ANOVA SS-fraction (SCR=8 corners):**
+| factor | RoCoF adv (M3 / M5.5) | nadir adv (M3 / M5.5) |
+|---|---|---|
+| **H** | **51.8% / 47.8%** | **63.4% / 58.3%** |
+| φ | 18.8% / 19.6% | 19.6% / 25.4% |
+| Rr | 10.0% / 13.1% | ~0 |
+| H×Rr | 9.1% / 9.3% | ~0 |
+| H×φ | 6.0% / 5.5% | 16.4% / 15.6% |
+| Rr×φ | 4.3% / 4.7% | ~0 |
+
+- **Motor inertia H dominates** (all p ≈ 1e-6…1e-10), stable across M — robustness holds at SCR=8.
+- **Nadir** = H + a strong **H×φ (~16%)** + φ; rotor resistance inert for nadir.
+- **RoCoF** additionally picks up **Rr and H×Rr (~9–13%)**.
+- **Best config H=4, Rr=0.5, φ=0.8 in every corner** → +9.6% (M5.5/SCR8) … +23.9% (M3/SCR5) RoCoF,
+  +6–14% nadir. CMLD benefit is **larger at lower system inertia** (M3 > M5.5). Reproduces §2.
+
+### 3c. Decision for Round 2
+Use **per-corner `capMult`** (calibrated to centre each corner's Vterm near 1.0) so the SCR=5 corners
+become ANOVA-viable and φ is de-confounded. Since the metrics are V-robust, per-corner (not per-point)
+balancing suffices.
+
+---
+
+## 4. Longer run plan (overnight)
 
 **Design:** k=3 full-factorial `{H, Rr, φ}` inside each of the 4 fixed-condition corners; per-corner
-ANOVA + advantage surfaces; cross-corner robustness check.
+ANOVA + advantage surfaces; cross-corner robustness check. **Per-corner `capMult`** (calibrated) so
+every corner sits near Vterm≈1.0. Execution note: background jobs are wall-capped (~10 min), so the
+sweep runs in **sub-batches** (each `sweep()` stores on completion) and is **resumable** via the SQLite
+dedup on `(sim_version, param_hash)` — re-launching continues where it left off.
 
 - **Factors / levels (5 each):**
   - `H` ∈ {0.1, 0.5, 1, 2, 4} s
@@ -104,3 +155,55 @@ run is resumable and re-runs are free.
 **Open question for the model authors:** expose the shunt cap (`CapC`) and ideally a transformer tap as
 base variables in the hand-authored CMLD models, so weaker-SCR corners can be voltage-balanced and the
 SCR=3 (regulatory-floor) condition becomes reachable without the 1.1+ pu overvoltage.
+
+---
+
+## 5. Round 2 results — 4-corner 5-level (2026-07-09)
+
+Executed via `study_cmld('r2')`: 4 corners `M∈{3,5.5}×SCR∈{5,8}` × 5³=125 {H,Rr,φ} + 4 static =
+**504 sims, capMult=1** (original cap value). Filter [0.90,1.10]: **393/500 kept** (SCR=8: 124/125;
+SCR=5: 72–73/125) — **all four corners ANOVA-viable at 5-level**, so per-corner `capMult` proved
+unnecessary. (Execution note: Pool=6 stalled on RAM oversubscription/swap; **Pool=4** ran the full
+grid — use Pool≤4 on this 31.5 GB box. `CapC` is now an exposed model var (§3a) but cap-reduction was
+not needed here.)
+
+### ANOVA SS-fraction — RoCoF advantage
+| factor | M3/SCR5 | M5.5/SCR5 | M3/SCR8 | M5.5/SCR8 |
+|---|--:|--:|--:|--:|
+| **H** | **69.6** | **65.6** | **58.4** | **54.6** |
+| Rr | 13.5 | 16.7 | 7.7 | 9.9 |
+| φ | 2.9 | 2.8 | 17.8 | 18.9 |
+| H×Rr | 12.5 | 13.5 | 7.8 | 8.7 |
+| H×φ | 0.3 | 0.3 | 5.9 | 5.2 |
+| Rr×φ | 1.1 | 1.1 | 2.4 | 2.7 |
+
+### ANOVA SS-fraction — nadir advantage
+| factor | M3/SCR5 | M5.5/SCR5 | M3/SCR8 | M5.5/SCR8 |
+|---|--:|--:|--:|--:|
+| **H** | **90.0** | **88.1** | **66.5** | **59.6** |
+| φ | 5.5 | 6.5 | 19.5 | 27.0 |
+| H×φ | 3.8 | 4.6 | 13.6 | 12.9 |
+| Rr / H×Rr / Rr×φ | ≤0.3 | ≤0.5 | ≤0.2 | ≤0.4 |
+
+(all H effects p ≈ 1e-32 … 1e-83)
+
+### Findings
+1. **Motor inertia H dominates every corner** — 55–70% of RoCoF variance, 60–90% of nadir. Unambiguous.
+2. **Grid strength (SCR) reshapes the secondary structure — the key cross-corner result:**
+   - **Weak grid (SCR=5):** RoCoF's secondary drivers are **Rr (13–17%) + H×Rr (12–14%)**; φ tiny (~3%)
+     — rotor damping matters when the grid is weak.
+   - **Stronger grid (SCR=8):** **φ (18–19%) + H×φ (5–6%)** take over; Rr shrinks — penetration matters
+     when the grid is stronger.
+3. **Nadir = H + φ + H×φ** in all corners; **rotor resistance is inert for the nadir** (~0%).
+4. **Best config H=4, Rr=0.5, φ=0.8 in all 4 corners:** +9.6% (M5.5/SCR8) … **+23.9%** (M3/SCR5) RoCoF;
+   +6.1 … +13.8% nadir. Benefit largest at **low system inertia** (M3 > M5.5).
+5. **Robustness:** H-dominance and the interaction structure (H×φ for nadir; H×Rr for RoCoF at weak grid)
+   hold across M and SCR. Confirms + sharpens Round 1.
+
+### Caveats / next
+- capMult=1 → SCR=5 runs elevated (some Vterm→1.14 excluded); φ's share at SCR=8 carries a mild
+  voltage-confound (H robust to it). A per-corner-capMult re-run at Pool≤4 would clean φ if wanted.
+- Deliverables: `results/fig/heat_*_{Hphi,HRr}.png` (8), `xcorner_Hdominance_r2.png`;
+  data in `study_cmld.db` + `study_cmld_r2.mat`.
+- Round 3 (denser / 9-corner) is available (`study_cmld('r3')`) but Round 2 already establishes the
+  core claims; densification is optional for smoother surfaces.

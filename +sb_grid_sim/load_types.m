@@ -15,10 +15,10 @@ function out = load_types(load_type)
 %   tx_direct    - motors/load direct to tx bus        (legacy T4)
 
 reg = struct( ...
-    'static',       'static', ...
-    'full_cmld',    'full_cmld', ...
-    'reduced_cmld', 'reduced_cmld', ...
-    'tx_direct',    'tx_direct');
+    'static',       'T1_static', ...      % hand-authored model in models/
+    'full_cmld',    'T2_fullcmld', ...    % hand-authored model in models/
+    'reduced_cmld', 'reduced_cmld', ...   % not yet authored
+    'tx_direct',    'tx_direct');         % not yet authored
 
 if nargin == 0
     out = fieldnames(reg);

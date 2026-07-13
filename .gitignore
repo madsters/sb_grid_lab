@@ -1,6 +1,15 @@
 # Generated outputs (regenerable cache — never source)
 results/
 
+# Study results data — regenerable (traces are large; DB + .mat are outputs).
+# The analysed results live in the study .md docs, which ARE tracked.
+studies/**/*_raw/
+studies/**/*.db
+studies/**/*.mat
+
+# Vendor reference PDFs / source docs (reference inputs, not repo source)
+studies/**/source_docs/
+
 # Simulink build/compile caches
 **/slprj/
 *.slxc

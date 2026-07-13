@@ -41,15 +41,17 @@ if isfield(p,'load') && isfield(p.load,'Pfrq') && ~isempty(p.load.Pfrq)
     applied.Pfrq = p.load.Pfrq;
 end
 
-% ESCAPE HATCH: model-specific overrides. A study can push arbitrary base-
-% workspace variables (e.g. a particular model's motor inertia MotorA_Mech) via
-% p.overrides = struct(name -> value). Written verbatim AFTER the engine vars,
-% so they take precedence. The engine does not "own" these; they are part of the
-% param identity (param_hash covers them), so results stay reproducible/deduped.
-if isfield(p,'overrides') && isstruct(p.overrides) && ~isempty(fieldnames(p.overrides))
-    ofn = fieldnames(p.overrides);
+% MODEL-OWNED VARIABLES. The engine's interface deliberately EXCLUDES the load
+% internals (motors/composition) -- they belong to the user's data-driven model,
+% which reads them as named base-workspace variables (e.g. MotorA_Mech). A study
+% supplies those values via p.model_vars = struct(name -> value); they are written
+% here on the SAME assignin path as everything else -- the .slx is never touched,
+% only its workspace inputs. They are part of the param identity (param_hash
+% covers them) so results stay reproducible/deduped.
+if isfield(p,'model_vars') && isstruct(p.model_vars) && ~isempty(fieldnames(p.model_vars))
+    ofn = fieldnames(p.model_vars);
     for i = 1:numel(ofn)
-        applied.(ofn{i}) = p.overrides.(ofn{i});
+        applied.(ofn{i}) = p.model_vars.(ofn{i});
     end
 end
 

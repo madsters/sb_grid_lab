@@ -38,7 +38,7 @@ for i = 1:n
     if isa(axis_name, 'function_handle')
         % builder form: axis_name(base_params, value) -> mutated params. Lets a
         % study set knobs that aren't a single dotted scalar (e.g. motor inertia
-        % across several MotorX_Mech vectors via p.overrides).
+        % across several MotorX_Mech vectors via p.model_vars).
         params_list{i} = axis_name(base_params, v);
     else
         params_list{i} = set_dotted(base_params, axis_name, v);
