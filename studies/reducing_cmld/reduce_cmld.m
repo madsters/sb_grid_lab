@@ -37,7 +37,13 @@ ip.addParameter('TraceWin',10);
 ip.addParameter('MatchP',true);            % calibrate reduced load factor to match full P (gate)
 ip.addParameter('MatchTol',0.004);         % pre-disturbance P match tolerance (< gate 0.5%)
 ip.addParameter('MatchIters',6);           % max secant iterations per candidate/corner
+ip.addParameter('H',1.5);                  % motor inertia design point (plan §4.1; realistic cap 2.5)
+ip.addParameter('Rr',0.5);                 % rotor-R scale design point
+ip.addParameter('phi',0.8);                % motor penetration design point
+ip.addParameter('StaticModel','true_static'); % baseline static: constant-Z, freq-independent (14-gen)
+ip.addParameter('VTol',0.004);             % static Vterm-match tolerance (pu) for the CapC calibration
 ip.parse(varargin{:}); o = ip.Results;
+assert(o.H <= 2.5, 'motor H capped at 2.5 (realistic ceiling); got %g', o.H);
 
 sc     = fileparts(mfilename('fullpath'));      % studies/reducing_cmld
 repo   = fileparts(fileparts(sc));              % sb_grid_lab
@@ -50,7 +56,7 @@ raw    = fullfile(sc,'reducing_cmld_raw');
 figdir = fullfile(repo,'results','fig'); if ~isfolder(figdir), mkdir(figdir); end
 
 DP  = o.DP(:)'; dpset = [DP, -DP];              % both signs
-Hd = 1.5; Rrd = 0.5; phid = 0.8;                % design point (plan §4.1)
+Hd = o.H; Rrd = o.Rr; phid = o.phi;             % design point (plan §4.1; H<=2.5)
 
 % corners (plan §4):  [M  SCR]
 corners = struct('stress',[3 5], 'nominal',[5.5 8]);
@@ -71,7 +77,7 @@ end
 
 % ----- guard: the hand-authored models must exist --------------------------
 need = [{fullmodel}, cellfun(@(r) r.model, reds, 'uni',0)];
-if o.Static, need = [need, {'static'}]; end
+if o.Static, need = [need, {o.StaticModel}]; end
 assert_models_present(need, mdir);
 
 % Pool>1 first so serial runs (Pool=1) never touch gcp/parpool -- the Parallel
@@ -112,6 +118,21 @@ if o.MatchP
     end
 end
 
+% ----- PHASE 0b: pin the (constant-Z) static to 1 pu via its shunt cap -------
+% true_static is constant-Z (draws P ~ V^2), so it draws 1 pu only at V ~ 1 pu.
+% At weak corners it sags, so we tune its shunt cap CapC (secant) to hold
+% Vterm = 1.0 -- then the constant-Z load draws its 1 pu setpoint. Same reactive-
+% support mechanism the CMLD has (its CapC); mirrors the sensitivity study's
+% capMult centering. scap: "corner" -> calibrated CapC.
+scap = containers.Map();
+if o.Static
+    for ci = 1:numel(cnames)
+        cn = cnames{ci}; M = corners.(cn)(1); SCR = corners.(cn)(2);
+        ps0 = mkparams('static', fullfile(mdir,[o.StaticModel '.slx']), M,SCR,0.25,o);
+        scap(cn) = calibrate_cap(ps0, 1.0, o.VTol, o.MatchIters);
+    end
+end
+
 % ----- PHASE 1: run every sim ONCE, in parallel, via sweep ------------------
 % The analysis loop below is inherently serial (equiv_report + figures run on
 % the client). To use the pool we first WARM the dedup cache: build one point
@@ -128,7 +149,8 @@ for ci = 1:numel(cnames)
         specs{end+1} = pt('full_cmld', fullmodel, M,SCR,dp, ...
                           compose_full_or_2x(fullmodel,phid,Hd,Rrd, lf([cn '|__full__']))); %#ok<AGROW>
         if o.Static
-            specs{end+1} = pt('static','static', M,SCR,dp, static_mv()); %#ok<AGROW>
+            specs{end+1} = pt('static', o.StaticModel, M,SCR,dp, ...
+                              struct('CapC', scap(cn))); %#ok<AGROW>
         end
         for k = 1:numel(reds)
             specs{end+1} = pt('full_cmld', reds{k}.model, M,SCR,dp, ...
@@ -164,11 +186,11 @@ for ci = 1:numel(cnames)
         full = load_trace(rf.trace_path, dp*pf.scale.P_W);
         full.label = 'full';
 
-        % STATIC reference (for absolute H_eff), optional/guarded
+        % STATIC reference (constant-Z, cap-centered to 1 pu), optional/guarded
         stat = [];
         if o.Static
-            ps = mkparams('static', fullfile(mdir,'static.slx'), M,SCR,dp,o);
-            ps.model_vars = static_mv();     % feed the ext-PQ load P_W/Q_var (not P0/Q0 baseline)
+            ps = mkparams('static', fullfile(mdir,[o.StaticModel '.slx']), M,SCR,dp,o);
+            ps.model_vars = struct('CapC', scap(cn));   % shunt cap tuned to hold Vterm=1.0
             try
                 rs = sb_grid_testbench.run_point(ps,'DBFile',db,'RawDir',raw);
                 stat = load_trace(rs.trace_path, dp*ps.scale.P_W);
@@ -246,25 +268,46 @@ function sp = pt(lt, model, M, SCR, dp, mv)
 sp = struct('lt',lt, 'model',model, 'M',M, 'SCR',SCR, 'dp',dp, 'mv',mv);
 end
 
-function mv = static_mv()
-% static.slx's ext-PQ Dynamic Load reads P0/Q0 (inherited from the CMLD scaffold,
-% PreLoadFcn-baselined to ~409/104 MW). Feed it the nominal P_W/Q_var so the
-% static reference draws 1 pu -- matches SPEC 3.1 ("constant-PQ load = P_W/Q_var").
-p  = sb_grid_sim.default_params('static');
-mv = struct('P0', p.scale.P_W, 'Q0', p.scale.Q_var);
-end
-
-% =========================== power-match calibration ========================
-function P = probe_P(p, mv)
-% Settle the model and return the pre-disturbance active power (W). Uses a SHORT
-% post-disturbance window (the settled P is all we need) and simulate directly
-% (pure, no DB) so calibration probes stay cheap and off the results DB.
+% =========================== power/voltage calibration ======================
+function [P, V] = probe_PV(p, mv)
+% Settle the model and return the pre-disturbance active power (W) and terminal
+% voltage (pu). SHORT post-disturbance window (settled values are all we need);
+% simulate directly (pure, no DB) so calibration probes stay off the results DB.
 p.model_vars = mv;
 p.solver.StopTime = p.disturbance.dist_time + 3;
 r = sb_grid_sim.simulate(p);
 td = r.meta.dist_time_abs;
 m  = r.t < td & r.t > td-1;                 % last 1 s before the step
-P  = mean(r.P(m));
+P  = mean(r.P(m));  V = mean(r.V(m));
+end
+
+function P = probe_P(p, mv)
+[P, ~] = probe_PV(p, mv);
+end
+
+function C = calibrate_cap(pbase, Vtarget, tol, maxit)
+% Tune the (constant-Z) static's shunt cap CapC so its settled Vterm == Vtarget
+% (=1.0 pu) -> the constant-Z load then draws its 1 pu setpoint. Vterm rises
+% monotonically with CapC (more shunt reactive) below resonance, so secant
+% converges fast. Seeds are sized for the 220 kV bus (~1e-4 F range) -- NB the
+% CMLD's CapC=0.037 is for its internal 11 kV bus; that value is ~400x too large
+% here and shorts the 220 kV node, so do NOT seed from it (verified 2026-07-13).
+C1 = 2e-5;  [~,V1] = probe_PV(pbase, struct('CapC',C1));
+C2 = 1e-4;  [~,V2] = probe_PV(pbase, struct('CapC',C2));
+fprintf('  [calCap C=%.5f] Vterm=%.4f\n  [calCap C=%.5f] Vterm=%.4f\n', C1,V1,C2,V2);
+C = C2;
+for it = 1:maxit
+    if abs(V2 - Vtarget) < tol, C = C2; return; end
+    slope = (V2-V1)/(C2-C1);                       % dV/dCapC (>0)
+    if slope == 0, break; end
+    C = max(C2 + (Vtarget-V2)/slope, 0);           % secant step, cap >= 0
+    [~,V] = probe_PV(pbase, struct('CapC',C));
+    fprintf('  [calCap C=%.5f] Vterm=%.4f  err=%+.4f\n', C, V, V-Vtarget);
+    C1=C2; V1=V2; C2=C; V2=V;                       % advance the secant window
+end
+if abs(V2-Vtarget) >= tol
+    warning('reduce_cmld:calCap','static V-match not reached (%.4f pu after %d its)', V2, it);
+end
 end
 
 function LFm = calibrate_lf(pbase, compose_lf, Ptarget, name, tol, maxit)
