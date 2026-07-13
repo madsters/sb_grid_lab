@@ -116,8 +116,13 @@ pf = polyfit(tr.t(m)-td, tr.f(m), 1);  r = pf(1);
 end
 
 function d = dip(tr, td)
+% Peak frequency excursion from the pre-disturbance baseline, SIGN-AGNOSTIC:
+% = (f0 - nadir) for a load rise, = (zenith - f0) for a load drop. The old
+% f0-min(f) only saw downward excursions, so on a load drop (freq rises) it
+% collapsed to ~0 and exploded the relative dip error (38-67%). max|f-f0|
+% captures the primary excursion in either direction.
 pre = tr.t < td & tr.t > td-0.5;  f0 = mean(tr.f(pre));
-d = f0 - min(tr.f(tr.t >= td));
+d = max(abs(tr.f(tr.t >= td) - f0));
 end
 
 function [mae, maxe] = traceerr(full, red, fld, td, T)

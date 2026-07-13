@@ -142,7 +142,14 @@ name — Save-As handles this; never rename the file afterwards.
 - **Load subsystem:** a single constant-PQ load drawing `P_W`, `Q_var` (a `Three-Phase Dynamic Load`
   in external mode fed `P_W`/`Q_var`, or a constant-Z `Parallel RLC Load`). Optional freq sensitivity
   via `Pfrq`.
-- **Vars read:** `P_W`, `Q_var` (`Pfrq` optional). No motor/`CapC` vars.
+- **REQUIRED — resistive `snub_P` shunt.** A constant-PQ Dynamic Load is a **current source**; on its
+  own it sits in series with the grid Thévenin inductor and the node voltage is undefined
+  (`validate_model` fails: *"blocks cannot be connected in series … modeled as a current source"*).
+  Add a `Three-Phase Parallel RLC Load` **in parallel** across the load bus with `ActivePower = snub_P`
+  (base var, ≈0.5% of `P_W`), reactive = 0, and NominalVoltage matching the Dynamic Load's bus — a
+  high-value parallel resistance that defines the node without changing the constant-PQ character.
+  (Not needed for the CMLD models: their shunt caps + motors already define the node.)
+- **Vars read:** `P_W`, `Q_var`, `snub_P` (`Pfrq` optional). No motor/`CapC` vars.
 - (Alternative: point the driver at the repo `models/T1_static.slx` instead of authoring this — but
   that one needs the H: bridge, so a fresh minimal static is cleaner.)
 
