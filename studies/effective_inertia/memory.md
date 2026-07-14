@@ -68,22 +68,28 @@ too much. A serial run (`Pool',1`) mirrors the T1-Sim profile that completed cle
 **Decision: run T2 SERIAL for robustness** (`t2_driver('Corner','both','Robust',true,'Pool',1)`),
 ~1.5 h, durable per-point DB writes (resumable via dedup if interrupted). See [[matlab-sim-gotchas]].
 
-## COMPLETE (2026-07-14) — all 6 phases run; results in `results_effective_inertia.md`
-Full serial T2 (both corners, robust; 28 sims, ~108 min) done with E1/E2/E3. **Headline:**
-- T1: closed form `H_load=Σ(F_mi/LF)H_i` reproduced EXACTLY (0.148→1.19 s ladder).
-- **E3 (true KE delivered): r_E3 ≈ 0.4 %% (stress) / 0.2 %% (nominal), FLAT across all 9 mixes.**
-  Verified analytic law `frac_released ≈ 2|Δf|/f₀` (rotor tracks freq dip) → delivered inertia is
-  set by the frequency excursion, INDEPENDENT of the H distribution. H_load overstates delivered
-  inertia ~250×.
-- **E1 (RoCoF-apparent): r_E1 = 1.2–2.6 > 1**, ≈0 at 20 ms, rising with window = fast frequency
-  response / load relief, NOT synchronous inertia. E2 corroborates (inertia coeff ≈0 at cond≈4).
-- **Paper takeaway:** H_load bounds *delivered* inertia (loosely) but NOT the *RoCoF-measured* value
-  → likely explains measured (~1.4 s) ≫ formula (~0.17 s): field RoCoF captures fast freq response
-  as apparent inertia. Update [[effective-inertia-from-rocof]] framing accordingly.
+## COMPLETE (2026-07-14/15) — all 6 phases run; results in `results_effective_inertia.md`
+Full serial T2 (both corners, robust; 28 sims, ~108 min). **Reported measure = E1 = the 500 ms-RoCoF
+effective inertia** (Maddy's mandate); E2/E3 are diagnostics. **Headline (reframed after review):**
+- **Measured H_eff = ~1.0·H_load + offset:** stress `1.04·H_load + 0.23` (R²=0.996, offset 0.25 s);
+  nominal `0.98·H_load + 0.20` (R²=0.997, offset 0.19 s). Figure `eff_inertia_measured_vs_formula.png`.
+- **Slope ≈ 1** → the formula predicts the SENSITIVITY of H_eff to H_i and F_mi, and depends only on
+  the weighted sum `Σ(F_mi/LF)H_i` NOT which motor (aggregation validated). **Offset ~0.2–0.25 s** the
+  formula omits = the load fast frequency response (grows with motor fraction + grid weakness).
+- **The formula is NOT the measured effective inertia** — good differential predictor, wrong absolute.
+- Diagnostics for the offset: E2 (P–ω) damping-dominated, inertia coeff ≈0 at cond≈4; E3 (KE from
+  slip) <1 % of stored KE delivered in 500 ms (`≈2|Δf|/f₀`, flat across mix). So the 500 ms RoCoF
+  conflates a small true-inertia part with a larger fast-response part.
+- **T1 is a circular initialisation check, NOT a validation** — do not say "the formula is correct"
+  because it "scales"; that was a review correction.
+- **Paper takeaway:** treat `H_load` as a stored-energy term predicting sensitivity, not delivered/
+  measured inertia. Measured demand-side H (RoCoF) includes the offset → partly why measured ~1.4 s ≫
+  formula ~0.17 s. Always state the window. Update [[effective-inertia-from-rocof]] accordingly.
 
-Artifacts: `results_effective_inertia.md` (write-up), `t2_results.csv`, `results/fig/eff_inertia_*.png`
-(4 figs via `plot_effective_inertia`), `report_effective_inertia.m`, `run_timings.md`. Rerun serial
-(`Pool',1`); DB dedup makes it resumable. See [[effective-inertia-from-rocof]], [[matlab-sim-gotchas]].
+Artifacts: `results_effective_inertia.md`, `t2_results.csv`, 4 figs in `results/fig/eff_inertia_*.png`
+(headline = `_measured_vs_formula.png`), `plot_effective_inertia.m`, `report_effective_inertia.m`,
+`run_timings.md`. Rerun serial (`Pool',1`); DB dedup resumable. See [[matlab-sim-gotchas]].
+⚠ Engine edit (`+sb_grid_sim/simulate.m` reads `r.extra`) awaits Maddy's review.
 
 ## Reuse from reducing_cmld
 Engine `+sb_grid_sim`, harness `+sb_grid_testbench` (SQLite dedup), RoCoF/`H_eff` machinery,
