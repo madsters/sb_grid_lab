@@ -24,7 +24,41 @@ pinned to P_W (CMLD LFm=0.7033, static CapC≈5.0e-5), **knife-edge dP\* = +0.30
 
 Results/figure → `phase1_threshold/` (`pv_phase1.mat`, `pv_trip_threshold_dp0.30.png`). Figure forces
 a LIGHT theme (`theme(fig,'light')`) — R2025b `-batch` defaults to DARK, which is unreadable.
-**Next: Phase 2** — build `pv_cmld.slx`/`pv_static.slx` via Simulink MCP, run at dP*=0.30.
+
+## Phase 2 — models BUILT + validated (2026-07-14, via Simulink MCP)
+`models/pv_cmld.slx` (from cmld_3m) + `models/pv_static.slx` (from true_static), each with an identical
+**PV_trip** subsystem built via `model_edit`. Both `validate_model` green. `setup_pv_models.m` made the
+renamed copies; `.satk/reuse-libraries.json` saved with `confirmedNone` (no custom libs).
+
+**PV_trip subsystem** (input freq_hz, output P_pv_active):
+- `under = freq_hz < f_trip`; **`armed = dist_time < 1e6`** (NOT a Clock — resuming from a non-rebased
+  ModelOperatingPoint makes the Clock read inconsistent w/ the logged time axis → false trip at
+  restart; engine sets dist_time=1e9 during settle, finite for the disturbance run, so this arms
+  cleanly). `trip_now = armed & under` → **latch** (OR + Memory, no reconnect) → **Transport Delay**
+  `t_trip_delay` (needs a boolean→double Data Type Conversion — TransportDelay rejects boolean) →
+  `gate = 1 − tripped` → `P_pv_active = P_pv·gate`. Logs `pv_active`, `pv_tripped`.
+- **Placement = behind-the-meter at the LOAD BUS** (user decision): a Sum computes
+  `P_net = gross_P_load − P_pv_active`; **P_net is logged as `P_load` AND fed to `Pe_sum`** (Pe_sum
+  reverted to `P_net + Pdist`). Logging NET as P_load is REQUIRED for baseline consistency — the engine
+  sets `P_ref = mean(logged P_load)`, so net must be logged or the swing balances gross vs a net Pe →
+  runaway baseline.
+- New base vars `P_pv, f_trip(49.5), t_trip_delay(0.1)` added to each model's PreLoadFcn as defaults
+  (like MotorX_*), overridden at sim time via `params.model_vars`.
+
+**Operating point (user requirement):** net = (CMLD − PV) = **1 pu (2405 MW) pre-disturbance**. Since
+P_load logs net, the existing `calibrate_lf`/`calibrate_cap` pin NET→P_W automatically; gross rises to
+≈P_W+P_pv (LFm/CapC recalibrate UP vs Phase 1). Pre-trip this reproduces the Phase-1 net operating
+point; `P_pv=0` collapses to Phase 1 (verified: pv_cmld P_pv=0 dP=0.30 → nadir 49.5208 = Phase-1's
+49.521). Trip verified: dP=0.60 P_pv=0.25 → trips 0.5s after step, nadir cascades 49.04→48.65; dP=0.30
+→ rides through (no trip, nadir 49.53).
+
+**BACKLOG (not done):** full electrical **DER_A** PV block (Simscape current injection inside the
+feeder, real voltage coupling, inverter dynamics, graduated/partial tripping across a spread of trip
+settings). Current "simple PV" is a frequency-triggered net-load step (+P_pv), latched, all-or-nothing —
+frequency-faithful but omits voltage coupling. See repo-root memory backlog + validating_cmld G2.
+
+**Next:** write `phase2()` in pv_trip.m (calibrate net→P_W both models, verify knife-edge with PV,
+run + headline figure) → `phase2_pvtrip/`. Helpers: `pv_smoke.m`, `pv_diag.m` (debug aids).
 
 ## Locked decisions
 - **Two phases:** Phase 1 = threshold-crossing with the EXISTING reducing_cmld models (no build, fast,
