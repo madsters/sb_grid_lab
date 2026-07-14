@@ -17,17 +17,17 @@ The paper's §Discussion "From Stored Energy to Delivered Response" flags `r = H
 future work — this study is that work.
 
 ## Status (2026-07-14)
-- Scaffolding + `source_docs/` only (paper + case-study note + parsed EPRI/WECC/arXiv/AEMO/Reactive
-  refs; see `source_docs/README.md`). No models / driver / results yet.
-- **Blocking open question:** does `cmld_3m` expose **independent** `H_A/H_B/H_C` and motor
-  fractions as `model_vars`? `reducing_cmld` ties H common across A/B/C. Breaking that may be a
-  parameter-only change (OK) or a structure change (**banned without asking Maddy**). Resolve
-  before any run.
+- Scaffolding + `source_docs/` + `models/cmld_3m.slx` (copied from reducing_cmld). No driver /
+  results yet.
+- **Model question RESOLVED:** `cmld_3m` binds independent `MotorA/B/C_Mech = [H 0 2]` +
+  `MotorA/B/C_Nom` — heterogeneous per-motor H & fractions are **parameter-only** via `model_vars`
+  (no structure change, no `.slx` edit). Stock model even ships the NEM set H_A=0.1/H_B=0.5/H_C=0.1;
+  reduce_cmld overrode with common H=1.5. See `plan.md` "Model capability — RESOLVED".
 
 ## Next step
-1. Answer the model question above (inspect params, don't edit the model — ask first).
-2. Build the T1 open-loop check (formula vs initialised motor MVA) — no dynamics, cheap.
-3. Then T2 (RoCoF `H_eff` sweep), reusing the `reducing_cmld` engine + matched-MW conventions.
+1. Build the T1 open-loop check (formula vs initialised motor MVA) — no dynamics, cheap.
+2. Then T2 (RoCoF `H_eff` sweep), reusing the `reducing_cmld` engine + matched-MW conventions.
+See `plan.md` "Offline build plan" for the no-MATLAB authoring sequence.
 
 ## Reuse from reducing_cmld
 Engine `+sb_grid_sim`, harness `+sb_grid_testbench` (SQLite dedup), RoCoF/`H_eff` machinery,

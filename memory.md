@@ -75,7 +75,8 @@ future work; T2 is that work. Empirical anchors: ~1.4 s measured NEM demand-side
 (Reactive Technologies) vs the ~0.17 s the formula returns on AEMO's set (inertia_ceiling_note).
 
 reducing_cmld fixes H common across A/B/C (so `H_eq` is trivially the common H, and L1 tests only
-the torque/electrical abstraction) — this item deliberately breaks that uniformity. **Open
-dependency:** confirm `cmld_3m` exposes independent `H_A/H_B/H_C` + fractions as `model_vars`
-before any run (may hit the structure-change ban — ask first). Ties directly to the PowerTech
-`H_load` contribution.
+the torque/electrical abstraction) — this item deliberately breaks that uniformity. **Model
+capability confirmed (2026-07-14):** `cmld_3m` binds independent `MotorA/B/C_Mech`/`_Nom`, so
+heterogeneous per-motor H & fractions are parameter-only via `model_vars` — no structure change,
+no `.slx` edit (the stock model even ships the NEM set H_A=0.1/H_B=0.5/H_C=0.1). Ties directly to
+the PowerTech `H_load` contribution.
