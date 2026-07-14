@@ -15,8 +15,13 @@ and shared infrastructure. Convention established 2026-07-14.
   realistic operating corners + matched-MW / flat-baseline conventions the other studies reuse.
 - **pv_trip** — `studies/pv_trip/` (`plan.md` + `memory.md` + `models/SPEC.md`) — shows load-model
   fidelity flipping a binary protection outcome: a disturbance where a static load ⇒ frequency < 49.5 Hz
-  ⇒ rooftop PV trips/cascades, while the CMLD rides through. On branch `pv-trip`. Scaffold only so far
-  (model-edit rule overridden here to build the PV-trip model via the Simulink MCP/MATLAB skills).
+  ⇒ rooftop PV trips/cascades, while the CMLD rides through. On branch `pv-trip`. Phase 1 done
+  (knife-edge dP*=+0.30 pu: static 49.466 trips, CMLD 49.521 rides). Phase 2 PV-trip models
+  (`pv_cmld`/`pv_static`) built via the Simulink MCP + run. **PV = "simple" frequency-triggered
+  behind-the-meter net-load step** (latched, all-or-nothing at 49.5, at the load bus); net (load−PV)
+  pinned to 1 pu pre-disturbance. **Full electrical DER_A (Simscape current injection in the feeder,
+  voltage coupling, inverter dynamics, graduated/partial trip) NOT done — backlog** (see the DER item
+  below + validating_cmld G2).
 
 ## Working rules & conventions
 - **Hand-authored `.slx` models:** parameter edits are allowed, **structure changes are banned**, and

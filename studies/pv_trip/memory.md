@@ -45,12 +45,20 @@ renamed copies; `.satk/reuse-libraries.json` saved with `confirmedNone` (no cust
 - New base vars `P_pv, f_trip(49.5), t_trip_delay(0.1)` added to each model's PreLoadFcn as defaults
   (like MotorX_*), overridden at sim time via `params.model_vars`.
 
-**Operating point (user requirement):** net = (CMLD − PV) = **1 pu (2405 MW) pre-disturbance**. Since
-P_load logs net, the existing `calibrate_lf`/`calibrate_cap` pin NET→P_W automatically; gross rises to
-≈P_W+P_pv (LFm/CapC recalibrate UP vs Phase 1). Pre-trip this reproduces the Phase-1 net operating
-point; `P_pv=0` collapses to Phase 1 (verified: pv_cmld P_pv=0 dP=0.30 → nadir 49.5208 = Phase-1's
-49.521). Trip verified: dP=0.60 P_pv=0.25 → trips 0.5s after step, nadir cascades 49.04→48.65; dP=0.30
-→ rides through (no trip, nadir 49.53).
+**Operating point — IMPORTANT finding (2026-07-14 overnight):** the user asked for net=(CMLD−PV)=**1 pu**
+pre-disturbance, but that is **INFEASIBLE with the simple power-term PV**. Because the power-term PV is a
+bookkeeping subtraction (NOT an electrical current injection), pinning net=1 pu forces the load to
+*electrically* draw gross = P_W + P_pv = 1.25 pu: the CMLD motors then **stall / voltage-collapse**
+(LFm→0.94, Vterm→0.69, net→~0) and the static needs unrealistic **Vterm≈1.124** overvoltage. A real
+DER_A current injection WOULD relieve the feeder (feeder carries net 1 pu, PV serves the rest locally),
+making net=1 pu feasible — that's the backlog item. **So Phase 2 pins the ELECTRICAL draw (gross) to
+P_W (1 pu, the validated Phase-1 corner) via `net_target = P_W − P_pv`**; pre-disturbance net = 1 − P_pv
+= 0.75 pu. This reproduces the Phase-1 pre-trip nadirs (same electrical load, M, dP) and keeps
+SCR/Vterm at the validated corner. `P_pv=0` collapses to Phase 1 (verified: pv_cmld P_pv=0 dP=0.30 →
+nadir 49.5208 = Phase-1's 49.521). Trip verified: dP=0.60 P_pv=0.25 → trips 0.5s after step, nadir
+cascades 49.04→48.65; dP=0.30 → rides through (no trip, nadir 49.53).
+**MORNING DECISION for user:** accept gross=1 pu (net=0.75 pu, done tonight) / reduce P_pv for a feasible
+net≈1 pu / or build DER_A. The qualitative result (static trips, CMLD rides) holds either way.
 
 **BACKLOG (not done):** full electrical **DER_A** PV block (Simscape current injection inside the
 feeder, real voltage coupling, inverter dynamics, graduated/partial tripping across a spread of trip

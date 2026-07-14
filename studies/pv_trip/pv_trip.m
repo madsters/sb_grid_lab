@@ -37,6 +37,9 @@ ip.addParameter('RT',12);        % disturbance-run stop time (s)
 ip.addParameter('MatchTol',0.004);
 ip.addParameter('MatchIters',6);
 ip.addParameter('DPstar',[]);    % Phase 2: knife-edge dP (default: pick from a P1 run)
+ip.addParameter('P_pv',[]);      % Phase 2: PV penetration (W); default 0.25*P_W
+ip.addParameter('t_trip_delay',0.1);  % Phase 2: DER trip delay (s)
+ip.addParameter('DP2',[0.28 0.30 0.32]); % Phase 2: focused knife-edge sweep
 ip.parse(varargin{:}); o = ip.Results;
 
 sc   = fileparts(mfilename('fullpath'));           % studies/pv_trip
@@ -73,7 +76,7 @@ LFm = calibrate_lf(pf0, @(x) compose_full(o.phi,o.H,o.Rr,[],x), Ptarget, o.Match
 
 ps0 = mkparams('static', statPath, o, 0.25);
 fprintf('[pin static] calibrating shunt cap CapC -> P_W ...\n');
-CapC = calibrate_cap(ps0, Ptarget, o.MatchTol, o.MatchIters);
+CapC = calibrate_cap(ps0, @(C) struct('CapC',C), Ptarget, o.MatchTol, o.MatchIters);
 
 % ----- sweep dP, both models, via the PURE engine ---------------------------
 DP = o.DP(:)'; n = numel(DP);
@@ -123,15 +126,129 @@ end
 
 % ============================ PHASE 2 =====================================
 function T = phase2(o, sc, repo)
-% Runs the PV-trip models at the knife-edge dP. Requires the study-local models
-% (built via Simulink MCP -- see models/SPEC.md) to exist first.
+% The dramatic version: identical frequency-tripped PV (behind-the-meter, at the
+% load bus) in BOTH pv_cmld and pv_static, so the ONLY difference is the load
+% model. At the knife-edge dP the static's nadir crosses 49.5 -> PV trips ->
+% secondary cascade; the CMLD stays above -> PV rides through. Net (load - PV) is
+% pinned to P_W (1 pu) pre-disturbance (user requirement) via LFm/CapC, so the
+% pre-trip trajectory reproduces the Phase-1 net operating point.
 mdir = fullfile(sc,'models');
 figdir = fullfile(sc,'phase2_pvtrip'); if ~isfolder(figdir), mkdir(figdir); end
 cmldPath = fullfile(mdir,'pv_cmld.slx');
 statPath = fullfile(mdir,'pv_static.slx');
 assert(isfile(cmldPath) && isfile(statPath), ...
     'Phase 2 needs pv_cmld.slx + pv_static.slx in %s (build them via the Simulink MCP first)', mdir);
-error('pv_trip:phase2:pending','Phase 2 runner is filled in once the PV-trip models are built.');
+Ptarget = sb_grid_sim.default_params('full_cmld').scale.P_W;
+P_pv = o.P_pv; if isempty(P_pv), P_pv = 0.25*Ptarget; end
+ft = o.f_trip; tdel = o.t_trip_delay;
+addpv = @(mv) addpvfields(mv, P_pv, ft, tdel);
+
+% OPERATING POINT (see memory.md): pinning NET (load-PV) to 1 pu is INFEASIBLE
+% with the simple power-term PV -- it forces the load to *electrically* draw
+% gross = P_W + P_pv (1.25 pu), which stalls the CMLD motors (voltage collapse)
+% and needs unrealistic overvoltage for the static, because the power-term PV
+% does not inject current to relieve the feeder (that is the DER_A refinement).
+% So we pin the ELECTRICAL draw (gross) to 1 pu -- the validated Phase-1
+% operating point -- via net_target = P_W - P_pv. The PV then nets off to a
+% pre-disturbance net = 1 - P_pv pu. This reproduces the Phase-1 pre-trip nadirs
+% (same electrical load, M, dP) and keeps SCR/Vterm at the validated corner.
+net_target = Ptarget - P_pv;
+
+fprintf('\n==== pv_trip PHASE 2: PV-trip feedback (stress M=%g SCR=%g, H=%.1f Rr=%.1f phi=%.1f) ====\n', ...
+        o.M, o.SCR, o.H, o.Rr, o.phi);
+fprintf(['  gross (electrical) pinned to P_W=%.0f MW (1 pu, feasible); P_pv=%.0f MW (%.2f pu)\n' ...
+         '  -> pre-disturbance NET = %.0f MW (%.2f pu); f_trip=%.1f Hz; t_delay=%.2f s\n' ...
+         '  [net=1pu is infeasible with simple PV -> needs DER_A current injection; see memory.md]\n'], ...
+        Ptarget/1e6, P_pv/1e6, P_pv/Ptarget, net_target/1e6, net_target/Ptarget, ft, tdel);
+
+% ----- calibrate NET -> (P_W - P_pv), i.e. gross(electrical) -> P_W ----------
+pf0 = mkparams('full_cmld', cmldPath, o, 0.25);
+fprintf('[pin pv_cmld] LFm so gross(electrical) -> P_W (net -> P_W-P_pv) ...\n');
+LFm = calibrate_lf(pf0, @(x) addpv(compose_full(o.phi,o.H,o.Rr,[],x)), net_target, o.MatchTol, o.MatchIters);
+ps0 = mkparams('static', statPath, o, 0.25);
+fprintf('[pin pv_static] CapC so gross(electrical) -> P_W (net -> P_W-P_pv) ...\n');
+CapC = calibrate_cap(ps0, @(C) addpv(struct('CapC',C)), net_target, o.MatchTol, o.MatchIters);
+mv_cmld = addpv(compose_full(o.phi,o.H,o.Rr,[],LFm));
+mv_stat = addpv(struct('CapC',CapC));
+
+% ----- knife-edge verification sweep (PV feedback live) ---------------------
+DP = o.DP2(:)'; n = numel(DP);
+rows = cell(n,7); traces = struct('dp',{},'cmld',{},'stat',{});
+for i = 1:n
+    dp = DP(i);
+    rc = runfull(mkparams('full_cmld', cmldPath, o, dp), mv_cmld);
+    rs = runfull(mkparams('static',    statPath, o, dp), mv_stat);
+    v  = split_verdict(rs.tripped, rc.tripped);
+    fprintf('  dP=%+.2f | static nadir %.3f trip=%d | CMLD nadir %.3f trip=%d -> %s\n', ...
+            dp, rs.metrics.nadir, rs.tripped, rc.metrics.nadir, rc.tripped, v);
+    rows(i,:) = {dp, rs.metrics.nadir, rc.metrics.nadir, rs.tripped, rc.tripped, rs.t_trip-rs.td, v};
+    traces(i) = struct('dp',dp,'cmld',rc,'stat',rs); %#ok<AGROW>
+end
+T = cell2table(rows, 'VariableNames', ...
+    {'dp','nadir_static','nadir_cmld','trip_static','trip_cmld','static_trip_dt','verdict'});
+
+% knife-edge = the SPLIT nearest 0.30 (Phase-1 crossing), else fall back
+split = strcmp(T.verdict,'SPLIT');
+if any(split)
+    idx = find(split); [~,k] = min(abs(T.dp(idx)-0.30)); dpstar = T.dp(idx(k));
+    fprintf('\n  PHASE-2 KNIFE-EDGE dP* = %+.2f pu: static PV trips & cascades, CMLD PV rides through\n', dpstar);
+else
+    [~,k] = min(abs(T.dp-0.30)); dpstar = T.dp(k);
+    warning('pv_trip:phase2:nosplit','no clean SPLIT in DP2 sweep; using dP=%.2f for the figure', dpstar);
+end
+save(fullfile(figdir,'pv_phase2.mat'), 'T','traces','LFm','CapC','dpstar','P_pv','o');
+fprintf('\n===== PHASE 2 summary =====\n'); disp(T);
+
+% ----- assertions (SPEC verification) --------------------------------------
+[~,ki] = min(abs([traces.dp]-dpstar)); tr = traces(ki);
+assert(tr.stat.tripped,  'Phase2: pv_static did NOT trip at dP*=%.2f', dpstar);
+assert(~tr.cmld.tripped,  'Phase2: pv_cmld TRIPPED at dP*=%.2f (should ride through)', dpstar);
+assert(tr.stat.metrics.nadir < ft, 'Phase2: static nadir %.3f not below f_trip', tr.stat.metrics.nadir);
+assert(tr.cmld.metrics.nadir > ft, 'Phase2: cmld nadir %.3f not above f_trip', tr.cmld.metrics.nadir);
+fprintf('  ASSERT ok: static trips (nadir %.3f < %.1f), CMLD rides through (nadir %.3f > %.1f)\n', ...
+        tr.stat.metrics.nadir, ft, tr.cmld.metrics.nadir, ft);
+
+% ----- headline figure ------------------------------------------------------
+pv_figure2(tr.stat, tr.cmld, ft, figdir);
+fprintf('phase2 -> %s\nPV_TRIP_P2_OK\n', figdir);
+end
+
+% ---- full run that also captures the PV signals (simulate doesn't expose them) --
+function r = runfull(p, mv)
+p.model_vars = mv;
+modelPath = p.model_path; [~,model] = fileparts(modelPath);
+wasLoaded = bdIsLoaded(model);
+if ~wasLoaded, load_system(modelPath); cu = onCleanup(@() close_system(model,0)); end %#ok<NASGU>
+sb_grid_sim.apply_params(p); sb_grid_sim.enforce_config(model, p);
+op = sb_grid_sim.init_operating_point(model, p);
+t0 = 0; try, t0 = op.xFinal.snapshotTime; catch, end
+td = t0 + p.disturbance.dist_time;
+assignin('base','dist_time', td);
+assignin('base','dist_dP',   p.disturbance.dist_dP_frac * p.scale.P_W);
+set_param(model, 'StopTime',num2str(t0+p.solver.StopTime), 'LoadInitialState','on', ...
+    'InitialState','xFinal', 'SaveFinalState','off', 'SaveCompleteFinalSimState','off');
+lis = onCleanup(@() reset_lis(model)); %#ok<NASGU>
+so = sim(model);
+f = so.get('freq_hz'); P = so.get('P_load');
+t = f.Time; fd = f.Data;
+Pd = interp1(P.Time, P.Data, t, 'linear','extrap');
+Vd = getsig(so,'vrms_pu', t, nan(size(t)));
+pad = getsig(so,'pv_active', t, nan(size(t)));
+ptd = getsig(so,'pv_tripped', t, zeros(size(t)));
+m = sb_grid_sim.metrics(t, fd, Pd, Vd, td);
+tripped = any(ptd>0.5); t_trip = NaN;
+if tripped, k = find(ptd>0.5,1); t_trip = t(k); end
+r = struct('t',t,'f',fd,'P',Pd,'V',Vd,'pv_active',pad,'pv_tripped',ptd, ...
+           'metrics',m,'td',td,'tripped',tripped,'t_trip',t_trip,'params',p);
+end
+
+function d = getsig(so, name, t, dflt)
+try, s = so.get(name); d = interp1(s.Time, s.Data, t, 'linear','extrap'); catch, d = dflt; end
+end
+function reset_lis(model), if bdIsLoaded(model), set_param(model,'LoadInitialState','off'); end, end
+function mv = addpvfields(mv, P_pv, ft, tdel), mv.P_pv=P_pv; mv.f_trip=ft; mv.t_trip_delay=tdel; end
+function v = split_verdict(s, c)
+if s && ~c, v='SPLIT'; elseif s && c, v='both_trip'; elseif ~s && ~c, v='both_ride'; else, v='inverted'; end
 end
 
 % ============================ helpers =====================================
@@ -195,11 +312,12 @@ if abs((P-Ptarget)/Ptarget) >= tol
 end
 end
 
-function C = calibrate_cap(pbase, Ptarget, tol, maxit)
+function C = calibrate_cap(pbase, mvfun, Ptarget, tol, maxit)
 % Static shunt cap CapC so its (constant-Z) settled P_load == P_W (secant; P
 % rises monotonically with CapC via Vterm). Seeds sized for the 220 kV bus.
-C1 = 2e-5; [P1,V1] = probe_PV(pbase, struct('CapC',C1));
-C2 = 1e-4; [P2,V2] = probe_PV(pbase, struct('CapC',C2));
+% mvfun(C) builds the model_vars for cap value C (Phase 2 folds in the PV vars).
+C1 = 2e-5; [P1,V1] = probe_PV(pbase, mvfun(C1));
+C2 = 1e-4; [P2,V2] = probe_PV(pbase, mvfun(C2));
 fprintf('  [calCap C=%.5f] P=%.1f MW V=%.4f\n  [calCap C=%.5f] P=%.1f MW V=%.4f\n', ...
         C1,P1/1e6,V1, C2,P2/1e6,V2);
 C = C2;
@@ -207,7 +325,7 @@ for it = 1:maxit
     if abs((P2-Ptarget)/Ptarget) < tol, C = C2; return; end
     slope = (P2-P1)/(C2-C1); if slope==0, break; end
     C = max(C2 + (Ptarget-P2)/slope, 0);
-    [P,V] = probe_PV(pbase, struct('CapC',C));
+    [P,V] = probe_PV(pbase, mvfun(C));
     fprintf('  [calCap C=%.5f] P=%.1f MW V=%.4f err=%+.2f%%\n', C,P/1e6,V,100*(P-Ptarget)/Ptarget);
     C1=C2; P1=P2; C2=C; P2=P;
 end
