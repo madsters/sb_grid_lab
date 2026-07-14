@@ -49,7 +49,7 @@ S   = sweep_points();
 Pw  = S.Pw;  LF = S.LF;
 
 nrow = numel(S.mix);
-rows = cell(nrow, 12);
+rows = cell(nrow, 11);           % 11 columns -- matches the tuple + VariableNames below
 allpass = true;
 fprintf('\n==== T1 open-loop algebraic scaling check (P_W = %.0f MW, LF = %.2f) ====\n', Pw/1e6, LF);
 for i = 1:nrow

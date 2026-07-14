@@ -16,18 +16,32 @@ under **heterogeneous per-motor H_A/H_B/H_C and fractions**, and calibrate the r
 The paper's §Discussion "From Stored Energy to Delivered Response" flags `r = H_eff/H_load` as
 future work — this study is that work.
 
-## Status (2026-07-14)
-- Scaffolding + `source_docs/` + `models/cmld_3m.slx` (copied from reducing_cmld). No driver /
-  results yet.
-- **Model question RESOLVED:** `cmld_3m` binds independent `MotorA/B/C_Mech = [H 0 2]` +
-  `MotorA/B/C_Nom` — heterogeneous per-motor H & fractions are **parameter-only** via `model_vars`
-  (no structure change, no `.slx` edit). Stock model even ships the NEM set H_A=0.1/H_B=0.5/H_C=0.1;
-  reduce_cmld overrode with common H=1.5. See `plan.md` "Model capability — RESOLVED".
+## Status (2026-07-14) — FULLY AUTHORED offline (Phases 0–6), NOT yet run
+All code + docs authored without MATLAB (no runs, no fabricated results); every sim call marked
+`% RUN:`. Tree is runnable-so-far; committed phase by phase on branch `effective-inertia-scaffold`.
+- **Phase 0** `docs/observables.md` — rig logs ONLY `{freq_hz, P_load, vrms_pu}` (no per-motor slip).
+- **Phase 1** `docs/sweep.md` — 9-mix `(H,F_m)` ladder (H_load 0.148→1.19 s) × 2 corners × ΔP; 28 pts.
+- **Phase 2** `compose_heterogeneous.m` — independent per-motor H_i & F_mi → model_vars (generalises
+  reduce_cmld.compose_full); `info.H_load` reproduces `eq:hload` exactly.
+- **Phase 3** `+eff_inertia/{H_eff_rocof,H_eff_pomega,H_eff_ke}.m` + `tests/test_eff_inertia.m`
+  (7 synthetic-signal unit tests, no model needed).
+- **Phase 4** `t1_open_loop.m` + `sweep_points.m` — arithmetic identity gate (+ optional settle).
+- **Phase 5** `t2_driver.m` — sweep→E1+E2→`r`; CSV/.mat + 2 figures. Mirrors reduce_cmld structure.
+- **Phase 6** `results_effective_inertia.md` (empty tables + shapes), `run_timings.md` stub.
 
-## Next step
-1. Build the T1 open-loop check (formula vs initialised motor MVA) — no dynamics, cheap.
-2. Then T2 (RoCoF `H_eff` sweep), reusing the `reducing_cmld` engine + matched-MW conventions.
-See `plan.md` "Offline build plan" for the no-MATLAB authoring sequence.
+**Model question RESOLVED:** `cmld_3m` binds independent `MotorA/B/C_Mech`/`_Nom` → heterogeneous H &
+fractions are parameter-only (no `.slx` edit). See `plan.md` "Model capability — RESOLVED".
+
+## ⚑ OPEN DECISION for Maddy (before the T2 run) — see `docs/observables.md §4`
+**E3 (KE-from-slip anchor) is BLOCKED as-authored:** `cmld_3m.slx` logs no per-motor slip. E3 is
+written + unit-tested but parked behind `t2_driver(...,'E3',true)`. Options: (1) run T2 now on **E1
+(headline) + E2 (damping-isolated)** — study is complete and delivers the `r = H_eff/H_load`
+calibration; (2) wire `slip_A/B/C` (a logging-signal add, Maddy's to do) first for the full
+`r`-decomposition. Static baseline = `reducing_cmld/models/true_static.slx` (by `model_path`).
+
+## Next step (when MATLAB is available)
+Run the `% RUN:` sequence in `results_effective_inertia.md §2`: unit tests → `t1_open_loop` →
+`t2_driver('Corner','both','Pool',4)`. Fill the result tables + `run_timings.md`. See [[effective-inertia-from-rocof]].
 
 ## Reuse from reducing_cmld
 Engine `+sb_grid_sim`, harness `+sb_grid_testbench` (SQLite dedup), RoCoF/`H_eff` machinery,

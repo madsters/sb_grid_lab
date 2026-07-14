@@ -167,11 +167,11 @@ for ci = 1:numel(cnames)
             [H1, a1] = eff_inertia.H_eff_rocof(cmld, stat, dP_W, Pw, S.windows);
             % --- E2 P-omega regression (damping-isolated) ------------------
             [H2, a2] = eff_inertia.H_eff_pomega(cmld, Pw, S.windows);
-            % --- E3 KE-from-slip anchor (parked) ---------------------------
-            H3 = nan(size(S.windows)); a3 = struct('frac_released',nan(size(S.windows)));
+            % --- E3 KE-from-slip anchor (parked; only aux.frac_released used) ---
+            a3 = struct('frac_released', nan(size(S.windows)));
             if o.E3
                 [~, info3] = compose_heterogeneous(mx.H, mx.F, 'Pw',Pw,'LF',S.LF,'Rrscale',S.Rrscale);
-                [H3, a3] = eff_inertia.H_eff_ke(cmld, info3.S_B, info3.H, Pw, S.windows);  % errors w/o slip
+                [~, a3] = eff_inertia.H_eff_ke(cmld, info3.S_B, info3.H, Pw, S.windows);  % errors w/o slip
             end
 
             iH = find(abs(S.windows-0.5)<1e-9,1);         % headline 500 ms index
