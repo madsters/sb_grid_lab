@@ -108,8 +108,15 @@ motors *absorb* KE (accelerate). r_E1 stays 1.3–2.8 regardless (fast-response 
 - **Delivered inertia: a tiny, mix-independent fraction of stored.** `r_E3 ≈ 0.4 %` (stress) is flat
   across every heterogeneous `(H,F_m)` combination — including the high-`H_B`-share corner. So *which*
   motor carries the inertia does not change the delivered fraction; it is set by the
-  frequency-excursion coupling (`ΔKE/KE ≈ 2·Δf/f`), not by the H distribution. `H_load` is therefore
-  a consistent — but ~250× — overestimate of the inertia actually delivered in 500 ms.
+  frequency-excursion coupling, not by the H distribution. `H_load` is therefore a consistent — but
+  ~250× — overestimate of the inertia actually delivered in 500 ms.
+  - **Verified analytic law:** the rotor speed tracks the frequency dip, so
+    `frac_released ≈ 2·|Δf|/f₀`. Direct check on the stress A0 trace: `Δf(500 ms) = −0.113 Hz`
+    (−0.226 %), speed 0.9933→0.9911, giving `frac_released = 0.0044` vs `2|Δf|/f₀ = 0.0045` — an
+    essentially exact match, and identical (≈0.0043) across all 9 mixes. This is the mechanism: an
+    induction motor gives up KE only in proportion to the frequency excursion (`ΔKE/KE = 2Δω/ω`),
+    which is ~0.2–0.5 % for a credible event — hence the tiny, H-independent delivered inertia, and
+    the corner dependence (nominal has smaller Δf → smaller r_E3 ≈ 0.2 %).
 - **RoCoF-apparent inertia: not bounded by `H_load`, and mix-dependent.** r_E1 exceeds 1 and drifts
   (corr −0.82 with H_load) because it is dominated by the motors' load relief (a *damping*/fast-
   response mechanism), which does not scale with stored KE. E2 corroborates independently: the

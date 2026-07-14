@@ -155,5 +155,12 @@ H=1.5. So **heterogeneous per-motor H and fractions are achievable purely by par
 driver choice, not a model constraint. This study can proceed without any model question.
 
 ## Status
-- Scaffolding + `source_docs/` + `models/cmld_3m.slx`. Model capability confirmed (above).
-- No driver / results yet — see the offline build plan below.
+- **COMPLETE (2026-07-14).** All 6 phases authored AND run in MATLAB R2025b. Per-motor slip logging
+  wired into `models/cmld_3m.slx` (unblocking E3). T1 PASS (closed form exact); T2 run on the full
+  heterogeneous sweep with all three estimators E1/E2/E3. Results + interpretation in
+  `results_effective_inertia.md`; figures in `results/fig/eff_inertia_*.png`; timings in
+  `run_timings.md`. Headline: delivered inertia is ~0.4 % of stored `H_load` (r_E3, flat across the
+  mix, = 2|Δf|/f₀); RoCoF-apparent inertia (E1) exceeds `H_load` (fast frequency response, not
+  synchronous inertia). See the results doc.
+- Build history: offline authoring (Phases 0–6) then the MATLAB run — see git log on branch
+  `effective-inertia-scaffold`.

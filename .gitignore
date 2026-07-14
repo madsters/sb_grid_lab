@@ -6,6 +6,7 @@ results/
 studies/**/*_raw/
 studies/**/*.db
 studies/**/*.mat
+studies/**/results_tables.md   # regenerable intermediate (report_effective_inertia); results live in results_*.md
 
 # Vendor reference PDFs / source docs (reference inputs, not repo source)
 studies/**/source_docs/

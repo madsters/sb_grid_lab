@@ -68,11 +68,22 @@ too much. A serial run (`Pool',1`) mirrors the T1-Sim profile that completed cle
 **Decision: run T2 SERIAL for robustness** (`t2_driver('Corner','both','Robust',true,'Pool',1)`),
 ~1.5 h, durable per-point DB writes (resumable via dedup if interrupted). See [[matlab-sim-gotchas]].
 
-## Next step
-Serial full T2 run in progress. On completion: `report_effective_inertia` (fills markdown tables +
-r-stability findings from t2_results.mat/t1_open_loop.mat) → integrate into
-`results_effective_inertia.md`; fill `run_timings.md`; commit. Figures land in `results/fig/`.
-See [[effective-inertia-from-rocof]].
+## COMPLETE (2026-07-14) — all 6 phases run; results in `results_effective_inertia.md`
+Full serial T2 (both corners, robust; 28 sims, ~108 min) done with E1/E2/E3. **Headline:**
+- T1: closed form `H_load=Σ(F_mi/LF)H_i` reproduced EXACTLY (0.148→1.19 s ladder).
+- **E3 (true KE delivered): r_E3 ≈ 0.4 %% (stress) / 0.2 %% (nominal), FLAT across all 9 mixes.**
+  Verified analytic law `frac_released ≈ 2|Δf|/f₀` (rotor tracks freq dip) → delivered inertia is
+  set by the frequency excursion, INDEPENDENT of the H distribution. H_load overstates delivered
+  inertia ~250×.
+- **E1 (RoCoF-apparent): r_E1 = 1.2–2.6 > 1**, ≈0 at 20 ms, rising with window = fast frequency
+  response / load relief, NOT synchronous inertia. E2 corroborates (inertia coeff ≈0 at cond≈4).
+- **Paper takeaway:** H_load bounds *delivered* inertia (loosely) but NOT the *RoCoF-measured* value
+  → likely explains measured (~1.4 s) ≫ formula (~0.17 s): field RoCoF captures fast freq response
+  as apparent inertia. Update [[effective-inertia-from-rocof]] framing accordingly.
+
+Artifacts: `results_effective_inertia.md` (write-up), `t2_results.csv`, `results/fig/eff_inertia_*.png`
+(4 figs via `plot_effective_inertia`), `report_effective_inertia.m`, `run_timings.md`. Rerun serial
+(`Pool',1`); DB dedup makes it resumable. See [[effective-inertia-from-rocof]], [[matlab-sim-gotchas]].
 
 ## Reuse from reducing_cmld
 Engine `+sb_grid_sim`, harness `+sb_grid_testbench` (SQLite dedup), RoCoF/`H_eff` machinery,
