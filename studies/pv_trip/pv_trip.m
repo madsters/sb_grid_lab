@@ -41,6 +41,7 @@ ip.addParameter('P_pv',[]);      % Phase 2: PV penetration (W); default 0.25*P_W
 ip.addParameter('t_trip_delay',0.1);  % Phase 2: DER trip delay (s)
 ip.addParameter('DP2',[0.28 0.30 0.32]); % Phase 2: focused knife-edge sweep
 ip.addParameter('PVfrac',[0.10 0.20 0.30 0.40 0.50]); % SA: DER trip-block penetrations (pu)
+ip.addParameter('DPU',[0.32 0.34 0.36 0.38 0.40 0.42]); % UFLS: disturbances where BOTH PV-trip
 ip.parse(varargin{:}); o = ip.Results;
 
 sc   = fileparts(mfilename('fullpath'));           % studies/pv_trip
@@ -53,7 +54,8 @@ switch upper(char(phase))
     case 'P1', T = phase1(o, sc, repo);
     case 'P2', T = phase2(o, sc, repo);
     case 'SA', T = phase_sa(o, sc, repo);
-    otherwise, error('pv_trip:phase','unknown phase "%s" (P1|P2|SA)', phase);
+    case 'UFLS', T = phase_ufls(o, sc, repo);
+    otherwise, error('pv_trip:phase','unknown phase "%s" (P1|P2|SA|UFLS)', phase);
 end
 end
 
@@ -263,6 +265,69 @@ fprintf('\n===== SA summary =====\n'); disp(T);
 
 pv_figure_sa(runs, T, ft, Ptarget, dp, figdir);
 fprintf('phase_sa -> %s\nPV_TRIP_SA_OK\n', figdir);
+end
+
+% ============================ UFLS KNIFE-EDGE =============================
+function T = phase_ufls(o, sc, repo) %#ok<INUSD>
+% The SECOND discrete threshold. Here the disturbance is large enough that BOTH
+% load models cross 49.5 -> PV trips in BOTH. The question is the 49.0 Hz UFLS
+% line: does the post-trip cascade breach it (mass load-shedding) or not? We
+% sweep the disturbance to find the case where the STATIC breaches 49.0 (UFLS
+% fires) while the CMLD's frequency support keeps its post-trip cascade ABOVE
+% 49.0 (no shedding). Same event, both PV fleets trip, opposite load-shedding
+% outcome -- from load-model fidelity alone.
+mdir = fullfile(sc,'models');
+figdir = fullfile(sc,'phase_ufls'); if ~isfolder(figdir), mkdir(figdir); end
+cmldPath = fullfile(mdir,'pv_cmld.slx'); statPath = fullfile(mdir,'pv_static.slx');
+assert(isfile(cmldPath)&&isfile(statPath), 'need pv_cmld.slx + pv_static.slx');
+Ptarget = sb_grid_sim.default_params('full_cmld').scale.P_W;
+ft = o.f_trip; fu = 49.0; tdel = o.t_trip_delay;
+P_pv = o.P_pv; if isempty(P_pv), P_pv = 0.25*Ptarget; end
+
+p1 = fullfile(sc,'phase1_threshold','pv_phase1.mat');
+assert(isfile(p1), 'run Phase 1 first (need pv_phase1.mat for the gross=P_W calibration)');
+S = load(p1); LFm = S.LFm; CapC = S.CapC;
+mv_cmld0 = compose_full(o.phi,o.H,o.Rr,[],LFm); mv_stat0 = struct('CapC',CapC);
+addpv = @(mv) addpvfields(mv, P_pv, ft, tdel);
+
+fprintf('\n==== pv_trip UFLS knife-edge: both PV-trip; static breaches 49.0, CMLD holds ====\n');
+fprintf('  P_pv=%.0f MW (%.2f pu); gross=P_W; sweeping the disturbance\n', P_pv/1e6, P_pv/Ptarget);
+DP = o.DPU(:)'; n = numel(DP);
+rows = cell(n,7); traces = struct('dp',{},'cmld',{},'stat',{});
+for i = 1:n
+    dp = DP(i);
+    rs = runfull(mkparams('static',    statPath, o, dp), addpv(mv_stat0));
+    rc = runfull(mkparams('full_cmld', cmldPath, o, dp), addpv(mv_cmld0));
+    v = ufls_verdict(rs, rc, fu);
+    fprintf('  dP=%+.2f | static nadir %.3f trip=%d breach=%d | CMLD nadir %.3f trip=%d breach=%d -> %s\n', ...
+        dp, rs.metrics.nadir, rs.tripped, rs.metrics.nadir<fu, rc.metrics.nadir, rc.tripped, rc.metrics.nadir<fu, v);
+    rows(i,:) = {dp, rs.metrics.nadir, rc.metrics.nadir, rs.tripped, rc.tripped, rc.metrics.nadir-rs.metrics.nadir, v};
+    traces(i) = struct('dp',dp,'cmld',rc,'stat',rs); %#ok<AGROW>
+end
+T = cell2table(rows,'VariableNames',{'dp','nadir_static','nadir_cmld','trip_static','trip_cmld','nadir_gap','verdict'});
+save(fullfile(figdir,'pv_ufls.mat'),'T','traces','P_pv','LFm','CapC','o');
+fprintf('\n===== UFLS summary =====\n'); disp(T);
+
+split = strcmp(T.verdict,'UFLS_SPLIT');
+if any(split)
+    idx = find(split); [~,k] = min(abs((T.nadir_static(idx)+T.nadir_cmld(idx))/2 - fu)); dpstar = T.dp(idx(k));
+    fprintf('\n  UFLS KNIFE-EDGE dP* = %+.2f pu: static breaches 49.0 (UFLS), CMLD holds above\n', dpstar);
+else
+    [~,k] = min(abs(T.nadir_static - fu)); dpstar = T.dp(k);
+    warning('pv_trip:ufls:nosplit','no dP with static<49.0<CMLD in DPU sweep; using dP=%.2f', dpstar);
+end
+[~,ki] = min(abs([traces.dp]-dpstar)); tr = traces(ki);
+pv_figure2(tr.stat, tr.cmld, ft, figdir, sprintf('ufls_dp%.2f_pv%02d', dpstar, round(P_pv/Ptarget*100)));
+fprintf('phase_ufls -> %s\nPV_TRIP_UFLS_OK\n', figdir);
+end
+
+function v = ufls_verdict(rs, rc, fu)
+% UFLS_SPLIT = both PV trip, static cascade breaches the 49.0 UFLS line, CMLD holds above.
+bt = rs.tripped && rc.tripped;
+if bt && rs.metrics.nadir < fu && rc.metrics.nadir >= fu, v = 'UFLS_SPLIT';
+elseif bt && rs.metrics.nadir < fu && rc.metrics.nadir < fu, v = 'both_breach';
+elseif bt, v = 'both_trip_hold';
+else, v = 'not_both_trip'; end
 end
 
 % ---- full run that also captures the PV signals (simulate doesn't expose them) --

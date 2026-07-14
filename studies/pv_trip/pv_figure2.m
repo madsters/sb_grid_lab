@@ -40,15 +40,19 @@ plot(ax1, cmld.t(argmin(cmld.f,cmld.t,td)), mc.nadir, 'v','MarkerFaceColor',cC,'
 text(ax1, stat.t(argmin(stat.f,stat.t,td)), ms.nadir-0.02, sprintf(' %.3f',ms.nadir),'Color',cS,'VerticalAlignment','top','FontWeight','bold');
 text(ax1, cmld.t(argmin(cmld.f,cmld.t,td)), mc.nadir+0.01, sprintf(' %.3f',mc.nadir),'Color',cC,'VerticalAlignment','bottom','FontWeight','bold');
 if stat.tripped
-    xline(ax1, stat.t_trip, '-', 'PV trips', 'Color',cS, 'LineWidth',1.0, ...
+    xline(ax1, stat.t_trip, '-', 'static PV trips', 'Color',cS, 'LineWidth',1.0, ...
         'LabelVerticalAlignment','top','LabelHorizontalAlignment','right','HandleVisibility','off');
+end
+if cmld.tripped
+    xline(ax1, cmld.t_trip, '-', 'CMLD PV trips', 'Color',cC, 'LineWidth',1.0, ...
+        'LabelVerticalAlignment','top','LabelHorizontalAlignment','left','HandleVisibility','off');
 end
 xlim(ax1,[t0 td+10]);
 ylo = min([ms.nadir mc.nadir f_ufls])-0.08; ylim(ax1,[ylo max([stat.f(:);cmld.f(:)])+0.03]);
 ylabel(ax1,'grid frequency (Hz)'); legend(ax1,'Location','southeast');
 title(ax1, sprintf(['Load-model comparison: +%.2f pu load step; the SAME %.2f pu rooftop PV (49.5 Hz trip) in both models (M=%g s, SCR=%g, H=2.5)\n' ...
-    'static \\Rightarrow nadir %.3f < 49.5 \\Rightarrow PV TRIPS & cascades   |   CMLD \\Rightarrow nadir %.3f > 49.5 \\Rightarrow rides through'], ...
-    dp, P_pv/Pw, Mg, SCRg, ms.nadir, mc.nadir));
+    'static \\Rightarrow %s   |   CMLD \\Rightarrow %s'], ...
+    dp, P_pv/Pw, Mg, SCRg, outcome_str(stat,f_trip,f_ufls), outcome_str(cmld,f_trip,f_ufls)));
 
 % ---- Panel 2: load active power (demand) + behind-the-meter PV generation ----
 ax2 = nexttile(tl); hold(ax2,'on'); grid(ax2,'on'); set(ax2,'Color','w','GridAlpha',0.15);
@@ -60,13 +64,12 @@ plot(ax2, cmld.t, Pdem_c, 'Color',cC, 'LineWidth',1.8, 'DisplayName','net demand
 plot(ax2, stat.t, stat.pv_active/1e6, '--', 'Color',cS, 'LineWidth',1.4, 'DisplayName','PV generation — static');
 plot(ax2, cmld.t, cmld.pv_active/1e6, '--', 'Color',cC, 'LineWidth',1.4, 'DisplayName','PV generation — CMLD');
 xline(ax2, td, ':', 'HandleVisibility','off');
-if stat.tripped
-    xline(ax2, stat.t_trip, '-', 'Color',cS, 'LineWidth',1.0, 'HandleVisibility','off');
-end
+if stat.tripped, xline(ax2, stat.t_trip, '-', 'Color',cS, 'LineWidth',1.0, 'HandleVisibility','off'); end
+if cmld.tripped, xline(ax2, cmld.t_trip, '-', 'Color',cC, 'LineWidth',1.0, 'HandleVisibility','off'); end
 xlim(ax2,[t0 td+10]);
 xlabel(ax2,'time (s)'); ylabel(ax2,'active power (MW)'); legend(ax2,'Location','east');
-title(ax2, sprintf(['Load active power (demand) with behind-the-meter PV (%.0f MW, %.2f pu)\n' ...
-    'static PV trips \\Rightarrow net demand steps up +%.0f MW;   CMLD PV holds \\Rightarrow demand steady'], ...
+title(ax2, sprintf(['Load active power (demand, solid) + behind-the-meter PV generation (dashed): %.0f MW (%.2f pu)\n' ...
+    'when a fleet trips, its PV collapses to 0 and its net demand steps up +%.0f MW \\Rightarrow the gap that drives the frequency'], ...
     P_pv/1e6, P_pv/Pw, P_pv/1e6));
 
 out = fullfile(figdir, sprintf('pv_trip_%s.png', tag));
@@ -76,4 +79,15 @@ end
 
 function i = argmin(f, t, td)
 post = find(t >= td); [~,k] = min(f(post)); i = post(k);
+end
+
+function s = outcome_str(r, ft, fu)
+% Human-readable outcome for one load model given the DER-trip (ft) and UFLS (fu) lines.
+if ~r.tripped
+    s = sprintf('nadir %.3f > %.1f: PV rides through', r.metrics.nadir, ft);
+elseif r.metrics.nadir >= fu
+    s = sprintf('nadir %.3f: PV trips, holds above %.1f UFLS', r.metrics.nadir, fu);
+else
+    s = sprintf('nadir %.3f: PV trips & BREACHES %.1f UFLS', r.metrics.nadir, fu);
+end
 end
