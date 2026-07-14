@@ -10,7 +10,17 @@ into a "PV survives vs trips" consequence. Framework = `+sb_grid_sim` + `+sb_gri
 (mirror `studies/reducing_cmld/`).
 
 ## Status
-**Phase 1 DONE (2026-07-14).** `pv_trip.m` (driver, phases P1/P2) + `pv_figure.m` written and run.
+**STUDY COMPLETE (2026-07-14, overnight).** Both phases run, figures produced, committed on `pv-trip`
+(a5fcf1d, 465c5e4, 8d941c4). **Headline (Phase 2, dP*=+0.30 pu): pv_static nadir 49.073 — PV trips
+1.13 s after the step, cascades toward the 49 Hz UFLS line; pv_cmld nadir 49.525 — PV rides through.**
+Same disturbance + identical PV, opposite protection outcome, from load model alone. Sweep: dP=0.28
+both ride, 0.30 SPLIT, 0.32 both trip. Figure → `phase2_pvtrip/pv_trip_phase2_dp0.30.png`.
+**Open for user (morning):** operating point is gross(electrical)=1 pu → net=0.75 pu, because net=1 pu
+is infeasible with the simple power-term PV (see below); decide accept / smaller P_pv / DER_A.
+
+---
+### Phase 1 (done)
+`pv_trip.m` (driver, phases P1/P2) + `pv_figure.m` written and run.
 Phase-1 sweep confirms the premise: at the stress corner (M=3,SCR=5,H=2.5,Rr=0.5,φ=0.8), both loads
 pinned to P_W (CMLD LFm=0.7033, static CapC≈5.0e-5), **knife-edge dP\* = +0.30 pu**:
 
