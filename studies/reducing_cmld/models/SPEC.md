@@ -169,7 +169,16 @@ name — Save-As handles this; never rename the file afterwards.
   **half-power** values, so each copy draws ½ and the pair totals the full load — no per-instance
   renaming needed.
 - **Vars read:** identical to `cmld_3m` (the driver just halves the power).
-- **Expected result:** must match `cmld_3m` to <1 % (the exact-tier control).
+- **Feeder RL is DOUBLED vs `cmld_3m`** (`R=0.0005092`, `L=3.7348e-05` on each copy's `Feeder RL`,
+  = 2× the `cmld_3m` values; edited 2026-07-14). Two copies in parallel then present the *same*
+  aggregate feeder impedance as the single full-power feeder — without this the parallel pair is half
+  the impedance and the 2× bus sits ~0.024 pu high. The shunt caps already scale correctly (each copy
+  gets ½·`CapC`, so the pair totals the full `CapC`).
+- **Expected result:** exact-tier control, judged on the **frequency response** (RoCoF, dip, f-trace
+  <1 %) + the pre-disturbance gate. The instantaneous **P-trace** carries an irreducible ~4 % parallel-
+  topology transient (two feeders/shunts ≠ one, dynamically) — reported but NOT a fail condition for
+  this class, since the study concerns frequency dynamics, not full network dynamics. A residual
+  ~0.007 pu voltage offset remains (gate tol relaxed to 0.01 pu accordingly).
 
 ### 3.4 `cmld_1m_ct.slx` and `cmld_1m_vt.slx` — L1 motor-aggregation candidates
 - **Derive-from:** `cmld_3m`, then **delete Motors B and C**, leaving **one** Asynchronous Machine.

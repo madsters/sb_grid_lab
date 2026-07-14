@@ -41,6 +41,16 @@ Closes `studies/validating_cmld/validation_report.md` gaps **G1/G2**. Needed bef
 that the rig represents a *complete* composite load; the L3+ reductions and the paper's
 closed-form `H_load` ultimately want this.
 
+### Feeder representativeness & resistance sensitivity
+The single CMLD feeder is an **aggregate** of the many real feeders on a bus (the L0 control makes
+this explicit: `cmld_3m`'s feeder = the parallel combination of the two per-feeder impedances in
+`cmld_3m_2x`, each of which is 2× the aggregate — fixed 2026-07-14). Open modelling questions for
+when we build the CMLD for real: **(1)** is a single aggregate feeder impedance actually
+representative of the multiple distinct feeders that exist IRL (topology, length/gauge spread)?
+**(2)** how does changing the feeder **resistance** (to better match real conditions) affect the
+frequency behaviour (RoCoF/nadir)? R sets the voltage drop → the CMLD's voltage-dependent load
+response → the frequency contribution. A feeder-R sweep would quantify this.
+
 ## Research directions (paper-facing)
 
 ### Does the effective-inertia formulation scale with per-motor H and fractions?

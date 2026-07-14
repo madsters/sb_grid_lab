@@ -53,7 +53,12 @@ end
 mdir   = fullfile(sc,'models');
 db     = fullfile(sc,'reducing_cmld.db');
 raw    = fullfile(sc,'reducing_cmld_raw');
-figdir = fullfile(repo,'results','fig'); if ~isfolder(figdir), mkdir(figdir); end
+% store each level's figures + summary .mat in a study-local per-level folder
+% (mirrors L1_aggregation), not the shared repo-root results/fig.
+levelfolder = struct('L0','L0_replication','L1','L1_aggregation','L2','L2_passive');
+lkey   = upper(char(level));
+if isfield(levelfolder, lkey), outsub = levelfolder.(lkey); else, outsub = lkey; end
+figdir = fullfile(sc, outsub); if ~isfolder(figdir), mkdir(figdir); end
 
 DP  = o.DP(:)'; dpset = [DP, -DP];              % both signs
 Hd = o.H; Rrd = o.Rr; phid = o.phi;             % design point (plan §4.1; H<=2.5)
@@ -224,7 +229,7 @@ end
 T = cell2table(rows, 'VariableNames', ...
     {'level','corner','M','SCR','dp','candidate', ...
      'rocof500_err_pct','dip_err_pct','f_maxe_pct','P_maxe_pct','gate_pass','verdict'});
-save(fullfile(sc, sprintf('reduce_%s.mat',level)), 'T');
+save(fullfile(figdir, sprintf('reduce_%s.mat',level)), 'T');
 fprintf('\n===== %s summary =====\n', upper(level)); disp(T);
 fprintf('figures -> %s\nREDUCE_%s_OK\n', figdir, upper(level));
 end
