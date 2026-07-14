@@ -1,24 +1,28 @@
-function pv_figure2(stat, cmld, f_trip, figdir)
+function pv_figure2(stat, cmld, f_trip, figdir, tag)
 %PV_FIGURE2  Phase-2 headline: identical frequency-tripped rooftop PV in both a
-% static and a full-CMLD load model. At the same load step the static's nadir
-% crosses the 49.5 Hz DER line -> PV trips -> secondary cascade toward the 49 Hz
-% UFLS line; the CMLD stays above 49.5 -> PV rides through. Two panels:
-%   (1) grid frequency, with the 49.5 (DER trip) + 49.0 (UFLS ref) lines, nadirs,
-%       and the PV-trip instant marked.
-%   (2) PV generation: the static case collapses to 0 at the trip; the CMLD holds.
+% static and a full-CMLD load model. Two panels (frequency ALWAYS shown with the
+% active-power decomposition, per the reducing_cmld convention):
+%   (1) grid frequency, with the 49.5 (DER trip) + 49.0 (UFLS ref) lines, the
+%       nadirs, and the PV-trip instant marked.
+%   (2) LOAD active power (demand) = net load drawn from the grid + the
+%       disturbance step, WITH the behind-the-meter PV generation overlaid
+%       (dashed). When the static's PV trips, its PV generation collapses to 0
+%       and the net demand steps UP by P_pv -- the gap that plunges the frequency.
 %
 %   pv_figure2(stat, cmld, f_trip, figdir)  % stat/cmld are runfull() structs
 if nargin < 3 || isempty(f_trip), f_trip = 49.5; end
 if nargin < 4, figdir = fileparts(mfilename('fullpath')); end
+if nargin < 5 || isempty(tag), tag = sprintf('phase2_dp%.2f', cmld.params.disturbance.dist_dP_frac); end
 f_ufls = 49.0;
 td = cmld.td; t0 = td-1;
 dp = cmld.params.disturbance.dist_dP_frac;
 Mg = cmld.params.grid.M; SCRg = cmld.params.grid.SCR;
-P_pv = cmld.params.model_vars.P_pv;
+Pw = cmld.params.scale.P_W; P_pv = cmld.params.model_vars.P_pv;
 ms = stat.metrics; mc = cmld.metrics;
 cS = [.85 .33 .10]; cC = [0 .45 .74];
+sm = @(x) movmean(movmedian(x(:),151),151);   % de-ripple the net-P measurement
 
-fig = figure('Visible','off','Position',[100 100 1000 780],'Color','w');
+fig = figure('Visible','off','Position',[100 100 1000 820],'Color','w');
 try, theme(fig,'light'); catch, end
 tl = tiledlayout(fig,2,1,'TileSpacing','compact','Padding','compact');
 
@@ -46,20 +50,26 @@ title(ax1, sprintf(['Same +%.2f pu load step + identical 49.5 Hz-trip rooftop PV
     'static \\Rightarrow nadir %.3f < 49.5 \\Rightarrow PV TRIPS & cascades   |   CMLD \\Rightarrow nadir %.3f > 49.5 \\Rightarrow rides through'], ...
     dp, Mg, SCRg, ms.nadir, mc.nadir));
 
-% ---- Panel 2: PV generation ----
+% ---- Panel 2: load active power (demand) + behind-the-meter PV generation ----
 ax2 = nexttile(tl); hold(ax2,'on'); grid(ax2,'on'); set(ax2,'Color','w','GridAlpha',0.15);
-plot(ax2, stat.t, stat.pv_active/1e6, 'Color',cS, 'LineWidth',1.8, 'DisplayName','static case');
-plot(ax2, cmld.t, cmld.pv_active/1e6, 'Color',cC, 'LineWidth',1.8, 'DisplayName','CMLD case');
+dPW = dp*Pw;
+Pdem_s = (sm(stat.P) + dPW*(stat.t(:)>=td))/1e6;   % net load + disturbance step (net incl. the PV-trip jump)
+Pdem_c = (sm(cmld.P) + dPW*(cmld.t(:)>=td))/1e6;
+plot(ax2, stat.t, Pdem_s, 'Color',cS, 'LineWidth',1.8, 'DisplayName','net demand — static');
+plot(ax2, cmld.t, Pdem_c, 'Color',cC, 'LineWidth',1.8, 'DisplayName','net demand — CMLD');
+plot(ax2, stat.t, stat.pv_active/1e6, '--', 'Color',cS, 'LineWidth',1.4, 'DisplayName','PV generation — static');
+plot(ax2, cmld.t, cmld.pv_active/1e6, '--', 'Color',cC, 'LineWidth',1.4, 'DisplayName','PV generation — CMLD');
 xline(ax2, td, ':', 'HandleVisibility','off');
 if stat.tripped
     xline(ax2, stat.t_trip, '-', 'Color',cS, 'LineWidth',1.0, 'HandleVisibility','off');
 end
-xlim(ax2,[t0 td+10]); ylim(ax2,[-0.05*P_pv/1e6 1.15*P_pv/1e6]);
-xlabel(ax2,'time (s)'); ylabel(ax2,'PV generation (MW)'); legend(ax2,'Location','east');
-title(ax2, sprintf('Behind-the-meter PV generation (%.0f MW ~ %.2f pu): static PV trips to 0, CMLD PV holds', ...
-    P_pv/1e6, P_pv/cmld.params.scale.P_W));
+xlim(ax2,[t0 td+10]);
+xlabel(ax2,'time (s)'); ylabel(ax2,'active power (MW)'); legend(ax2,'Location','east');
+title(ax2, sprintf(['Load active power (demand) + behind-the-meter PV (%.0f MW ~ %.2f pu): ' ...
+    'static PV trips \\Rightarrow demand steps up +%.0f MW; CMLD PV holds \\Rightarrow demand steady'], ...
+    P_pv/1e6, P_pv/Pw, P_pv/1e6));
 
-out = fullfile(figdir, sprintf('pv_trip_phase2_dp%.2f.png', dp));
+out = fullfile(figdir, sprintf('pv_trip_%s.png', tag));
 exportgraphics(fig, out, 'Resolution',150); close(fig);
 fprintf('  figure -> %s\n', out);
 end

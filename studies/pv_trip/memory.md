@@ -75,8 +75,33 @@ feeder, real voltage coupling, inverter dynamics, graduated/partial tripping acr
 settings). Current "simple PV" is a frequency-triggered net-load step (+P_pv), latched, all-or-nothing —
 frequency-faithful but omits voltage coupling. See repo-root memory backlog + validating_cmld G2.
 
-**Next:** write `phase2()` in pv_trip.m (calibrate net→P_W both models, verify knife-edge with PV,
-run + headline figure) → `phase2_pvtrip/`. Helpers: `pv_smoke.m`, `pv_diag.m` (debug aids).
+Helpers: `pv_smoke.m`, `pv_diag.m` (debug aids). `runfull()` in pv_trip.m replicates simulate but
+returns the PV signals (pv_active/pv_tripped) — simulate doesn't expose them.
+
+## Figure convention (user, 2026-07-15)
+ALWAYS pair the frequency chart with an active-power chart (like reducing_cmld's motivating_figure).
+For pv_trip: 2 panels — (1) frequency + 49.5/49 lines + trip marker; (2) LOAD active power (demand) =
+net load + disturbance step, WITH behind-the-meter PV generation overlaid (dashed). When the static's
+PV trips, PV gen → 0 and net demand steps UP by P_pv — the gap that plunges frequency. `pv_figure2.m`
+(takes an optional filename `tag`).
+
+## SA SCENARIO (phase 'SA', 2026-07-15) — high-penetration DER trip
+Research: SA rooftop solar met **101% of state demand** (31 Dec 2023); min residual demand −927 MW
+(Sep 2024). AEMO: a credible fault can trip **>500 MW / up to half** the state's distributed PV (~40%
+of inverters don't ride through; only ~35% of post-2022 installs meet AS/NZS4777.2:2020). `phase_sa()`
+holds the knife-edge dP=0.30 and sweeps the PV trip-block penetration {0.1…0.5 pu}. Reuses the Phase-1
+calibration (LFm/CapC pin gross=P_W, **P_pv-independent**, so no recalibration per point — fast).
+**Result — the consequence of the load-model error SCALES with penetration:** static trips at every
+penetration and its nadir plunges 49.325 (0.1 pu) → 48.637 (0.5 pu), crossing the **49 Hz UFLS line
+at ≈0.3 pu**; CMLD rides through flat at ~49.52–49.53 for all. So at SA-scale DER, a static model
+predicts a cascade into UFLS load-shedding that the CMLD says never happens. Figures → `phase_sa/`
+(`pv_trip_sa_headline_pv50_dp0.30.png` freq+demand at 0.5 pu; `pv_sa_scaling_dp0.30.png` nadir vs
+penetration). `pv_sa.mat` gitignored.
+
+## STUDY DELIVERABLES (branch pv-trip, not pushed)
+Phase 1 (`phase1_threshold/`), Phase 2 (`phase2_pvtrip/`), SA (`phase_sa/`). Driver `pv_trip.m`
+(phases P1|P2|SA); figures `pv_figure.m` (P1), `pv_figure2.m` (P2/SA headline), `pv_figure_sa.m`
+(SA scaling). Models `models/pv_cmld.slx`, `models/pv_static.slx`.
 
 ## Locked decisions
 - **Two phases:** Phase 1 = threshold-crossing with the EXISTING reducing_cmld models (no build, fast,

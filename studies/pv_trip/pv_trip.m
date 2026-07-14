@@ -40,6 +40,7 @@ ip.addParameter('DPstar',[]);    % Phase 2: knife-edge dP (default: pick from a 
 ip.addParameter('P_pv',[]);      % Phase 2: PV penetration (W); default 0.25*P_W
 ip.addParameter('t_trip_delay',0.1);  % Phase 2: DER trip delay (s)
 ip.addParameter('DP2',[0.28 0.30 0.32]); % Phase 2: focused knife-edge sweep
+ip.addParameter('PVfrac',[0.10 0.20 0.30 0.40 0.50]); % SA: DER trip-block penetrations (pu)
 ip.parse(varargin{:}); o = ip.Results;
 
 sc   = fileparts(mfilename('fullpath'));           % studies/pv_trip
@@ -51,7 +52,8 @@ end
 switch upper(char(phase))
     case 'P1', T = phase1(o, sc, repo);
     case 'P2', T = phase2(o, sc, repo);
-    otherwise, error('pv_trip:phase','unknown phase "%s" (P1|P2)', phase);
+    case 'SA', T = phase_sa(o, sc, repo);
+    otherwise, error('pv_trip:phase','unknown phase "%s" (P1|P2|SA)', phase);
 end
 end
 
@@ -211,6 +213,56 @@ fprintf('  ASSERT ok: static trips (nadir %.3f < %.1f), CMLD rides through (nadi
 % ----- headline figure ------------------------------------------------------
 pv_figure2(tr.stat, tr.cmld, ft, figdir);
 fprintf('phase2 -> %s\nPV_TRIP_P2_OK\n', figdir);
+end
+
+% ============================ SOUTH-AUSTRALIA SCENARIO ====================
+function T = phase_sa(o, sc, repo) %#ok<INUSD>
+% "South Australia-like": very high instantaneous rooftop-PV penetration + a
+% large frequency-triggered DER trip block. Motivated by AEMO/SA records --
+% rooftop solar has met >100% of SA demand (101%, 31 Dec 2023; min residual
+% demand -927 MW, Sep 2024), and a credible fault can trip up to ~half the
+% state's distributed PV (>500 MW; ~40% of inverters do not ride through). Holds
+% the knife-edge disturbance (dP=0.30) and SWEEPS the PV penetration (the trip
+% block P_pv) to show how the CONSEQUENCE of the load-model error scales: at SA
+% penetrations a static-model-induced trip drives frequency deep past the 49 Hz
+% UFLS line, while the CMLD rides through at every penetration.
+mdir = fullfile(sc,'models');
+figdir = fullfile(sc,'phase_sa'); if ~isfolder(figdir), mkdir(figdir); end
+cmldPath = fullfile(mdir,'pv_cmld.slx'); statPath = fullfile(mdir,'pv_static.slx');
+assert(isfile(cmldPath)&&isfile(statPath), 'need pv_cmld.slx + pv_static.slx');
+Ptarget = sb_grid_sim.default_params('full_cmld').scale.P_W;
+ft = o.f_trip; tdel = o.t_trip_delay;
+dp = 0.30; if ~isempty(o.DPstar), dp = o.DPstar; end   % knife-edge disturbance
+
+% gross(electrical) is pinned to P_W independent of P_pv, so reuse the Phase-1
+% calibration (LFm, CapC) -- both pin gross=P_W.
+p1 = fullfile(sc,'phase1_threshold','pv_phase1.mat');
+assert(isfile(p1), 'run Phase 1 first (need pv_phase1.mat for the gross=P_W calibration)');
+S = load(p1); LFm = S.LFm; CapC = S.CapC;
+fprintf('[SA] reuse Phase-1 calibration: LFm=%.4f CapC=%.3g (gross=P_W)\n', LFm, CapC);
+mv_cmld0 = compose_full(o.phi,o.H,o.Rr,[],LFm);
+mv_stat0 = struct('CapC',CapC);
+
+fprintf('\n==== pv_trip SA SCENARIO: high-penetration DER trip (dP=%+.2f, stress M=%g SCR=%g H=%.1f) ====\n', ...
+        dp, o.M, o.SCR, o.H);
+PV = o.PVfrac(:)'; n = numel(PV);
+rows = cell(n,6); runs = struct('ppv',{},'stat',{},'cmld',{});
+for i = 1:n
+    ppv = PV(i)*Ptarget; addpv = @(mv) addpvfields(mv, ppv, ft, tdel);
+    rs = runfull(mkparams('static',    statPath, o, dp), addpv(mv_stat0));
+    rc = runfull(mkparams('full_cmld', cmldPath, o, dp), addpv(mv_cmld0));
+    v  = split_verdict(rs.tripped, rc.tripped);
+    fprintf('  P_pv=%.2f pu (%.0f MW) | static nadir %.3f trip=%d | CMLD nadir %.3f trip=%d -> %s\n', ...
+            PV(i), ppv/1e6, rs.metrics.nadir, rs.tripped, rc.metrics.nadir, rc.tripped, v);
+    rows(i,:) = {PV(i), ppv/1e6, rs.metrics.nadir, rc.metrics.nadir, rs.tripped, rc.tripped};
+    runs(i) = struct('ppv',ppv,'stat',rs,'cmld',rc); %#ok<AGROW>
+end
+T = cell2table(rows,'VariableNames',{'pv_frac','pv_MW','nadir_static','nadir_cmld','trip_static','trip_cmld'});
+save(fullfile(figdir,'pv_sa.mat'),'T','runs','dp','LFm','CapC','o');
+fprintf('\n===== SA summary =====\n'); disp(T);
+
+pv_figure_sa(runs, T, ft, Ptarget, dp, figdir);
+fprintf('phase_sa -> %s\nPV_TRIP_SA_OK\n', figdir);
 end
 
 % ---- full run that also captures the PV signals (simulate doesn't expose them) --
