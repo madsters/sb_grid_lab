@@ -10,8 +10,21 @@ into a "PV survives vs trips" consequence. Framework = `+sb_grid_sim` + `+sb_gri
 (mirror `studies/reducing_cmld/`).
 
 ## Status
-**Scaffold only.** `plan.md` + this file + `models/SPEC.md` written; branch `pv-trip` pushed. **No
-driver, no models, no runs yet.** Start at Phase 1.
+**Phase 1 DONE (2026-07-14).** `pv_trip.m` (driver, phases P1/P2) + `pv_figure.m` written and run.
+Phase-1 sweep confirms the premise: at the stress corner (M=3,SCR=5,H=2.5,Rr=0.5,φ=0.8), both loads
+pinned to P_W (CMLD LFm=0.7033, static CapC≈5.0e-5), **knife-edge dP\* = +0.30 pu**:
+
+| dP | static nadir | CMLD nadir | verdict |
+|---|---|---|---|
+| +0.25 | 49.555 | 49.601 | both ride |
+| +0.28 | 49.502 | 49.553 | both ride |
+| **+0.30** | **49.466** | **49.521** | **SPLIT** (static trips, CMLD rides) |
+| +0.32 | 49.431 | 49.489 | both trip |
+| +0.35 | 49.377 | 49.441 | both trip |
+
+Results/figure → `phase1_threshold/` (`pv_phase1.mat`, `pv_trip_threshold_dp0.30.png`). Figure forces
+a LIGHT theme (`theme(fig,'light')`) — R2025b `-batch` defaults to DARK, which is unreadable.
+**Next: Phase 2** — build `pv_cmld.slx`/`pv_static.slx` via Simulink MCP, run at dP*=0.30.
 
 ## Locked decisions
 - **Two phases:** Phase 1 = threshold-crossing with the EXISTING reducing_cmld models (no build, fast,
