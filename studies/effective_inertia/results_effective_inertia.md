@@ -1,167 +1,170 @@
 # effective_inertia — results
 
-**Status: RUN COMPLETE (2026-07-14, MATLAB R2025b).** All three estimators (E1 differential RoCoF,
-E2 P–ω regression, E3 KE-from-slip) ran on the full heterogeneous sweep. E3 was unblocked by wiring
-per-motor rotor-speed logging (`speed_A/B/C`) into the study's copy of `cmld_3m.slx` (see
-`docs/observables.md §4`, now resolved). Design/rationale: `plan.md`; grid: `docs/sweep.md`.
-
-Reproduce: `runtests('test_eff_inertia')` → `t1_open_loop` → `t2_driver('Corner','both','Robust',true,'Pool',1)`
-→ `report_effective_inertia` / `plot_effective_inertia`. **Run serial (`Pool',1`)** — the 4-worker
-parallel sweep is killed by RAM/worker-spawn on this box (`memory.md`).
+**Status: RUN COMPLETE (2026-07-14/15, MATLAB R2025b).** Full heterogeneous `(H,F_m)` sweep; effective
+inertia extracted from the **500 ms RoCoF** (the mandated AEMO measure). Design: `plan.md`; grid:
+`docs/sweep.md`. Reproduce: `runtests('test_eff_inertia')` → `t1_open_loop` →
+`t2_driver('Corner','both','Robust',true,'Pool',1)` (serial — the parallel sweep is killed on this box)
+→ `plot_effective_inertia` / `report_effective_inertia`.
 
 ---
 
-## 1. Headline finding
+## 0. What is measured, and the three estimators (read first)
 
-**The paper's stored-energy `H_load` scales exactly with per-motor `H_i` and fractions `F_mi` (T1),
-but almost none of it is delivered as inertia within the operational window, and — crucially — the
-*RoCoF-measured* effective inertia is NOT bounded by `H_load`.**
+**The reported effective inertia is E1** — back-computed from the **500 ms RoCoF** of a matched-ΔP
+load step, exactly as an operator would:
 
-Three quantities, one matched-ΔP load step, measured at the AEMO 500 ms window:
+> `H_eff = f₀·ΔP / (2·RoCoF₅₀₀)` — the swing-equation inertia. RoCoF₅₀₀ is the least-squares slope of
+> the bus frequency over `[t_d, t_d+500 ms]`. To isolate the **load's** contribution (comparable to
+> the formula's `H_load`, which is per `P_total`), the same event is run with the CMLD replaced by a
+> zero-load-inertia static load and the two differenced: `H_eff = (E_full − E_grid)/P_total`.
 
-| quantity | what it is | result (stress corner, ΔP=+0.10) |
+**This E1 quantity is "the effective inertia" throughout.** E2 and E3 are **diagnostics** that explain
+*why* E1 differs from the formula — they are not the headline:
+
+| | what it is | role |
 |---|---|---|
-| `H_load` | stored energy (paper `eq:hload`) | 0.148 → 1.19 s across the mix ladder (T1 exact) |
-| `H_eff^{E3}` | **true inertia delivered** (KE actually released by the rotors) | **0.0007 → 0.0045 s** — i.e. **r_E3 ≈ 0.4 % of `H_load`, flat across all mixes** |
-| `H_eff^{E1}` | **RoCoF-apparent** inertia (what an operator measures) | 0.38 → 1.51 s — **r_E1 = 1.2–2.6, exceeds `H_load`** |
-
-So: an induction motor gives up KE only in proportion to the (small, ~0.5 %) frequency excursion, so
-its *delivered* inertia is ~0.4 % of stored — `H_load` is a **~250× overestimate** of delivered
-inertia and is a true upper bound. But the **RoCoF-apparent** inertia is dominated by the motors'
-**fast frequency response (load relief)**, which *exceeds* the stored inertia for the realistic
-low-`H` NEM set — so `H_load` is **not** an upper bound on the RoCoF-inferred value. This distinction
-is the study's paper-facing contribution and plausibly explains the measured-vs-formula gap (measured
-NEM demand-side inertia ≈ 1.4 s vs the ≈ 0.17 s `eq:hload` returns): field RoCoF measurements capture
-fast frequency response as apparent inertia.
+| **E1** | effective inertia from the **500 ms RoCoF** (load contribution) | **the reported measure** |
+| **E2** | regression of load-bus ΔP onto `dω/dt` (inertia) vs `Δω` (damping) | diagnostic: is E1 real inertia or fast frequency response? |
+| **E3** | kinetic energy the rotors *actually release* (from logged per-motor slip) | diagnostic: ground-truth delivered inertial energy |
 
 ---
 
-## 2. T1 — algebraic scaling (open-loop): PASS
+## 1. Headline
 
-The rig's initialised motor inertia base reproduces `eq:hload` to machine precision (all identities
-`S_Bi=F_mi·Pw/LF`, `E_k=ΣH_i·S_Bi`, `H_load=Σ(F_mi/LF)H_i` hold; `t1_open_loop.m`).
+Sweeping the motor **inertia constants `H_i`**, **class fractions `F_mi`**, and **which motor** carries
+the inertia, the measured 500 ms-RoCoF effective inertia relates to your formula
+`H_load = Σ(F_mi/LF)H_i` as a **straight line of slope ≈ 1 with a positive offset**:
 
-| id | H_A | H_B | H_C | F_mA | F_mB | F_mC | φ | E_k,load (GW·s) | H_load (s) |
-|---|---|---|---|---|---|---|---|---|---|
-| A0   | 0.1 | 0.5 | 0.1 | 0.152 | 0.166 | 0.129 | 0.447 | 0.356 | 0.1481 |
-| HB08 | 0.1 | 0.8 | 0.1 | 0.152 | 0.166 | 0.129 | 0.447 | 0.516 | 0.2145 |
-| HB15 | 0.1 | 1.5 | 0.1 | 0.152 | 0.166 | 0.129 | 0.447 | 0.889 | 0.3695 |
-| HB25 | 0.1 | 2.5 | 0.1 | 0.152 | 0.166 | 0.129 | 0.447 | 1.421 | 0.5908 |
-| HA15 | 1.5 | 0.5 | 0.1 | 0.152 | 0.166 | 0.129 | 0.447 | 1.039 | 0.4319 |
-| HC15 | 0.1 | 0.5 | 1.5 | 0.152 | 0.166 | 0.129 | 0.447 | 0.935 | 0.3889 |
-| HU15 | 1.5 | 1.5 | 1.5 | 0.152 | 0.166 | 0.129 | 0.447 | 2.150 | 0.8940 |
-| FB30 | 0.1 | 0.5 | 0.1 | 0.152 | 0.300 | 0.129 | 0.581 | 0.571 | 0.2375 |
-| JMAX | 0.1 | 2.5 | 0.1 | 0.100 | 0.350 | 0.100 | 0.550 | 2.870 | 1.1933 |
+| corner | fit (ΔP=+0.10 pu) | R² | offset `H_eff − H_load` |
+|---|---|---|---|
+| stress (M=3, SCR=5) | `H_eff = 1.04·H_load + 0.23` | 0.996 | 0.25 ± 0.03 s |
+| nominal (M=5.5, SCR=8) | `H_eff = 0.98·H_load + 0.20` | 0.997 | 0.19 ± 0.02 s |
 
-The closed form is faithful; `H_load` scales linearly and correctly with both `H_i` and `F_mi`. (An
-optional settle cross-check confirmed the wired model loads and settles to a flat 50 Hz baseline.)
+- **Slope ≈ 1:** the formula predicts *how much the effective inertia changes* with `H_i` and `F_mi`
+  essentially exactly. Raising any motor's `H` (fraction fixed) raises `H_eff` 1:1 with its `H_load`
+  term (`dH_eff/dH_load = 1.03`).
+- **Offset ≈ 0.2–0.25 s:** the formula **under-predicts the absolute effective inertia** by a roughly
+  constant amount it structurally cannot represent — the load's **fast frequency response** (§4).
+- So the formula is a good **differential/scaling** predictor but **not** an absolute one; `H_load` is
+  *not* the measured effective inertia. (See figure `eff_inertia_measured_vs_formula.png`.)
 
 ---
 
-## 3. T2 — delivered effective inertia and the response factor
+## 2. T1 — consistency check (NOT a validation of the formula)
 
-Headline 500 ms window; `r = H_eff/H_load`. Full table in `t2_results.csv`; `H_eff(T)` curves in
-`t2_results.mat`. `damping` is the E2 load-relief coefficient (GW per pu-ω); `E2_cond` the regression
-condition number (≈4 → well-posed, so E2's ≈0 inertia is a real result, not collinearity).
+T1 confirms the rig is *initialised* with exactly the stored energy the formula specifies — every
+motor's `MotorX_Nom(1) = S_Bi = F_mi·Pw/LF` and `MotorX_Mech(1) = H_i`, so `E_k,load = Σ H_i·S_Bi` and
+`H_load = Σ(F_mi/LF)H_i` hold to machine precision (`t1_open_loop.m`). **This is circular by
+construction** (the model is built from the formula) and says nothing about whether the formula
+predicts the physical response — it only rules out a rig/initialisation bug. The `H_load` column below
+is the sweep design, reused in T2 as the x-axis.
 
-**Stress corner (M=3, SCR=5), ΔP=+0.10 pu:**
-
-| mix | H_load | H_eff E1 | H_eff E2 | H_eff E3 | r_E1 | r_E3 (=frac released) | damping (GW/pu) |
+| id | H_A | H_B | H_C | F_mA | F_mB | F_mC | H_load (s) |
 |---|---|---|---|---|---|---|---|
-| A0   | 0.148 | 0.384 | ≈0 | 0.00065 | 2.59 | 0.0044 | 3.5 |
-| HB08 | 0.215 | 0.461 | ≈0 | 0.00093 | 2.15 | 0.0043 | 3.4 |
-| HB15 | 0.369 | 0.616 | ≈0 | 0.00157 | 1.67 | 0.0042 | 3.5 |
-| HB25 | 0.591 | 0.841 | ≈0 | 0.00239 | 1.42 | 0.0040 | 4.5 |
-| HA15 | 0.432 | 0.668 | ≈0 | 0.00177 | 1.55 | 0.0041 | 4.1 |
-| HC15 | 0.389 | 0.629 | ≈0 | 0.00166 | 1.62 | 0.0043 | 3.3 |
-| HU15 | 0.894 | 1.115 | ≈0 | 0.00356 | 1.25 | 0.0040 | 3.9 |
-| FB30 | 0.237 | 0.495 | ≈0 | 0.00102 | 2.08 | 0.0043 | 3.3 |
-| JMAX | 1.193 | 1.509 | ≈0 | 0.00450 | 1.26 | 0.0038 | 7.3 |
-
-- **r_E1 = 1.73 ± 0.45** (min 1.25, max 2.59); **corr(r_E1, H_load) = −0.82** (drifts down with H_load).
-- **r_E3 = 0.0042 ± 0.0002** (essentially constant across the whole mix ladder).
-
-**Nominal corner (M=5.5, SCR=8), ΔP=+0.10 pu:** r_E1 = 1.58 ± 0.40 (corr −0.81); r_E3 = 0.0017 ±
-0.0001. Lower r_E3 than stress: higher grid inertia → smaller RoCoF → smaller frequency excursion →
-less slip change → less KE released.
-
-**Step-size / sign robustness (stress):** r_E3 scales ~linearly with ΔP (A0: 0.0044 at +0.10 →
-0.0110 at +0.25) and **reverses sign for a load drop** (A0: −0.0044 at −0.10) — a load drop lets the
-motors *absorb* KE (accelerate). r_E1 stays 1.3–2.8 regardless (fast-response mechanism).
-
-### Figures (`results/fig/`, regenerate with `plot_effective_inertia`)
-- `eff_inertia_Heff_curve_{stress,nominal}.png` — `H_eff(T)` vs window. **E1 (solid) starts at ≈0 at
-  T=20 ms (no synchronous inertia) and rises monotonically** as fast frequency response accumulates;
-  **E3 (dotted) stays flat at ≈0** (KE release is negligible over the whole window). The E1–E3 gap
-  *is* the fast-frequency-response contribution.
-- `eff_inertia_stored_vs_delivered.png` — per-mix bars: `H_load` (stored) vs `H_eff^{E1}` (apparent)
-  vs `H_eff^{E3}` (delivered), log-y. Delivered inertia sits ~2.5 decades below stored.
-- `eff_inertia_r_vs_mix.png` — r vs `H_load`: apparent r_E1>1 (drifts) and delivered r_E3≈0.004
-  (flat), with the r=1 upper-bound line.
+| A0 | 0.1 | 0.5 | 0.1 | 0.152 | 0.166 | 0.129 | 0.148 |
+| HB08 | 0.1 | 0.8 | 0.1 | 0.152 | 0.166 | 0.129 | 0.215 |
+| HB15 | 0.1 | 1.5 | 0.1 | 0.152 | 0.166 | 0.129 | 0.369 |
+| HB25 | 0.1 | 2.5 | 0.1 | 0.152 | 0.166 | 0.129 | 0.591 |
+| HA15 | 1.5 | 0.5 | 0.1 | 0.152 | 0.166 | 0.129 | 0.432 |
+| HC15 | 0.1 | 0.5 | 1.5 | 0.152 | 0.166 | 0.129 | 0.389 |
+| HU15 | 1.5 | 1.5 | 1.5 | 0.152 | 0.166 | 0.129 | 0.894 |
+| FB30 | 0.1 | 0.5 | 0.1 | 0.152 | 0.300 | 0.129 | 0.237 |
+| JMAX | 0.1 | 2.5 | 0.1 | 0.100 | 0.350 | 0.100 | 1.193 |
 
 ---
 
-## 4. Interpretation — does the formulation scale with per-motor H and fractions?
+## 3. T2 — how the 500 ms-RoCoF effective inertia varies with the mix
 
-- **Stored energy: yes, exactly.** T1 confirms `H_load = Σ(F_mi/LF)H_i` is realised faithfully; the
-  formula is correct as a *stored-energy* accounting.
-- **Delivered inertia: a tiny, mix-independent fraction of stored.** `r_E3 ≈ 0.4 %` (stress) is flat
-  across every heterogeneous `(H,F_m)` combination — including the high-`H_B`-share corner. So *which*
-  motor carries the inertia does not change the delivered fraction; it is set by the
-  frequency-excursion coupling, not by the H distribution. `H_load` is therefore a consistent — but
-  ~250× — overestimate of the inertia actually delivered in 500 ms.
-  - **Verified analytic law:** the rotor speed tracks the frequency dip, so
-    `frac_released ≈ 2·|Δf|/f₀`. Direct check on the stress A0 trace: `Δf(500 ms) = −0.113 Hz`
-    (−0.226 %), speed 0.9933→0.9911, giving `frac_released = 0.0044` vs `2|Δf|/f₀ = 0.0045` — an
-    essentially exact match, and identical (≈0.0043) across all 9 mixes. This is the mechanism: an
-    induction motor gives up KE only in proportion to the frequency excursion (`ΔKE/KE = 2Δω/ω`),
-    which is ~0.2–0.5 % for a credible event — hence the tiny, H-independent delivered inertia, and
-    the corner dependence (nominal has smaller Δf → smaller r_E3 ≈ 0.2 %).
-- **RoCoF-apparent inertia: not bounded by `H_load`, and mix-dependent.** r_E1 exceeds 1 and drifts
-  (corr −0.82 with H_load) because it is dominated by the motors' load relief (a *damping*/fast-
-  response mechanism), which does not scale with stored KE. E2 corroborates independently: the
-  load-bus power deviation regresses almost entirely onto Δω (damping, 3–10 GW/pu) with a ≈0 dω/dt
-  (inertia) coefficient, at condition number ≈4 (so the split is trustworthy).
+**Stress corner, ΔP=+0.10 pu** (`H_eff` = E1, the reported measure):
 
-**Decomposition of r (plan §"Decomposition to report"):** (i) the `(1−s)²` stored-vs-synchronous
-correction is minor (s₀ ≈ 0.01–0.02 → factor ≈ 0.97); (ii) the fraction released within the window
-(E3) is the dominant limiter at ≈0.4 %; (iii) the residual E1–E3 gap is the coupling/damping (fast
-frequency response) term, which is what makes r_E1 ≫ r_E3.
+| mix | change from A0 | H_load (s) | **H_eff (s)** | H_eff − H_load |
+|---|---|---|---|---|
+| A0   | NEM anchor | 0.148 | 0.384 | 0.236 |
+| HB08 | H_B 0.5→0.8 | 0.215 | 0.461 | 0.246 |
+| HB15 | H_B 0.5→1.5 | 0.369 | 0.616 | 0.246 |
+| HB25 | H_B 0.5→2.5 | 0.591 | 0.841 | 0.251 |
+| HA15 | H_A 0.1→1.5 | 0.432 | 0.668 | 0.236 |
+| HC15 | H_C 0.1→1.5 | 0.389 | 0.629 | 0.240 |
+| HU15 | all H →1.5 | 0.894 | 1.115 | 0.221 |
+| FB30 | F_mB 0.166→0.30 | 0.237 | 0.495 | 0.258 |
+| JMAX | high H_B + high F_mB | 1.193 | 1.509 | 0.316 |
 
----
+Reading the sweep directly (each axis in isolation):
+- **Motor H (A0→HB08→HB15→HB25, fractions fixed):** `H_eff` rises 0.38→0.84 s as `H_B` rises 0.5→2.5.
+  The offset is flat (0.236→0.251) → the rise is entirely the inertia term, tracking `H_load` 1:1.
+- **Which motor carries the H (HB15 vs HA15 vs HC15):** offset ≈ 0.236–0.246 **regardless** of whether
+  the inertia is on A, B, or C. So `H_eff` depends only on the weighted sum `Σ(F_mi/LF)H_i`, not on the
+  distribution — this **validates the formula's linear aggregation across motor classes**.
+- **Motor fraction (A0→FB30, raise Motor-B share):** `H_eff` rises 0.38→0.50 s; the offset grows
+  slightly (0.236→0.258) because more motor load means more fast-frequency-response.
+- **Grid corner:** the offset is larger at the stress corner (0.25 vs 0.19 s) — the weaker grid gives a
+  larger voltage/frequency excursion, hence more load relief.
 
-## 5. Cross-checks against the literature
-- **Case-study formula value:** A0 (NEM set) gives `H_load = 0.148 s`, matching the
-  `inertia_ceiling_note` ≈ 0.17 s. ✓
-- **Measured NEM demand-side inertia (~1.4 s, `ReactiveTech`):** far above any *delivered* inertia
-  here (E3 ≤ 0.005 s), but **comparable to the RoCoF-apparent `H_eff^{E1}` of the high-`H_load` corners
-  (JMAX E1 ≈ 1.5 s).** This supports the hypothesis that field RoCoF-based "demand-side inertia"
-  measurements largely capture **fast frequency response / load relief**, not synchronous inertia —
-  reframing the case-study gap: the shortfall is not (only) missing motor `H`, but a
-  category error between stored inertia and RoCoF-inferred response.
+**ΔP / sign (stress robustness):** `H_eff` is nearly step-size independent (A0: 0.38 at +0.10, 0.41 at
++0.25) — consistent with an effective-inertia interpretation. It is also sign-symmetric.
 
 ---
 
-## 6. Caveats / limitations
-- **500 ms window (AEMO).** `H_eff(T)` is a curve; E1 is strongly window-dependent (≈0 at 20 ms).
-  All headline numbers state the window. Longer windows inflate E1 further (more governor/relief).
-- **E2 resolution.** When delivered inertia is ≈0.4 % of a load dominated by relief, E2's inertia
-  coefficient is below its noise floor (reported ≈0). E3 (energy from slip, no derivative/regression)
-  is the reliable anchor here; E2's role was to confirm the response is damping-dominated (it is).
-- **Static reference.** E1 differences the CMLD against a constant-Z (`true_static`) load P-matched to
-  `P_W`; E1's `E_load` is the CMLD's response *beyond* a constant-Z load, so it folds in
-  frequency-relief + motor dynamics, not pure inertia. This is *why* r_E1>1 and why E3 is the ground
-  truth for inertia.
-- **Slip logging.** Motor A's m-bus exposes speed nested under `Mechanical` (grouped output); B/C
-  expose top-level `w` (flattened for their torque taps). All read back in pu; slip = 1 − speed.
+## 4. Why `H_eff` ≠ `H_load` — the offset is fast frequency response, not inertia
+
+The offset is the effective inertia a load shows at `H_load→0`, i.e. **with no rotor inertia at all**.
+Two diagnostics confirm it is *not* synchronous inertia:
+
+- **E2 (P–ω regression, condition number ≈4 so the split is trustworthy):** the load-bus power
+  deviation regresses almost entirely onto `Δω` (a **damping/load-relief** term, 3–10 GW per pu-ω) with
+  a **≈0 `dω/dt` (inertial) coefficient**. The load's response over the window is load relief, not
+  inertia.
+- **E3 (KE actually released, from logged slip):** the rotors give up only **≈0.4 % (stress) / 0.2 %
+  (nominal) of their stored KE** within 500 ms. Verified against first principles: the rotor tracks the
+  frequency dip, so `KE released / stored ≈ 2·|Δf|/f₀` — direct check on A0: 0.0044 vs `2|Δf|/f₀`=0.0045
+  (Δf = −0.11 Hz over 500 ms), and identical (≈0.004) across all mixes. An induction motor sheds KE
+  only in proportion to the (small, ~0.2 %) frequency excursion, so almost none is delivered in-window.
+- **Window dependence (`H_eff(T)` curves):** `H_eff` from E1 is **≈0 at T=20 ms** (no synchronous
+  inertia at the first instant) and grows with the window as the fast response accumulates. The 500 ms
+  AEMO value therefore blends a small true-inertia part with a larger fast-frequency-response part.
+
+**Reconciling the slope-1 with the tiny KE release:** the good slope-1 agreement between `H_eff` and
+`H_load` should **not** be read as the stored energy being delivered — <1 % of it is (E3). The 500 ms
+RoCoF is an *operational* measure that conflates the motors' transient power response (dominated by
+load relief, plus a rotor-inertia-dependent term) with true inertial energy transfer. The offset is
+the load-relief floor; the slope-1 term is the rotor-inertia dependence the RoCoF picks up even though
+little net KE crosses the terminals in 500 ms.
 
 ---
 
-## 7. Paper-facing conclusions
-1. `H_load = Σ(F_mi/LF)H_i` is a **correct stored-energy** measure and scales exactly with `H_i`, `F_mi`.
-2. It is a valid **upper bound on delivered inertia**, but a very loose one: motors deliver **≈0.4 %**
-   of it within 500 ms, roughly independent of the mix.
-3. It is **not** an upper bound on **RoCoF-measured** effective inertia, which is dominated by fast
-   frequency response and can exceed `H_load` — the likely reason measured demand-side inertia
-   (~1.4 s) far exceeds the formula (~0.17 s). Stating the *window* and the *inertia-vs-fast-response*
-   distinction is essential wherever a demand-side `H` is quoted.
+## 5. Answer to the research question
+> *Does the closed-form load-inertia contribution scale correctly with per-motor `H_i` and fractions
+> `F_mi`, and how does stored `H_load` relate to the RoCoF-measured effective inertia?*
+
+- **Scaling / sensitivity:** yes — the measured 500 ms-RoCoF effective inertia is linear in `H_load`
+  with slope ≈ 1 (R² ≈ 0.996) and depends only on the weighted sum `Σ(F_mi/LF)H_i`, not on which motor
+  carries the inertia. The formula's *functional form and aggregation* are sound.
+- **Absolute level:** no — `H_load` is **not** the measured effective inertia. Measured
+  `H_eff = H_load + (0.2–0.25 s offset)`; the formula omits the load's fast frequency response and so
+  under-predicts the operational value by that offset (which itself grows with motor fraction and grid
+  weakness, and is ~2× the anchor `H_load` at the NEM set).
+- **Implication for the paper:** treat `H_load` as a *stored-energy* term that predicts the
+  *sensitivity* of effective inertia to the load mix, not as the delivered/measured inertia itself.
+  A demand-side effective inertia quoted from RoCoF (e.g. the measured NEM ~1.4 s vs the formula's
+  ~0.17 s) includes this fast-frequency-response offset; the gap is partly a stored-vs-measured
+  category difference, not only missing motor `H`. Always state the window.
+
+---
+
+## 6. Caveats
+- **Static reference.** The load contribution is differenced against a constant-Z (`true_static`) load
+  P-matched to `P_W`; the offset is the CMLD's response *beyond* a constant-Z load. A constant-P
+  reference would shift the offset (it also folds in voltage relief). Baseline choice is stated so the
+  offset is interpretable; the *slope* (H-sensitivity) is baseline-independent.
+- **E2 resolution.** With delivered inertia <1 % of a relief-dominated load, E2's inertial coefficient
+  is at its noise floor (≈0); E3 (energy from slip, no regression) is the reliable inertia anchor.
+- **Window.** All headline numbers are the 500 ms AEMO window; `H_eff(T)` is a curve (≈0 at 20 ms).
+- **Slip logging.** Motor A speed read from its nested `Mechanical` bus, B/C from top-level `w`; all pu.
+
+## 7. Figures (`results/fig/`, regenerate with `plot_effective_inertia`)
+- **`eff_inertia_measured_vs_formula.png`** — headline: measured `H_eff` vs formula `H_load`, with y=x
+  and the slope-1+offset fits.
+- `eff_inertia_Heff_curve_{stress,nominal}.png` — `H_eff(T)`: E1 rises from ≈0 with the window; E3
+  (delivered inertia) flat at ≈0.
+- `eff_inertia_stored_vs_delivered.png` — per mix: stored `H_load` vs measured `H_eff` (E1) vs actually-
+  delivered inertia (E3), log-y.

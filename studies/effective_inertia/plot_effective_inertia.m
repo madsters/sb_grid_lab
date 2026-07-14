@@ -66,25 +66,32 @@ legend(ax, {'H_{load} stored (eq:hload)', 'H_{eff}^{E1} RoCoF-apparent (500 ms)'
 title(ax,'Stored vs delivered inertia per mix — stress corner, \DeltaP=+0.10 pu','FontSize',11);
 exportgraphics(f, fullfile(figdir,'eff_inertia_stored_vs_delivered.png'), 'Resolution',150); close(f);
 
-% ==================== (C) response factor r vs H_load ======================
-f = figure('Visible','off','Color','w','Position',[100 100 820 560]);
-ax = axes(f); hold(ax,'on'); grid(ax,'on'); set(ax,'YScale','log');
-mk = containers.Map({'stress','nominal'},{'o','^'});
+% ============ (C) measured 500ms-RoCoF H_eff vs formula H_load =============
+% THE headline comparison: does the stored-energy formula predict the measured
+% effective inertia? y=x is the formula's claim (H_eff = H_load); the fit shows
+% slope~1 (formula gets the sensitivity) + an offset (fast freq response it misses).
+f = figure('Visible','off','Color','w','Position',[100 100 820 620]);
+ax = axes(f); hold(ax,'on'); grid(ax,'on'); axis(ax,'equal');
 cols = containers.Map({'stress','nominal'},{[0.85 0.33 0.10],[0.00 0.45 0.74]});
+mk   = containers.Map({'stress','nominal'},{'o','^'});
+xl = [0 1.6];
+plot(ax, xl, xl, 'k--', 'LineWidth',1.2, 'DisplayName','formula: H_{eff}=H_{load} (y=x)');
 for cn = ["stress","nominal"]
     mm = strcmp(T.corner,char(cn)) & T.dp==0.10;
-    scatter(ax, T.H_load_s(mm), T.r_E1(mm), 55, cols(char(cn)), mk(char(cn)), 'filled', ...
-        'DisplayName',sprintf('r_{E1} apparent (%s)',cn));
-    scatter(ax, T.H_load_s(mm), T.r_E3(mm), 55, cols(char(cn)), mk(char(cn)), ...
-        'DisplayName',sprintf('r_{E3} delivered (%s)',cn));
+    hl = T.H_load_s(mm); he = T.Heff_E1_500ms(mm);
+    scatter(ax, hl, he, 60, cols(char(cn)), mk(char(cn)), 'filled', ...
+        'DisplayName',sprintf('measured (%s)',cn));
+    p = polyfit(hl,he,1); xx=linspace(min(hl),max(hl),2);
+    plot(ax, xx, polyval(p,xx), '-', 'Color',cols(char(cn)), 'LineWidth',1.6, ...
+        'DisplayName',sprintf('fit %s: H_{eff}=%.2f·H_{load}+%.2f', cn, p(1),p(2)));
 end
-yline(ax,1,'k--','r = 1 (stored = delivered)','HandleVisibility','off','LabelHorizontalAlignment','left');
-xlabel(ax,'stored-energy H_{load} (s)'); ylabel(ax,'response factor r = H_{eff}/H_{load} (500 ms, log)');
-title(ax,{'Response factor vs mix', ...
-    'apparent r_{E1}>1 (fast freq response, drifts with H_{load}); delivered r_{E3}\approx0.004 (flat)'}, ...
+xlabel(ax,'stored-energy H_{load} (s)  [your formula \Sigma(F_{mi}/LF)H_i]');
+ylabel(ax,'measured 500 ms-RoCoF effective inertia H_{eff} (s)');
+title(ax,{'Measured effective inertia vs the stored-energy formula (\DeltaP=+0.10 pu)', ...
+    'slope\approx1 (formula tracks the H/fraction sensitivity); intercept = fast freq response the formula omits'}, ...
     'FontSize',10);
-legend(ax,'Location','east','FontSize',8);
-exportgraphics(f, fullfile(figdir,'eff_inertia_r_vs_mix.png'), 'Resolution',150); close(f);
+legend(ax,'Location','southeast','FontSize',8); xlim(ax,xl); ylim(ax,[0 1.7]);
+exportgraphics(f, fullfile(figdir,'eff_inertia_measured_vs_formula.png'), 'Resolution',150); close(f);
 
 fprintf('PLOTS_OK -> %s\n', figdir);
 end
