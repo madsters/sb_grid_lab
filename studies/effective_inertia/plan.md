@@ -57,11 +57,13 @@ abstraction. This study **breaks that uniformity**: independent `H_A/H_B/H_C` an
 ## T2 methodology — extracting a *delivered* `H_eff` is the hard part
 Extracting an effective inertia from simulation and comparing it to the theoretical stored-energy
 `H_load` is **not** a one-liner. Three difficulties must be handled explicitly, not assumed away:
-1. **`H_eff` is window-dependent.** At `t_d+` the motor delivers almost nothing (flux and slip
+1. **`H_eff` is window-dependent — headline window is 500 ms (AEMO standard for inertia
+   determination, confirmed by Maddy).** At `t_d+` the motor delivers almost nothing (flux and slip
    have not yet moved); it releases stored KE over ~100s of ms as slip grows. So `H_eff(T)` is a
-   *curve*, not a scalar — report it as one, at fixed windows (~20 ms inertial, ~50 ms, 500 ms
-   AEMO). The theoretical `H_load` is a *total* stored-energy quantity → it corresponds to the
-   long-window / fully-released limit, never the instantaneous RoCoF.
+   *curve* — still report it as one (e.g. ~20 ms, ~50 ms, 500 ms) for physical insight into the
+   release dynamics, but **the `H_eff` reported and compared against `H_load` / `r` is measured over
+   the 500 ms AEMO window.** The theoretical `H_load` is a *total* stored-energy quantity → the
+   500 ms window captures most of the release while remaining the operator-relevant measure.
 2. **Inertia vs damping contamination.** Any longer-window RoCoF-derived "inertia" conflates true
    inertial energy release with the motors' damping / load-relief (their `P(V,f)` sensitivity) and
    governor action. An estimator that cannot separate `dω/dt` (inertia) from `Δω` (damping) will
@@ -136,7 +138,8 @@ arises, stop and flag it for Maddy rather than guessing.
 
 ## Conventions inherited from `reducing_cmld` (reuse, do not re-derive)
 - Matched-MW disturbance + pre-disturbance 1-pu operating point (`LFm` / `CapC` calibration).
-- RoCoF window = 500 ms (AEMO) for the operational metric; ~50 ms for the inertial `H_eff`.
+- RoCoF window = **500 ms (AEMO standard — the inertia-determination window; headline `H_eff`)**;
+  shorter windows reported only as supporting curve, not the comparison metric.
 - Parallel pool ≤ 4 (RAM-bound). Launch MATLAB from repo root.
 - `.slx` rule: parameter-only edits, **structure changes banned, ask before opening a model**
   (root `memory.md`). Per-motor `H_A/H_B/H_C` and `F_mi` flow in via `params.model_vars`
