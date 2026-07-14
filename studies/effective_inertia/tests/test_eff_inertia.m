@@ -88,21 +88,28 @@ end
 % ================================ E2 p-omega =================================
 function test_e2_recovers_inertia_and_damping(tc)
 % Shaped load-bus response dP = a*(dw/dt) + b*dw, a=2*Heff*Pt, recover both.
+% omega must be a genuine 2nd-order (oscillatory) swing: a single-exponential dip
+% has dw/dt affine in dw (dw/dt = -(1/tau)dw - A/tau), collinearising the inertia
+% and damping regressors so the split is non-unique -- a degeneracy of the test
+% signal, not the estimator (real swings are underdamped, multi-mode). A damped
+% sinusoid puts dw/dt ~90 deg out of phase with dw -> near-orthogonal, cond ~5.
 Pt = 2405e6;  f0 = 50;  P0 = Pt;
 Heff_true = 0.30;  a_true = 2*Heff_true*Pt;  b_true = 5e8;   % damping (W per pu-omega)
 
-dt = 1e-3;  t = (0:dt:4).';  td = 2;  A = 2e-3;  tau = 0.5;
-x    = max(t-td,0);
-w    = 1 - A*(1 - exp(-x/tau));           % omega: smooth freq dip after td
-dwdt = -(A/tau)*exp(-x/tau) .* (t>=td);   % analytic derivative
+dt = 1e-3;  t = (0:dt:4).';  td = 2;
+A = 2e-3;  sig = 1.5;  wd = 2*pi*1.6;                        % underdamped swing dip
+x    = max(t-td,0);  on = (t>=td);  env = exp(-sig*x);
+w    = 1 - A*(1 - env.*cos(wd*x));                          % omega: damped-oscillatory dip
+dwdt = (-A*env.*(sig*cos(wd*x) + wd*sin(wd*x))) .* on;      % analytic derivative
 f    = f0*w;
 P    = P0 + a_true*dwdt + b_true*(w-1);
 caseRun = struct('t',t, 'f',f, 'P',P, 'td',td);
 
 [Heff, aux] = eff_inertia.H_eff_pomega(caseRun, Pt, 0.5);
-verifyEqual(tc, Heff,      Heff_true, 'RelTol',0.05);   % 5%: numerical-derivative slack
-verifyEqual(tc, aux.damping, b_true,  'RelTol',0.05);
-verifyGreaterThan(tc, aux.R2, 0.98);   % ~1; small slack for the derivative corner at td
+verifyLessThan(tc, aux.cond, 15);                       % well-conditioned (non-degenerate)
+verifyEqual(tc, Heff,      Heff_true, 'RelTol',0.02);   % inertia: <2% (the headline quantity)
+verifyEqual(tc, aux.damping, b_true,  'RelTol',0.10);   % damping: looser (secondary; corner bias)
+verifyGreaterThan(tc, aux.R2, 0.99);
 end
 
 % ================================= E3 ke =====================================

@@ -55,13 +55,18 @@ dP    = P - P0;
 dwdt = smooth_deriv(t, omega, op.FiltMs*1e-3);
 
 N = numel(windows);
-Heff = nan(1,N);  a = nan(1,N);  b = nan(1,N);  c = nan(1,N);  R2 = nan(1,N);
+Heff = nan(1,N);  a = nan(1,N);  b = nan(1,N);  c = nan(1,N);  R2 = nan(1,N);  kcond = nan(1,N);
 for k = 1:N
     T   = windows(k);
     sel = t >= td & t <= td+T;
     if nnz(sel) < op.MinPts, continue; end
     X   = [dwdt(sel), dw(sel), ones(nnz(sel),1)];
     y   = dP(sel);
+    % CONDITIONING: the inertia (dw/dt) and damping (dw) regressors go collinear
+    % when the window is dominated by a SINGLE exponential mode (then dw/dt is affine
+    % in dw), so the a/b split is untrustworthy. Report cond(X) on standardised
+    % columns so a caller can flag it; E1 remains the headline for this reason.
+    Xn = X ./ vecnorm(X);  kcond(k) = cond(Xn);
     beta = X \ y;
     a(k) = beta(1);  b(k) = beta(2);  c(k) = beta(3);
     Heff(k) = a(k) / (2*Pt);
@@ -70,7 +75,7 @@ for k = 1:N
 end
 
 aux = struct('windows',windows, 'a',a, 'b',b, 'c',c, 'damping',b, 'R2',R2, ...
-             'f0',f0, 'P0',P0);
+             'cond',kcond, 'f0',f0, 'P0',P0);
 ih = find(abs(windows-0.5) < 1e-9, 1);
 if isempty(ih), ih = N; end
 aux.headline = Heff(ih);
