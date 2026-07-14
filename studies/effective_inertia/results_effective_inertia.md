@@ -105,6 +105,34 @@ Reading the sweep directly (each axis in isolation):
 
 ---
 
+## 3.1 The grid dominates the RoCoF — and it is subtracted out
+
+The RoCoF is *mostly* the grid-equivalent swing, not the load. Measured at the stress corner
+(ΔP=+0.10, 500 ms):
+
+| | RoCoF (Hz/s) | inferred KE | on P_total base |
+|---|---|---|---|
+| static (grid + constant-Z load, **zero rotor inertia**) | −0.2320 | `E_grid` = 25.9 GW·s | **H_grid = 10.8 s** |
+| full CMLD (A0) | −0.2240 | `E_full` = 26.8 GW·s | H_full = 11.2 s |
+
+The two RoCoFs differ by only **~3.5 %** — the grid swing sets the bulk of the response and is
+**common to both runs**, so it cancels in the difference. What E1 reports is only the **load
+increment**: `H_eff = (E_full − E_grid)/P_total = E_load/P_total = 0.384 s` for A0 (vs H_grid = 10.8 s).
+(H_grid > M_g1's naive value because the 500 ms window also folds in governor + the constant-Z load's
+voltage relief; all of that is common-mode and cancels — [[effective-inertia-from-rocof]].)
+
+**Direct confirmation the offset is load response, not grid and not inertia** — a run with the rotor
+inertia set to ≈0 (`H_A=H_B=H_C=0.02`, same A0 fraction and operating point):
+
+| point | H_load | RoCoF_full | H_eff (load) |
+|---|---|---|---|
+| A0 (H_B=0.5) | 0.148 | −0.2240 | 0.384 |
+| **H≈0** | 0.030 | −0.2273 | **0.224** |
+
+With essentially no rotor inertia, H_eff = **0.224 s** — matching the fit intercept (0.229 s). So the
+offset is real load fast-frequency-response, present with zero motor inertia and *after* the grid is
+removed; the slope-1 term above it is the rotor-inertia dependence.
+
 ## 4. Why `H_eff` ≠ `H_load` — the offset is fast frequency response, not inertia
 
 The offset is the effective inertia a load shows at `H_load→0`, i.e. **with no rotor inertia at all**.
