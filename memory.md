@@ -13,6 +13,10 @@ and shared infrastructure. Convention established 2026-07-14.
   current `cmld_3m` gaps (see below).
 - **cmld_inertia_sensitivity** — `studies/cmld_inertia_sensitivity.md` — established the
   realistic operating corners + matched-MW / flat-baseline conventions the other studies reuse.
+- **pv_trip** — `studies/pv_trip/` (`plan.md` + `memory.md` + `models/SPEC.md`) — shows load-model
+  fidelity flipping a binary protection outcome: a disturbance where a static load ⇒ frequency < 49.5 Hz
+  ⇒ rooftop PV trips/cascades, while the CMLD rides through. On branch `pv-trip`. Scaffold only so far
+  (model-edit rule overridden here to build the PV-trip model via the Simulink MCP/MATLAB skills).
 
 ## Working rules & conventions
 - **Hand-authored `.slx` models:** parameter edits are allowed, **structure changes are banned**, and
@@ -41,15 +45,36 @@ Closes `studies/validating_cmld/validation_report.md` gaps **G1/G2**. Needed bef
 that the rig represents a *complete* composite load; the L3+ reductions and the paper's
 closed-form `H_load` ultimately want this.
 
-### Feeder representativeness & resistance sensitivity
-The single CMLD feeder is an **aggregate** of the many real feeders on a bus (the L0 control makes
-this explicit: `cmld_3m`'s feeder = the parallel combination of the two per-feeder impedances in
-`cmld_3m_2x`, each of which is 2× the aggregate — fixed 2026-07-14). Open modelling questions for
-when we build the CMLD for real: **(1)** is a single aggregate feeder impedance actually
-representative of the multiple distinct feeders that exist IRL (topology, length/gauge spread)?
-**(2)** how does changing the feeder **resistance** (to better match real conditions) affect the
-frequency behaviour (RoCoF/nadir)? R sets the voltage drop → the CMLD's voltage-dependent load
-response → the frequency contribution. A feeder-R sweep would quantify this.
+### Feeder aggregation is a NON-TRIVIAL modelling decision — flag it explicitly
+Collapsing a bus's many real feeders into ONE aggregate feeder is a **significant modelling
+assumption, not a mechanical detail** (meeting point, 2026-07-14). It must be **stated explicitly as
+an assumption/limitation** (and its sensitivity tested), because the aggregate feeder impedance
+directly sets the voltage drop → the CMLD's voltage-dependent load response → its frequency
+contribution — so the choice is not neutral.
+- The apparent **"resistance halving"** is merely the *consequence* of the decision: N identical
+  feeders in parallel give `R_eq = R_feeder/N` (the L0 control makes it concrete — `cmld_3m`'s feeder
+  = the parallel combination of `cmld_3m_2x`'s two per-feeder impedances, each 2× the aggregate; fixed
+  2026-07-14). The arithmetic is correct; the **decision to lump** is what carries the assumptions.
+- IRL aggregation is a **load-weighted parallel of heterogeneous feeders** (length/gauge/loading
+  spread) — the equivalent impedance and *what you weight by* are modelling choices, not a simple ÷N.
+- A single aggregate **cannot capture the voltage *spread*** across feeders (near vs far-end loads at
+  different voltages → different voltage-dependent response), which the lump averages away.
+
+Open work: **(1)** how representative is a single aggregate feeder of the real distribution? **(2)**
+feeder-R **sensitivity sweep** — how much does the assumed feeder resistance move RoCoF/nadir?
+**Document the aggregation as an explicit assumption in the paper**, with the sensitivity to back it.
+
+### DER PV frequency tripping + UFLS — a frequency-impact case (meeting, 2026-07-14)
+Add **frequency-threshold-triggered discrete events** to the rig (today it only applies a smooth
+load step): **(a) secondary/rooftop PV that trips at 49.5 Hz** (removes generation → deepens the
+fall — the AEMO/NEM DER ride-through concern), and **(b) UFLS load shedding at 49 Hz** (sheds load →
+arrests the fall). Key interaction to study/report: because **PV trips at 49.5 *before* UFLS at 49**,
+a non-compliant DER fleet tripping can **drive frequency down into the UFLS threshold** — causing
+load shedding a ride-through fleet would have avoided; the event ordering matters and the response is
+nonlinear/path-dependent. This is the **DER_A** piece of "build a genuine full CMLD" plus a dedicated
+frequency-impact scenario. **New capability needed:** a comparator on `freq_hz` gating a step in
+PV output / load (the fixture has no frequency-triggered logic today). Squarely a frequency-dynamics
+question — in scope.
 
 ## Research directions (paper-facing)
 
