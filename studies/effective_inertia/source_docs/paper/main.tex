@@ -1,0 +1,372 @@
+\documentclass[journal]{IEEEtran}
+
+% ── Packages ──────────────────────────────────────────────────────────────────
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{cite}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\usepackage{hyperref}
+
+% ── Title & Authors ───────────────────────────────────────────────────────────
+\title{Aggregate Load Inertia from the Composite Load Model}
+
+\author{Madeleine~Neaves}
+
+\begin{document}
+\maketitle
+
+% ── Abstract ──────────────────────────────────────────────────────────────────
+\begin{abstract}
+% ~150 words.
+% 1 sentence: inertia is declining, load inertia is undervalued.
+% 1 sentence: the composite load model (CLM) is widely used in stability studies
+%             but its inertia content has never been formally extracted.
+% 1–2 sentences: we derive a closed-form expression for aggregate load inertia
+%                as a function of load composition and motor sub-model parameters.
+% 1 sentence: we characterise sensitivity to parameter and composition uncertainty.
+% 1 sentence: we identify Motor D as a structural gap, bound the inertia it omits,
+%             and show the gap is small and shrinking with electronification.
+% 1 sentence: we demonstrate the method on [test case].
+\end{abstract}
+
+\begin{IEEEkeywords}
+composite load model, inertia constant, load inertia, frequency stability,
+inverter-based resources, inertia estimation
+\end{IEEEkeywords}
+
+% ── 1. Introduction ───────────────────────────────────────────────────────────
+\section{Introduction}
+\label{sec:intro}
+Power systems are experiencing declining synchronous inertia as IBR penetration
+grows. Accurate inertia quantification is critical for frequency stability
+assessment. Load inertia (from induction motors) contributes non-trivially but
+is frequently ignored or lumped into generator estimates.
+
+The WECC Composite Load Model (CLM) is the industry-standard model for dynamic
+load representation and is widely deployed in stability studies. It contains
+explicit inertia constants (H) for three-phase induction motor sub-models
+(Motors A, B, C). However, no formal method exists to extract an aggregate load
+inertia estimate from the model — the inertia content is implicit in the
+parameters but never computed.
+
+This paper makes the following contributions:
+(i)   derives a closed-form expression for aggregate load inertia \(H_{load}\) as a
+      function of load composition, rules of association, and motor H values;
+(ii)  characterises sensitivity of \(H_{load}\) to uncertainty in motor H parameters
+      and load composition;
+(iii) identifies Motor D as a structural gap (performance model, no H), bounds the
+      inertia it omits, and shows the gap is small and shrinking as residential
+      air-conditioning electronifies;
+(iv)  demonstrates the method on [test case].
+
+
+\section{The Composite Load Model}
+\label{sec:background}
+
+\subsection{Model Structure}
+% Briefly describe the CLM: substation/feeder equivalent + Motors A/B/C/D +
+% static (ZIP) + electronic load. Cite EPRI 3002019209 and WECC documentation.
+% Include the standard block diagram (Figure).
+
+\subsection{Induction Motor Sub-models (Motors A, B, C)}
+\label{sec:motorabc}
+Motors~A, B, and~C are aggregated three-phase induction-motor models that
+share a common fifth-order structure~\cite{EPRI3002019209}. Four of the states
+represent the rotor-flux dynamics through the $d$- and $q$-axis transient and
+subtransient internal EMFs $E_d'$, $E_q'$, $E_d''$, $E_q''$ (EPRI
+Eqs.~A-1--A-4), which are governed by the transient and subtransient rotor
+time constants $T_{p0}$ and $T_{pp0}$ together with the synchronous, transient,
+and subtransient
+reactances $L_s$, $L_p$, and $L_{pp}$ and the stator resistance $R_a$. The
+fifth state is the rotor slip $s$, whose dynamics constitute the only equation
+in which the motor inertia constant appears~\cite{EPRI3002019209,Zhao2019}:
+%
+\begin{equation}
+    \frac{ds}{dt} = -\frac{\big(E_d'' i_d + E_q'' i_q\big) - T_m}{2H}
+    \label{eq:slip}
+\end{equation}
+%
+Equation~\eqref{eq:slip} is the machine swing equation $2H\,\dot{s} = T_m - T_e$,
+where $T_e = E_d'' i_d + E_q'' i_q$ is the per-unit electromagnetic (air-gap)
+torque and $T_m$ is the mechanical load torque, which follows the
+speed-dependent characteristic~\cite{WECCspec2024}
+\begin{equation}
+    T_m = T_{m0}\,w^{E_{trq}}, \qquad w = 1 - s,
+    \label{eq:loadtorque}
+\end{equation}
+with $w$ the per-unit rotor speed. The terms are:
+\begin{itemize}
+  \item $s$ --- rotor slip (pu), $s = (\omega_s - \omega_r)/\omega_s$, the
+        per-unit deviation of rotor speed $\omega_r$ from synchronous speed
+        $\omega_s$ (the single mechanical state); $w = 1-s$ is the per-unit
+        rotor speed;
+  \item $E_d''$, $E_q''$ --- $d$- and $q$-axis subtransient internal EMFs (pu),
+        the rotor-flux states governed by EPRI Eqs.~A-3--A-4;
+  \item $i_d$, $i_q$ --- $d$- and $q$-axis components of the stator terminal
+        current (pu), obtained algebraically from the terminal voltage and the
+        subtransient EMFs through the stator network (EPRI Eqs.~A-6--A-7);
+  \item $T_{m0}$ --- rated mechanical torque (pu on the motor MVA base), set at
+        initialisation to the steady-state electromagnetic torque
+        $T_{m0} = E_{d0}'' i_{d0} + E_{q0}'' i_{q0}$;
+  \item $E_{trq}$ --- speed exponent of the mechanical load torque
+        \cite{WECCspec2024}; it sets how the load torque varies with rotor
+        speed (e.g.\ $E_{trq}\!\approx\!0$ for constant-torque loads such as
+        Motor~A, $E_{trq}\!\approx\!2$ for the variable-torque fan and pump
+        loads of Motors~B and~C);
+  \item $\omega_0$ --- synchronous (electrical) frequency, which scales the
+        slip-frequency terms in the EMF state equations (EPRI Eqs.~A-1--A-4);
+  \item $H$ --- motor inertia constant (s), the ratio of kinetic energy stored
+        at synchronous speed to the motor MVA base, as defined in \eqref{eq:H_def}.
+\end{itemize}
+%
+The motor MVA base is fixed at initialisation from the active load assigned to
+the motor and its loading factor $\mathrm{LF}$ (Section~\ref{sec:method}).
+Crucially, the inertia constant $H$ enters the model \emph{only} through
+\eqref{eq:slip}: it is the sole parameter encoding rotational inertia in
+Motors~A, B, and~C, and the electrical sub-model carries no inertia term.
+Table~\ref{tab:Hvalues} lists the NERC-recommended inertia constants for the
+three motor types.
+
+\begin{table}[t]
+  \centering
+  \caption{NERC-recommended inertia constants $H$ (s) for the three-phase
+  induction-motor sub-models~\cite{EPRI3002019209}.}
+  \label{tab:Hvalues}
+  \begin{tabular}{@{}llcc@{}}
+    \toprule
+    Motor & Representative loads & Comm. & Ind. \\
+    \midrule
+    A & HVAC compressors, pumps      & 0.10 & 0.15 \\
+    B & Large fans, compressors      & 0.50 & 0.80 \\
+    C & Centrifugal pumps            & 0.10 & 0.80 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Motor D}
+% Performance-based algebraic model of single-phase residential HVAC.
+% Three operating regions (run I, run II, stall). No differential equation for
+% mechanical dynamics — no H parameter. Flag this as the gap addressed in
+% Section~\ref{sec:motord}.
+
+\subsection{Load Composition and Rules of Association}
+% The CLM is parameterised by load composition: what fraction of load at a bus
+% is assigned to each motor sub-model. The LCET rules of association map
+% end-use types (cooling, refrigeration, etc.) to motor fractions.
+% Table: rules of association for commercial loads (from Appendix B, EPRI report).
+
+
+
+\section{Aggregate Load Inertia from the Composite Load Model}
+\label{sec:method}
+\subsection{Kinetic Energy of a Single Motor Sub-model}
+For a rotating machine with moment of inertia $J$ (\si{\kilo\gram\metre\squared})
+and synchronous mechanical speed $\omega_s$ (\si{\radian\per\second}), the
+inertia constant $H$ is defined as the ratio of stored kinetic energy at
+synchronous speed to the machine's rated apparent power $S_B$:
+%
+\begin{equation}
+    H = \frac{E_k}{S_B} = \frac{\frac{1}{2}J\omega_s^2}{S_B}
+    \label{eq:H_def}
+\end{equation}
+%
+where $\omega_s$ is related to the nominal system frequency $f_0$
+(\SI{50}{\hertz} in the Australian NEM) by the machine's pole count. So defined,
+$H$ has units of seconds and is independent of pole number~\cite{Kundur1994}.
+The motor speed and torques in \eqref{eq:slip} are expressed in per unit on this
+same synchronous-speed base, so the $H$ of \eqref{eq:H_def} is exactly the
+inertia constant that appears in the slip equation~\eqref{eq:slip}.
+
+
+\subsection{Aggregate Kinetic Energy at a Load Bus}
+
+For a set of rotating machines that are mechanically independent (i.e., do not share a common shaft), the total stored kinetic energy is the scalar sum of individual contributions~\cite{Kundur1994}:
+\begin{equation}
+    E_{k,\mathrm{bus}} = \sum_{i} E_{k,i} = \sum_{i} H_i S_{B,i}
+    \label{eq:KE_sum}
+\end{equation}
+At a CLM load bus, this sum extends over all motor sub-model instances assigned to that bus. Because Motor~D is an algebraic performance model with no mechanical state and no inertia constant, it does not contribute stored kinetic energy; the sum is therefore restricted to Motors~A, B, and~C:
+\begin{equation}
+    E_{k,\mathrm{load}} = \sum_{i \in \{A,\,B,\,C\}} H_i\, S_{B,i}
+    \label{eq:KE_load}
+\end{equation}
+The per-motor MVA base $S_{B,i}$ is fixed during CLM initialisation from the model's motor-fraction parameters: if motor type~$i$ is assigned a fraction $F_{m_i}$ of the total bus load $P_{\mathrm{total}}$ and operates at loading factor $\mathrm{LF}_i$, then $S_{B,i} = F_{m_i} P_{\mathrm{total}} / \mathrm{LF}_i$. This is fixed at the operating point and does not re-appear in the dynamic equations; it enters \eqref{eq:KE_load} as a constant weight. The omission of Motor~D means that \eqref{eq:KE_load} is a lower bound on the true stored kinetic energy of the load; the magnitude of this underestimate is characterised in Section~\ref{sec:motord}.
+
+\subsection{Closed-Form Expression for \texorpdfstring{$H_{\mathrm{load}}$}{H\_load}}
+
+The aggregate inertia constant for the load bus is obtained by normalising \eqref{eq:KE_load} by a chosen MVA base. Selecting $S_{\mathrm{base}} = P_{\mathrm{total}}$, where $P_{\mathrm{total}}$ is the total active power consumed at the bus, makes $H_{\mathrm{load}}$ directly comparable to synchronous generator inertia constants, which are also expressed on the machine's own rated MVA base:
+\begin{equation}
+    H_{\mathrm{load}} = \frac{E_{k,\mathrm{load}}}{P_{\mathrm{total}}} = \frac{\displaystyle\sum_{i \in \{A,B,C\}} H_i\, S_{B,i}}{P_{\mathrm{total}}}
+    \label{eq:Hload_compact}
+\end{equation}
+Substituting $S_{B,i} = F_{m_i} P_{\mathrm{total}}/\mathrm{LF}_i$ cancels $P_{\mathrm{total}}$ and leaves the aggregate inertia constant in terms of the model's own component parameters:
+\begin{equation}
+    H_{\mathrm{load}} = \sum_{i \in \{A,B,C\}} \frac{F_{m_i}}{\mathrm{LF}_i}\, H_i .
+    \label{eq:Hload}
+\end{equation}
+Every quantity on the right-hand side --- the motor fractions $F_{m_i}$, the loading factors $\mathrm{LF}_i$, and the inertia constants $H_i$ --- is a standard composite-load-model parameter produced directly by model parameterisation. Equation~\eqref{eq:Hload} is therefore computable from any parameterised composite load model without additional measurement or simulation, and is linear in both the motor fractions and the inertia constants.
+
+The non-motor fractions of the load --- static (ZIP) and electronic --- carry no inertia constant and so appear nowhere in the numerator of \eqref{eq:Hload_compact}; they enter only through $P_{\mathrm{total}}$ in the denominator. Choosing $P_{\mathrm{total}}$ as the base therefore does \emph{not} credit them with inertia. It normalises the motor-only kinetic energy~\eqref{eq:KE_load} to total demand, so a bus with a large static or electronic share simply has a proportionately smaller $H_{\mathrm{load}}$ (since $\sum_i F_{m_i}\le 1-F_{\mathrm{static}}-F_{\mathrm{elec}}$). The base is a normalisation convention, not a physical energy source: the invariant physical quantity is the stored energy $E_{k,\mathrm{load}}$, and the product $H_{\mathrm{load}}\,P_{\mathrm{total}}$ returns it exactly --- the $P_{\mathrm{total}}$ cancels the $1/P_{\mathrm{total}}$ in the definition of $H_{\mathrm{load}}$ --- regardless of the base chosen. The choice $S_{\mathrm{base}}=P_{\mathrm{total}}$ is the one that makes $H_{\mathrm{load}}$ an intensive ``inertia per unit of total demand,'' directly comparable and additive with the generator term in~\eqref{eq:Hsys}.
+
+\subsection{Interpretation}
+
+$H_{\mathrm{load}}$ represents the kinetic energy stored in the induction motor fraction of the load, normalised to the total bus load. It is a \emph{stored-energy} (energy-content) measure: it quantifies the rotational kinetic energy physically present in the load, and thereby its capacity to transiently absorb or release energy in response to a frequency deviation --- the same role played by synchronous generator inertia, and characterised by the same quantity. As made explicit below, it is an upper bound on the inertial response actually \emph{delivered} to the grid during a disturbance.
+
+One point of interpretation should be made explicit. The energy $E_{k,\mathrm{load}} = H_{\mathrm{load}}\,P_{\mathrm{total}}$ is referenced to synchronous speed: consistent with the definition of $H$ in \eqref{eq:H_def}, it is the kinetic energy each motor would store \emph{at} synchronous speed, which is also the convention used for synchronous generators. Because an induction motor runs at a slip $s$ below synchronous speed, the energy physically stored at the operating point is slightly smaller, $E_{k,\mathrm{actual},i} = H_i\,S_{B,i}(1-s_i)^2$. For typical rated slips of \SIrange{1}{5}{\percent} this is a difference of only a few percent, and adopting the synchronous-referenced value keeps the load and generation terms in \eqref{eq:Hsys} on a common basis; the $(1-s)^2$ correction can be applied where the operating-point energy is of direct interest.
+
+This allows load inertia to be incorporated directly into the system-level inertia estimate. The aggregate inertia constant for a power system with synchronous generation and induction motor load is:
+\begin{equation}
+    H_{\mathrm{sys}} = \frac{H_{\mathrm{gen}}\, S_{\mathrm{gen}} + H_{\mathrm{load}}\, P_{\mathrm{total}}}{S_{\mathrm{sys}}}
+    \label{eq:Hsys}
+\end{equation}
+where $S_{\mathrm{gen}}$ is the total rated MVA of online synchronous generation and $S_{\mathrm{sys}}$ is the system MVA base. The load term $H_{\mathrm{load}} P_{\mathrm{total}}$ is the aggregate kinetic energy stored in motor loads across the system, and is directly computable from \eqref{eq:Hload} without simulation. In systems with high IBR penetration, where $S_{\mathrm{gen}}$ is declining, this term becomes a non-negligible fraction of $H_{\mathrm{sys}}$ --- and omitting it leads to systematic underestimation of available inertia.
+
+One further caveat applies to \eqref{eq:Hsys}: it places $H_{\mathrm{load}}P_{\mathrm{total}}$ and $H_{\mathrm{gen}}S_{\mathrm{gen}}$ on a common energy basis, but a synchronous generator (rigidly coupled to system frequency) delivers that energy faster and more completely than an induction motor (coupled only through the slip--torque characteristic). Equation~\eqref{eq:Hload} is therefore an upper bound on the load's effective inertial contribution --- distinct from, and larger than, the $(1-s)^2$ correction, which adjusts the stored energy rather than the delivered response. This coupling effect is taken up in Section~\ref{sec:discussion}.
+
+
+\subsection{Sensitivity and Load Electronification}
+\label{sec:sensitivity}
+Being linear in the model parameters, \eqref{eq:Hload} needs no separate
+sensitivity analysis: $H_i$ and $\mathrm{LF}_i$ are fixed weights, and the motor
+fractions $F_{m_i}$ are what vary across buses and operating conditions. Two
+points follow. Since $\sum_i F_{m_i}\le 1$, $H_{\mathrm{load}}$ is bounded by
+$\max_i H_i/\mathrm{LF}_i$ --- at most about \SI{1}{\second} for the NERC
+defaults, an order of magnitude below synchronous-generator values
+(\SIrange{3}{6}{\second}). And because $H_{\mathrm{load}}$ scales with the
+aggregate motor fraction, load electronification --- inverter-interfaced drives,
+PV, and DER displacing directly-connected motors --- drives it down, the
+demand-side counterpart of declining synchronous inertia.
+
+
+% ── 5. The Motor D Gap ────────────────────────────────────────────────────────
+\section{Motor D and the Residential Inertia Gap}
+\label{sec:motord}
+Motor~D represents single-phase residential air-conditioning and refrigeration
+compressors~\cite{EPRI3002019209}. Unlike Motors~A--C it is a performance-based
+\emph{algebraic} model --- three voltage-dependent regions (run~I, run~II, stall)
+with no swing equation and hence no inertia constant, developed to reproduce
+fault-induced delayed voltage recovery rather than rotor
+dynamics~\cite{EPRI3002019209}. It therefore contributes nothing to
+\eqref{eq:KE_load}, and $H_{\mathrm{load}}$ omits whatever inertia the
+single-phase fleet carries. Had Motor~D a representative inertia $H_D$ on the
+same basis, its contribution would be
+\begin{equation}
+    \Delta H_{\mathrm{load}} = \frac{F_{m_D}}{\mathrm{LF}_D}\, H_D .
+    \label{eq:motord_bound}
+\end{equation}
+This bound is small: single-phase compressors are very-low-inertia machines --- it
+is their minimal inertia that makes them stall~\cite{EPRI3002019209} --- so $H_D$
+sits below even Motor~A, and the term scales with the small fraction $F_{m_D}$
+(evaluated in Section~\ref{sec:casestudy}).
+
+More fundamentally, $F_{m_D}$ is shrinking. Motor~D was built for North American
+practice, where the compressor is a directly-connected single-phase
+capacitor-start induction motor~\cite{CIGRE_CSE_N20}; for these the omission is a
+genuine gap. Modern air-conditioners instead use inverter-based
+variable-frequency drives~\cite{CIGRE_CSE_N20}, which the CLM rules of association
+assign to the \emph{electronic} component, and whose power-electronic front end
+decouples the rotor from grid frequency --- so zero inertia is physically
+correct, not a modelling artefact. The residential contribution to load inertia
+is thus governed by electronification (Section~\ref{sec:sensitivity}), not by the
+treatment of Motor~D; closing the modelling gap would recover only the small,
+declining directly-connected part of \eqref{eq:motord_bound} and is outside our
+scope.
+
+
+% ── 6. Demonstration ──────────────────────────────────────────────────────────
+\section{Case Study: Proposed Application to the NEM}
+\label{sec:casestudy}
+We outline a demonstration on the Australian National Electricity Market (NEM).
+Rather than apply a single aggregate composition to all demand, we propose an
+\emph{end-use--resolved} evaluation of \eqref{eq:Hload}, in which total demand is
+attributed across a set of end-use categories~$j$ --- to be defined --- each with
+its own rules-of-association mapping $f_{ij}$ and an active-power share $P_j(t)$
+that may vary with time:
+\begin{equation}
+\begin{aligned}
+  H_{\mathrm{load}}(t)
+   &= \frac{1}{P_{\mathrm{total}}(t)}\sum_{j}\sum_{i\in\{A,B,C\}}
+        \frac{f_{ij}}{\mathrm{LF}_i}\,H_i\,P_j(t)\\[2pt]
+   &= \sum_j p_j(t)\,h_j,
+\end{aligned}
+  \label{eq:Hload_j}
+\end{equation}
+where $p_j(t)=P_j(t)/P_{\mathrm{total}}(t)$ is the power share of end use~$j$ and
+$h_j=\sum_{i\in\{A,B,C\}}(f_{ij}/\mathrm{LF}_i)\,H_i$ its per-end-use inertia
+constant. Resolving demand by end use lets
+categories with high directly-connected motor content --- which an aggregate
+composition under-represents --- be attributed explicitly, and lets the
+composition, and hence $H_{\mathrm{load}}$, track diurnal and seasonal change
+through $P_j(t)$.
+
+What enters the system-level estimate~\eqref{eq:Hsys} is not the normalised
+constant but the load's stored kinetic energy. From \eqref{eq:KE_load} and the
+cancellation of $P_{\mathrm{total}}(t)$ noted in Section~\ref{sec:method}, this is
+\begin{equation}
+  E_{\mathrm{load}}(t) = H_{\mathrm{load}}(t)\,P_{\mathrm{total}}(t)
+   = \sum_{j} h_j\,P_j(t),
+  \label{eq:Eload_j}
+\end{equation}
+a sum over end uses weighted by their \emph{absolute} active power $P_j(t)$, in
+which $P_{\mathrm{total}}(t)$ has cancelled against the $1/P_{\mathrm{total}}(t)$
+defining $H_{\mathrm{load}}$ in \eqref{eq:Hload_j}. Although $P_{\mathrm{total}}$
+includes static- and electronic-load components that store no kinetic energy,
+\eqref{eq:Eload_j} assigns them none: each $h_j$ is built only from the motor
+fractions $f_{ij}$, so the non-inertial demand enters the normalisation base of
+$H_{\mathrm{load}}$ but never the energy $E_{\mathrm{load}}$. The total demand
+$P_{\mathrm{total}}(t)$ thus appears as the base on which $H_{\mathrm{load}}$ is
+reported, while $E_{\mathrm{load}}(t)$ --- the quantity carried into
+\eqref{eq:Hsys} --- depends only on the directly-connected motor load.
+
+The resulting $E_{\mathrm{load}}(t)$ (equivalently $H_{\mathrm{load}}(t)$) is then
+combined with synchronous inertia from operational dispatch to evaluate the load's
+contribution to system inertia via \eqref{eq:Hsys}, over the NEM mainland
+synchronous area. Defining the end-use
+taxonomy, the mapping $f_{ij}$ for each category, and the source of the
+time-varying shares $P_j(t)$ are the subject of ongoing work.
+
+
+% ── 7. Discussion ─────────────────────────────────────────────────────────────
+\section{Discussion}
+\label{sec:discussion}
+
+% How the method fits into existing inertia monitoring frameworks.
+% Practical requirements: what load composition data does an operator need?
+% Limitations: prescribed H values, Motor D gap, aggregation assumptions.
+% Future work: measurement-based H estimation, Motor D extension, validation.
+
+\subsection{From Stored Energy to Delivered Response}
+A limitation to state plainly is that $H_{\mathrm{load}}$ is a stored-energy
+metric, not a measured frequency-response. As discussed in
+Section~\ref{sec:method}, induction motors are coupled to system frequency far
+more weakly than synchronous generators --- through the slip--torque
+characteristic rather than rigid synchronism --- so the inertial energy a motor
+load actually delivers during a disturbance is smaller and slower than its
+energy content. Equation~\eqref{eq:Hload} therefore gives an upper bound suitable
+for inertia \emph{accounting} (how much energy is present, and how it trends with
+electronification), but mapping it to a RoCoF contribution requires evaluating
+the slip dynamics of \eqref{eq:slip}--\eqref{eq:loadtorque} under a representative
+disturbance. Quantifying this coupling-moderated effective inertia --- and
+calibrating a single ``response factor'' relating it to $H_{\mathrm{load}}$ --- is
+a natural extension and a target for measurement-based validation.
+
+
+% ── 8. Conclusion ─────────────────────────────────────────────────────────────
+\section{Conclusion}
+\label{sec:conclusion}
+
+% 1 paragraph. Restate contribution, key result, and main implication.
+
+
+% ── References ────────────────────────────────────────────────────────────────
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+% Key references to add:
+% - EPRI 3002019209 (Technical Reference on the Composite Load Model, 2020)
+% - CIGRE CSE N20 (Load and DER Modeling, Feb 2021)
+% - WECC CLM documentation
+% - NERC/WECC LMTF parameter recommendations
+% - Relevant inertia estimation papers from your Zotero library
+
+\end{document}

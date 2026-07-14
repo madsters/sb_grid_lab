@@ -1,0 +1,2631 @@
+===== TOC =====
+Abbreviations .. p3
+Nomenclature .. p4
+Executive summary .. p5
+1 Introduction and Overview .. p9
+2 Installation and Setup of Project Components for Inertia Measurement Demonstration Project in NEM .. p11
+  2.1 Installation and Configuration of XMUs .. p11
+  2.2 Implementation of Modulator Controls at VBB .. p12
+  2.3 Description of Testing Period .. p12
+3 Overview of System Reserve Requirements .. p14
+  3.1 System Requirements .. p14
+    3.1.1 RoCoF Requirements .. p14
+    3.1.2 QSS Requirements .. p14
+    3.1.3 Nadir Requirements .. p15
+  3.2 NEM FCAS Requirements .. p17
+4 Technical validation .. p18
+  4.1 Theoretical Inertia .. p18
+  4.2 Summary of inertia results-Reactive Technologies Inertia Measurement in NEM .. p20
+    4.2.1 Inertia by Demand Level .. p21
+    4.2.2 Inertia by Renewable Penetration Levels .. p21
+  4.3 Comparison against AEMO's current calculation methodology .. p23
+  4.4 Calculations of demand-side inertia contributions .. p26
+  4.5 Reactive Technologies Regional Inertia Measurement .. p27
+  4.6 Event-based verification .. p29
+5 Economic assessment .. p31
+  5.1 Methodology to Assess the Potential Benefits of Inertia Measurements .. p31
+    5.1.1 System Operational Cost Savings .. p32
+    5.1.2 Other Savings from Avoided Investment in Inertia Sources to Maintain Regional Security .. p32
+      5.1.2.1 Reduced Inertia Payments .. p33
+      5.1.2.2 Deferred/Reduced Investment .. p33
+    5.1.3 Week Selection .. p34
+  5.2 Operational Savings .. p38
+    5.2.1 NEM 2023 .. p38
+      5.2.1.1 Installed Capacity .. p38
+      5.2.1.2 Results .. p39
+    5.2.2 Islanded Queensland .. p41
+      5.2.2.1 Installed Capacity .. p41
+      5.2.2.2 Results .. p41
+  5.3 Other Savings .. p43
+    5.3.1 Islanded Queensland .. p43
+    5.3.2 South Australia .. p44
+6 Future use case: Discussions of future use cases for inertia management .. p46
+  6.1 Installed Capacity .. p47
+  6.2 Results .. p48
+    6.2.1 Damping 0.5 % .. p48
+    6.2.2 Damping 0.1 % .. p50
+7 Summary of potential savings .. p55
+8 Regulatory Consideration and Pathway to Commercialisation .. p56
+9 Conclusions and Recommendations .. p57
+10 References .. p59
+11 Appendix .. p63
+  11.1 FCAS Markets in Australia .. p63
+  11.2 5-minutes Rooftop PV .. p64
+  11.3 Availability of Coal Generators .. p65
+
+
+
+===== PAGE 1 =====
+ 
+   
+                           
+ 
+ 
+ 
+Evaluation of Reactive Technologies Inertia 
+Measurement and Techno-economic 
+Modelling  
+Technical Knowledge Sharing Report 
+ 
+ 
+ 
+Report prepared for Reactive Technologies, System Inertia 
+Measurement Demonstration Project 
+ 
+Bastian Moya, Pierluigi Mancarella 
+The University of Melbourne 
+ 
+ 
+ 
+August 2024 
+ 
+
+
+===== PAGE 2 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+2 
+ 
+ 
+Project Details 
+Project Title 
+Reactive 
+Technologies, 
+System 
+Inertia 
+Measurement 
+Demonstration 
+Contract Number 
+2020/ARP002 
+Recipient 
+Reactive Technologies Pty Ltd 
+Primary Contact Name 
+Adnan Khalil 
+Contact Email 
+adnank@reactive-technologies.com  
+Reporting Period 
+Milestone 3 
+Document Ref  
+Knowledge Sharing Reports Complete 
+ 
+Arena Acknowledgement and Disclaimer 
+This Project received funding from the Australian Renewable Energy Agency (ARENA) as part of 
+ARENA’s Advancing Renewables Program. 
+The views expressed herein are not necessarily the views of the Australian Government, and the 
+Australian Government does not accept responsibility for any information or advice contained herein. 
+This project also received cash funding from the Department of Energy, Environment, and Climate 
+Action (DEECA) state department of Victoria as well as In-Kind contributions from all project partners 
+DEECA, Australian Energy Market Operator (AEMO), Neoen (Owner/operator of Victorian Big Battery 
+- VBB), Melbourne Energy Institute (MEI) University of Melbourne. 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+===== PAGE 3 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+3 
+Abbreviations  
+Term 
+Definition 
+AEC 
+Economic Regulation Authority  
+AEMO 
+Australian Energy Market Operator  
+AER 
+Australian Energy Regulator 
+ARENA 
+Australian Renewable Energy Agency 
+BESS  
+Battery Energy Storage System 
+DEECA 
+Department of Energy, Environment, and Climate Action 
+ERCOT 
+Electric Reliability Council Of Texas  
+ESO 
+Electricity System Operator 
+FAT 
+Factory Acceptance Test 
+FCAS 
+Frequency Control Ancillary Services  
+FFR 
+Fast Frequency Response  
+GWs 
+Gigawatt Second 
+ISP 
+Integrated System Plan  
+LAN 
+Local Area Network 
+MEI 
+Melbourne Energy Institute, University of Melbourne 
+MQTT 
+Message Queuing Telemetry Transport 
+MWs 
+Megawatt Second 
+NEM 
+National Electricity Market  
+Neoen 
+Owner/Operator of VBB 
+NSW 
+New South Whales 
+OEM 
+Original Equipment Manufacturer 
+PFR 
+Primary Frequency Control  
+PMU 
+Phasor Measurement Unit 
+PV 
+Photovoltaics 
+QLD 
+Queensland 
+QSS 
+Quasi-Steady-State  
+REZ 
+Renewable Energy Zone  
+RoCoF 
+Rate Of Change of Frequency  
+RTAC 
+Real-Time Automation Controller 
+SA 
+South Australia 
+SATs 
+Site Acceptance Tests 
+SFC 
+Secondary Frequency Control  
+TNSPs 
+Transmission Network Service Providers  
+UI 
+User Interface 
+UoA 
+University of Adelaide  
+UoM 
+University of Melbourne  
+VBB 
+Victorian Big Battery 
+VIC 
+Victoria 
+WEM 
+Wholesale Electricity Market  
+XMU 
+Extensible Measurement Units  
+
+
+===== PAGE 4 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+4 
+Nomenclature 
+Term 
+Definition 
+𝑅𝑝𝑓𝑟 
+PFR 
+𝑅𝑓𝑓𝑟 
+FFR 
+𝐿𝑟Δ𝑓 
+Load Relief 
+𝐷 
+Damping Factor 
+𝑃𝐷 
+System Demand 
+Δ𝑓 
+Frequency Deviation 
+∆𝑃𝑙𝑜𝑠𝑠 
+Generation Unit Output 
+𝐻𝑠𝑦𝑠 
+System Inertia 
+𝐻𝑎𝑤𝑠 
+Inertia Awareness Factor 
+𝐻𝑔 
+Inertia Constant of Generator g 
+𝐺𝑠𝑦𝑠 
+Set of generators 
+𝑝𝑓𝑔 
+Power Factor of Generator g 
+𝑃̅𝑔 
+Maximum power output of generator g 
+Δ𝑅𝑂𝐶𝑂𝐹𝑚𝑎𝑥 
+Maximum ROCOF 
+𝑇𝑅𝑂𝐶𝑂𝐹 
+Time to measure RoCoF 
+𝑇𝑓𝑓𝑟 
+Time to provide FFR 
+𝑓 
+Frequency of the system 
+𝛥𝑓𝐷𝐵 
+Frequency deadband  
+𝛥𝑓𝑛𝑎𝑑𝑖𝑟 
+Frequency Nadir 
+ 
+ 
+
+
+===== PAGE 5 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+5 
+Executive summary 
+The transition to a fully decarbonised power system presents significant challenges for system 
+operators due to new operating conditions, particularly declining system inertia due to the retirement 
+of conventional generators and increased inverter-based resources. This issue is expected to become 
+more common and more extreme in the future. 
+To address this, system operators are exploring the roles of Frequency Control Ancillary Services 
+(FCAS) and inertia to maintain stability. Various countries have implemented measures to monitor and 
+manage inertia. For instance, the Electric Reliability Council of Texas (ERCOT) has established 
+minimum inertia requirements and real-time monitoring inertia, while the UK is analysing the 
+development of new FCAS and inertia markets. In Australia, inertia and FCAS concerns led to the 
+implementation of an inertia market in the Wholesale Electricity Market (WEM) and a very Fast FCAS 
+market in the National Electricity Market (NEM). The Australian Energy Market Operator (AEMO) 
+projects a potential inertia deficit in Queensland (QLD) by 2027, highlighting the need for additional 
+measures. 
+In this context, Reactive Technologies partnered with the University of Melbourne (UoM), and AEMO 
+to carry out a pilot demonstration project for real-time inertia measurements in the NEM, using its 
+GridMetrix® technology to provide accurate inertia data. This project received funding from ARENA 
+and DEECA. Thus, this report focuses on two main aspects: analysing real-time inertia measurements 
+from June to September 2023 to understand the difference between theoretical and actual inertia; 
+and quantifying the potential value of the residual inertia (attributed to the demand-side inertia) for 
+both operational and planning purposes. 
+The data analysis revealed a strong positive correlation between high demand and system inertia. The 
+analysis also found an inverse relationship between high renewable penetration and system inertia, 
+indicating a potential rise in low-inertia periods as inverter-based resources become more prominent. 
+Moreover, discrepancies between theoretical and measured inertia values suggest inaccuracies in 
+generator data and the presence of demand-side inertia. The effectiveness of measuring inertia using 
+Reactive’s technology was validated through an event-based approach, confirming its improved 
+accuracy compared to AEMO’s theoretical calculations.  
+The operational value of demand-side inertia was quantified by calculating potential operational 
+dispatch cost savings. This model was tested on the NEM and an isolated Queensland (QLD) system, 
+as well as a future scenario without coal generation. The results suggest potential annual savings of 
+approximately $1.5 million for the current system. Besides, annual savings are projected to increase 
+in the year 2037, ranging from $26 million to $87 million. 
+Moreover, potential savings from lower inertia source procurement were assessed for QLD and South 
+Australia (SA), since these regions have a declared inertia shortfall that needs to be addressed in the 
+short term. The findings highlight very significant potential economic benefits from deferring future 
+investments in synchronous condensers. The rapid deployment of the inertia measurement 
+technology complements these benefits by providing an advantage over the lengthy construction of 
+alternative assets. The analysis suggests that delaying or avoiding these investments could save the 
+
+
+===== PAGE 6 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+6 
+system a total of between $99 million and $145 million 1 . Besides, reducing inertia payments 
+associated with contracting additional FFR providers could potentially save a total of $2 million to the 
+system in the short-term.  
+ 
+ 
+ 
+1 It should be noted that these savings are based on reduced need for synchronous condensers for frequency 
+security, based on higher levels of available inertia as from measurements. Investment in synchronous 
+condensers might still be required for other purposes, for example for system strength reasons. 
+
+
+===== PAGE 7 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+7 
+Table of Contents 
+Abbreviations .............................................................................................................................. 3 
+Nomenclature .............................................................................................................................. 4 
+Executive summary ...................................................................................................................... 5 
+1 
+Introduction and Overview ................................................................................................... 9 
+2 
+Installation and Setup of Project Components for Inertia Measurement Demonstration 
+Project in NEM ........................................................................................................................... 11 
+2.1 
+Installation and Configuration of XMUs ...................................................................... 11 
+2.2 
+Implementation of Modulator Controls at VBB ........................................................... 12 
+2.3 
+Description of Testing Period...................................................................................... 12 
+3 
+Overview of System Reserve Requirements ......................................................................... 14 
+3.1 
+System Requirements ................................................................................................ 14 
+3.1.1 
+RoCoF Requirements ..................................................................................................................... 14 
+3.1.2 
+QSS Requirements ......................................................................................................................... 14 
+3.1.3 
+Nadir Requirements ...................................................................................................................... 15 
+3.2 
+NEM FCAS Requirements ........................................................................................... 17 
+4 
+Technical validation ........................................................................................................... 18 
+4.1 
+Theoretical Inertia ..................................................................................................... 18 
+4.2 
+Summary of inertia results-Reactive Technologies Inertia Measurement in NEM ......... 20 
+4.2.1 
+Inertia by Demand Level ............................................................................................................... 21 
+4.2.2 
+Inertia by Renewable Penetration Levels ..................................................................................... 21 
+4.3 
+Comparison against AEMO's current calculation methodology .................................... 23 
+4.4 
+Calculations of demand-side inertia contributions ...................................................... 26 
+4.5 
+Reactive Technologies Regional Inertia Measurement................................................. 27 
+4.6 
+Event-based verification ............................................................................................. 29 
+5 
+Economic assessment ......................................................................................................... 31 
+5.1 
+Methodology to Assess the Potential Benefits of Inertia Measurements...................... 31 
+5.1.1 
+System Operational Cost Savings .................................................................................................. 32 
+5.1.2 
+Other Savings from Avoided Investment in Inertia Sources to Maintain Regional Security ........ 32 
+5.1.3 
+Week Selection.............................................................................................................................. 34 
+5.2 
+Operational Savings ................................................................................................... 38 
+5.2.1 
+NEM 2023 ...................................................................................................................................... 38 
+5.2.2 
+Islanded Queensland ..................................................................................................................... 41 
+5.3 
+Other Savings ............................................................................................................ 43 
+5.3.1 
+Islanded Queensland ..................................................................................................................... 43 
+5.3.2 
+South Australia .............................................................................................................................. 44 
+6 
+Future use case: Discussions of future use cases for inertia management ............................. 46 
+
+
+===== PAGE 8 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+8 
+6.1 
+Installed Capacity ....................................................................................................... 47 
+6.2 
+Results....................................................................................................................... 48 
+6.2.1 
+Damping 0.5 % .............................................................................................................................. 48 
+6.2.2 
+Damping 0.1 % .............................................................................................................................. 50 
+7 
+Summary of potential savings ............................................................................................ 55 
+8 
+Regulatory Consideration and Pathway to Commercialisation ............................................. 56 
+9 
+Conclusions and Recommendations .................................................................................... 57 
+10 
+References ......................................................................................................................... 59 
+11 
+Appendix ........................................................................................................................... 63 
+11.1 
+FCAS Markets in Australia .......................................................................................... 63 
+11.2 
+5-minutes Rooftop PV ................................................................................................ 64 
+11.3 
+Availability of Coal Generators ................................................................................... 65 
+ 
+ 
+ 
+
+
+===== PAGE 9 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+9 
+1 Introduction and Overview 
+The transition to a fully decarbonised system presents challenges for system operators given by new 
+operating conditions. One key challenge is the declining system inertia due to the active retirement of 
+conventional generators and the increasing penetration of inverter-based resources. These conditions 
+are projected to become both more common and more extreme in future scenarios.  
+To address this challenge, system operators are actively exploring the role of both Frequency Control 
+Ancillary Services (FCAS) and inertia to maintain stability in systems in future power systems. For 
+instance, Japan was advised by its energy institute to deploy inertia monitoring and to set a minimum 
+inertia requirement per area [1].  
+Similarly, since 2016 the Electric Reliability Council of Texas (ERCOT) monitors the inertia and enforces 
+an hourly minimum inertia [2]. This level of inertia is monitored in real-time by calculating the inertia 
+of the online generators. This inertia must be greater or equal to 100 GWs to ensure an adequate Rate 
+of Change of Frequency (RoCoF) limit. If system inertia drops below 120 GWs, the ERCOT closely 
+monitors the situation and acts if it falls below 105 GWs. These actions are usually the deployment of 
+offline resources with a quick start to increase the inertia level [3]. 
+In the UK, National Grid ESO has defined the inertia as a system-wide stability constraint [4]. In this 
+context, National Grid is exploring new markets and the role of both generators and demand-side 
+inertia [5]. In academia, there are some efforts to develop adequate inertia markets in the UK system 
+by assigning shadow prices to inertia [6] [7]. However, in the midterm, the market will be focused on 
+procuring inertia only as a primary product, with a target inertia requirement for the first year set at 
+an indicative value of 7 GWs. This requirement is technology agnostic, and the volume could be 
+adjusted based on bids received [8].  
+In Australia, concerns about inertia and FCAS are not recent. In 2017, the University of Melbourne 
+(UoM) performed the system security studies commissioned by the Chief Scientist for his ‘Finkel 
+Review’ [9]. The UoM’s work highlighted the importance of co-optimization of system inertia and 
+multiple frequency control ancillary services to maintain frequency stability, including challenges for 
+islanded regions [10].  
+More recently, a report published by the Global Power System Transformation identifies the inclusion 
+of inertia as a service, primary frequency control (PFR), and secondary frequency control (SFC) as key 
+areas for research [11]. The report also emphasized the need for a market capable of accommodating 
+various FCAS to secure minimum response during potential islanding operations in the NEM.  
+To address the evolving needs in Australia, the Australian authorities have implemented different 
+mechanisms. In October 2023, the Wholesale Electricity Market (WEM) implemented an inertia 
+market to control the system’s RoCoF. This service is offered in MWs and has 2 functions: (1) to ensure 
+that the RoCoF is restricted below a certain maximum level and (2) to ensure that minimum frequency 
+requirements are maintained in accordance with the frequency standards and potentially reducing 
+raise FCAS requirements [12]. The inertia has an upper limit calculated as the minimum between 3 
+GWs and the forecast minimum inertia available in the next 12 months [13]. Besides, the price ceiling 
+of this service is 300 $/MWs/h. 
+On the other hand, the evolving needs were addressed in the National Electricity Market (NEM) by 
+implementing a 1-second market called very Fast FCAS market in October 2023 [14]. However, with 
+
+
+===== PAGE 10 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+10 
+the retirement of conventional generators and new operating conditions with very deep penetration 
+of renewable generators, inertia response services are expected to play a more critical role in the 
+upcoming years. The Australian Energy Market Operator (AEMO) projections suggest a potential 
+inertia deficit of 1.6 GWs in Queensland (QLD) during islanding operation by 2027 [15]. The current 
+regulation requires transmission network service providers (TNSPs) to ensure sufficient inertia for 
+islanding events through either procuring inertia from market participants or by asset investment 
+(e.g., in synchronous condensers). As a result, inertia has become a critical focus for many 
+stakeholders in the NEM [15]. 
+The AEMC is studying the impact of developing a new inertia market additional to the existing FCAS 
+market [16]. The creation of an inertia market would need to understand any potential hidden inertia 
+coming from inaccurate theoretical calculations or additional inertia coming from the demand side.  
+In this context, Reactive Technologies partnered with AEMO and ARENA to carry out a pilot 
+demonstration project for real-time inertia measurement in the mainland NEM [17]. These 
+measurements were performed using a new technology developed by Reactive, which consists of a 
+modulator and several Extensible Measurement Units (XMU) along with an algorithm to analyse the 
+data [18] [19]. Using this technology, the system is capable of measuring inertia with a confidence 
+range of approximately 10%. Besides, [20] suggests that inertia measurement using this technology 
+might be more accurate than other methods to calculate inertia (event-based approaches or 
+theoretical calculation) in systems with low inertia and a high penetration of fast-acting controllers 
+(commonly known as Fast Frequency Response (FFR) service). 
+The value of inertia has been shown in the UK in [21] and [22]. Particularly, [22] has studied the value 
+of demand-side inertia to the system. In this study a 5s inertia constant was used to study the inertia 
+from the demand side and the savings were proved to be around 360 - 9800 £/hour with 2% of the 
+demand providing inertia (with a 10% error in the measures) in 2030. 
+This report delves into two critical aspects of inertia within the NEM. First, we analyse inertia 
+measurements captured by Reactive’s GridMetrix® technology between June and September 2023. 
+This analysis aims to bridge the gap between theoretical calculations and the actual inertia to estimate 
+the residual inertia attributed to the demand-side inertia. Besides, this analysis helps to understand 
+under what conditions the system presents low and high inertia. 
+Second, we quantify the operational and planning value of considering demand-side inertia. Firstly, 
+we developed a model that incorporates RoCoF, Quasi-steady-state (QSS), and nadir requirements. 
+This model helps us understand the relationship between online inertia, FFR, and PFR, ultimately 
+quantifying how demand-side inertia contributes to optimal resource allocation for system stability. 
+Besides, we evaluate the value of demand-side inertia beyond unit commitment models by 
+quantifying potential cost savings from deferring investments or avoiding additional inertia payments. 
+Thus, this report sheds light on the potential benefits of incorporating measured inertia data into NEM 
+operations, providing insights into potential cost savings from operational optimisations, deferred 
+investments, and reduced inertia payments. 
+
+
+===== PAGE 11 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+11 
+2 Installation and Setup of Project Components for Inertia 
+Measurement Demonstration Project in NEM 
+2.1 Installation and Configuration of XMUs 
+Reactive’s XMU devices were built into an industrial panel for ease of installation and commissioning. 
+The XMU panels manufactured at a local panel builder facility in Vic Australia, were pre-configured 
+and ready to be plugged into a domestic 230V wall socket. As soon as the panels are plugged in and 
+turned ON, they automatically start to report frequency measurements from each installation location 
+to Reactive’s secure cloud platform GridMetrix®. For the Inertia Measurement Demonstration project, 
+a total of 15 XMU panels were installed at DEECA offices across 15 VIC state government offices. Later, 
+during the project testing phase, ElectraNet SA and Powerlink QLD also showed interest in becoming 
+part of the demonstration project, and 5 XMU panels each were installed in SA and QLD and 3 XMU 
+panels were installed in NSW to enable Reactive Technologies to measure changes in frequency in 
+these regions to allow measurement of Inertia in the NEM and regional Inertia. It was demonstrated 
+during the demonstration project that the XMU panels can be deployed easily without the need for 
+complex installations at substations thus avoiding any shutdowns or interruptions to operations of the 
+Grid. 
+ 
+Figure 1 XMU locations across NEM 
+
+
+===== PAGE 12 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+12 
+2.2 Implementation of Modulator Controls at VBB 
+Early in the project phase, Reactive Technologies shared the technical specification of the modulator 
+requirement for NEM with AEMO. AEMO performed modeling and assessment to ensure that the 
+operation of the modulator with the suggested signal parameters would not have any adverse impacts 
+on the grid or nearby generators. After confirmations from AEMO and UoA (who performed small 
+signals studies) that there would be no impacts during the operation of the Modulator, the Modulator 
+requirements were shared with Tesla (Supplier and OEM of VBB) and Neoen. This helped Tesla to 
+understand and implement the modulator controls on an inverter in their lab and then conducted 
+comprehensive lab tests to validate and confirm that the BESS could indeed fulfill the specified 
+modulator functionality. This comprehensive validation ensured that the modulator would perform 
+as required for the success of the demonstration project. Tesla implemented the modulator controls 
+at VBB to enable the modulator functionality.  
+2.3 Description of Testing Period 
+The demonstration project involved 250 hours of Modulation operation for Inertia measurement. 
+During this phase Neoen’s VBB was utilised as a modulator to inject a power signal into the NEM, 
+resulting in a very small but measurable change in the grid frequency. This change in frequency was 
+measured by Reactive Technologies XMUs installed across the NEM and reported back to Reactive’s 
+GridMetrix® platform. Together with these frequency measurements and the modulation power data 
+from VBB, Reactive Technologies was able to measure the total NEM Inertia for the periods when 
+modulation was carried out. Also, during the project testing period, high-speed boundary flow power 
+data was made available by AEMO for the VIC region and ElectraNet for the SA region which enabled 
+the Reactive Technologies to calculate the regional Inertia for VIC, SA, and QLD+NSW regions. 
+ 
+Figure 2 GridMetrix® Inertia Measurement High-level Schematic 
+
+
+===== PAGE 13 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+13 
+ 
+Figure 3 GridMetrix® Regional Inertia Measurement High-level Schematic 
+The testing period was carried out from 5th June 2023 to 28th Sep 2023. During this period modulation 
+activities were systematically carried out to encompass a wide range of grid conditions, ensuring 
+comprehensive testing and measurement of the system’s inertia under various scenarios provided by 
+the AEMO test coordinator. These included: 
+1. High Demand with High VRE: Testing was conducted during periods of high electricity 
+demand, coupled with high levels of variable renewable energy generation from sources like 
+solar and wind. 
+2. Low Demand with Low VRE: Testing under conditions of low electricity demand and minimal 
+variable renewable energy generation. 
+3. Low Demand with High VRE: Evaluating system behaviour during low demand periods while 
+experiencing substantial variable renewable energy contributions. 
+4. High Demand with Low VRE: Assessing the system's response when demand is high but 
+variable renewable energy generation is relatively low. 
+5. High Export from VIC: Focusing on situations where Victoria experiences high electricity 
+exports to neighbouring regions. 
+6. High Wind and Solar Generation: Testing under conditions of significant wind and solar 
+energy production at a general range of demand levels. 
+7. Low Wind and Solar Generation: Evaluating system performance when wind and solar energy 
+generation is minimal at a general range of demand levels. 
+8. Weekday/Weekend Coverage: Analysing the system's behaviour on both weekdays and 
+weekends to account for variations in demand and grid activity. 
+9. Different Times of the Day: Testing was conducted at various times of the day to assess how 
+system behaviour varies with diurnal patterns. 
+
+
+===== PAGE 14 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+14 
+3 Overview of System Reserve Requirements  
+3.1 System Requirements 
+The swing equation (1) describes how the system’s frequency behaves over time [23]. In this equation, 
+Δ𝑓 is the change in frequency in Hz, 𝐻𝑠𝑦𝑠 is the system inertia measured in MWs, 𝐷 [
+% ΔMW
+% ΔHz ] represents 
+the damping factor, 𝑃𝐷 is the system demand in MW, |∆𝑃𝑙𝑜𝑠𝑠| represents the highest generation unit 
+output in MW, 𝑅𝑝𝑓𝑟 and 𝑅𝑓𝑓𝑟 refer to PFR and FFR reserves in MW. To ensure a secure response and 
+prevent the activation of system protection mechanisms, the reserve requirements have been 
+historically set based on QSS needs, ensuring the system has at least sufficient resources to supply the 
+contingency size.  
+As system inertia decreases, the importance of RoCoF and frequency nadir increases. The RoCoF refers 
+to the initial slope of the frequency immediately after a contingency event. Meanwhile, nadir is the 
+lowest point the frequency reaches after a disturbance. This trend has caused a growing concern for 
+system operators in recent years. To address this, our model incorporates the nadir as a non-linear 
+constraint, helping to prevent under-frequency load-shedding events. 
+2𝐻𝑠𝑦𝑠
+𝛿Δ𝑓(𝑡)
+𝛿𝑡
++ 𝐷∙𝑃𝐷∙Δ𝑓(𝑡) = ∑(𝑅𝑝𝑓𝑟(𝑡) + 𝑅𝑓𝑓𝑟(𝑡))
+𝑔
+−|∆𝑃𝑙𝑜𝑠𝑠| 
+(1) 
+3.1.1 
+RoCoF Requirements 
+By solving the differential equation (1) considering as an initial condition Δ𝑓(0) = 0, we can obtain 
+the minimum system inertia required to meet the RoCoF limits and prevent the activation of RoCoF 
+protection schemes. This constraint considers only the contribution from FFR reserves due to its fast 
+response time. This equation is obtained from [24] and it is shown in (2). In this equation, 𝑇𝑅𝑂𝐶𝑂𝐹 is 
+the time (in seconds) to measure the RoCoF, 𝑇𝑓𝑓𝑟 is the time (in seconds) to provide FFR, Δ𝑅𝑂𝐶𝑂𝐹𝑚𝑎𝑥 
+is the maximum RoCoF measured in Hz/s and 𝑓 is the frequency in Hz. 
+𝐻𝑠𝑦𝑠≥(2 ∙|∆𝑃𝑙𝑜𝑠𝑠| ∙𝑇𝑅𝑂𝐶𝑂𝐹∙𝑇𝑓𝑓𝑟−𝑇𝑅𝑂𝐶𝑂𝐹
+2
+∙𝑅𝑓𝑓𝑟) ∙𝑓
+4 ∙Δ𝑅𝑂𝐶𝑂𝐹𝑚𝑎𝑥∙𝑇𝑅𝑂𝐶𝑂𝐹∙𝑇𝑓𝑓𝑟
+ 
+(2) 
+3.1.2 
+QSS Requirements 
+The QSS requirement guarantees the minimum amount of reserve capacity (PFR plus FFR) needed 
+after a contingency. This reserve capacity must be greater than or equal to the difference between 
+the largest credible contingency and the load relief (𝐿𝑟Δ𝑓) measured in MW. This constraint is given in 
+the equation (3), while the load relief is defined in (4). The load relief is calculated with the damping 
+factor, the system demand and the target frequency deviation from the normal operation.  
+𝑅𝑝𝑓𝑟+ 𝑅𝑓𝑓𝑟≥|∆𝑃𝑙𝑜𝑠𝑠| −𝐿𝑟Δ𝑓 
+(3) 
+𝐿𝑟Δ𝑓=  𝐷∙𝑃𝐷∙Δ𝑓 
+(4) 
+
+
+===== PAGE 15 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+15 
+3.1.3 
+Nadir Requirements 
+The Nadir requirement is also derived from the swing equation and defines a non-linear relationship 
+between the required PFR, FFR, contingency size and the online inertia. Other factors influencing the 
+nadir requirement include system demand, load damping factor and the response times of FFR and 
+PFR.  
+The nadir requirement utilized in the model is shown in (5) (see [25] for more details about how to 
+derive this constraint), and it is based [23] and [26]. In this equation Δ𝑓𝐷𝐵 is the frequency deadband, 
+𝑇𝑓𝑓𝑟 and 𝑇𝑝𝑓𝑟 are the times to deliver FFR and PFR, respectively. Additionally, 𝐷′  and 𝛥𝑃𝐿
+′ are 
+defined in (6) and (7), respectively. 
+|𝛥𝑓𝑛𝑎𝑑𝑖𝑟| = 𝛥𝑓𝐷𝐵+ 𝑅𝑓𝑓𝑟∙𝑇𝑓𝑓𝑟∙𝑅𝑝𝑓𝑟+ 𝑇𝑝𝑓𝑟∙(𝛥𝑃𝐿
+′ −𝑅𝑓𝑓𝑟)
+2
+4 ∙𝑅𝑝𝑓𝑟∙𝐻𝑠𝑦𝑠+ 𝑇𝑝𝑓𝑟∙𝐷′ ∙(𝛥𝑃𝐿
+′ −𝑅𝑓𝑓𝑟)
+ 
+(5) 
+𝐷′ = 𝐷∙𝑃𝐷 
+(6) 
+𝛥𝑃𝐿
+′ = 𝛥𝑃𝐿−𝛥𝑓𝐷𝐵∙𝐷∙𝑃𝐷 
+(7) 
+To illustrate the relationships between these parameters, we consider a fixed nadir requirement of 
+49.2 Hz2, 𝑇𝑓𝑓𝑟 and 𝑇𝑝𝑓𝑟 are equal to 1 and 6 seconds, aligning with the Australian market FCAS (FFR = 
+1 second and PFR = 6 seconds), and a typical load damping factor of 0.5 % [27]. Additionally, we 
+assume a demand level of 30 GW.  
+Figure 4 shows the impact of increasing the FFR provision in the PFR and inertia requirement. It is 
+possible to see how when the FFR provision is higher, the PFR and inertia requirements decrease. 
+Similarly, Figure 5 illustrates the impact of the contingency size, showing how a larger contingency 
+size increases both the required PFR and inertia.  
+Figure 6 shows the influence of load damping factor in the PFR and inertia requirement. By reducing 
+the damping factor from 0.5% to 0.1% increases the PFR requirement by approximately 150 MW for 
+a system inertia of 40 GWs. 
+Finally, an overview of the RoCoF, QSS and nadir requirement can be seen in the Figure 7. This figure 
+shows how the nadir requirement is a bounding constraint when the inertia decreases. Therefore, this 
+constraint gets more important as system inertia decreases.  
+ 
+2 The containment band for frequency deviations is 49.5 Hz for generation events and is extended down to 49 
+Hz for network or separation events. Protection systems are activated when frequency drops to 49 Hz or below. 
+For nadir constraint calculations, using a higher frequency (like 49.5 Hz) would yield more conservative results 
+as it requires greater resources to prevent frequency from reaching this level. To balance this conservative 
+approach with the need to avoid proximity to the protection system threshold, we've set a nadir requirement 
+of 49.2 Hz. This value was chosen because it takes 200 ms (time to activate a protection) to reach 49 Hz 
+considering maximum rate of change of frequency (RoCoF) of 0.5 Hz/s. 
+
+
+===== PAGE 16 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+16 
+ 
+Figure 4 PFR requirement for different levels of inertia considering different FFR availability. 
+ 
+Figure 5 PFR requirement for different levels of inertia considering different contingency sizes. 
+ 
+Figure 6 PFR requirement for different level of damping 
+
+
+===== PAGE 17 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+17 
+ 
+Figure 7 QSS, RoCoF and Nadir requirements 
+3.2 NEM FCAS Requirements 
+The NEM leverages FCAS for grid contingency management through 10 dedicated markets, each 
+catering to different response time requirements. The existing FCAS offerings include both raise and 
+lower frequency control services across various timeframes: 1-second, 6-second, 60-second, 5-
+minute, and regulation FCAS.  
+The 1-second service considers RoCoF requirements, while the other services are based on QSS 
+requirements. Appendix 11.1 provides more details about the calculation of these services. 
+ 
+ 
+
+
+===== PAGE 18 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+18 
+4 Technical validation 
+4.1 Theoretical Inertia  
+The total theoretical inertia of the system (𝐻𝑠𝑦𝑠) is calculated as the sum of the inertia of the online 
+generators, this expression is shown in equation (8). In this expression, 𝐻𝑔 is the inertia constant of 
+the generator 𝑔 in seconds, 𝑃̅𝑔 is its maximum power output in MW and 𝑝𝑓𝑔 is the power factor. 
+Typical inertia constant values for different technologies can be found in the Figure 8 [28]. 
+𝐻𝑠𝑦𝑠= 
+∑
+𝐻𝑔∙𝑃̅𝑔
+𝑝𝑓𝑔 
+𝑔 𝑖𝑛 𝐺𝑠𝑦𝑠
+ 
+(8) 
+ 
+Figure 8 Inertia distribution per technologies [28] 
+In the last few years, the online theoretical inertia is decreasing. Figure 9 shows the average online 
+inertia per year in the NEM and Figure 10 shows the average inertia per region. The inertia in these 
+figures was calculated using average inertia values shown in the Figure 8. 
+
+
+===== PAGE 19 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+19 
+ 
+Figure 9 Inertia in the NEM per year 
+ 
+Figure 10 Inertia per region and year 
+
+
+===== PAGE 20 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+20 
+4.2 Summary of inertia results-Reactive Technologies Inertia Measurement in NEM 
+Reactive collected 1078 5-minute inertia measurements over a span of 41 days between June and 
+September 2023. AEMO selected these periods to capture system conditions during times of greater 
+interest. Figure 11, Figure 12, and Figure 13 show the distribution of these measurements by month, 
+day of the week, and hour of the day, respectively. Notably, September has the highest number of 
+measurements collected. The day with the lowest number of recorded data was Friday. The data 
+indicates that inertia measurements were not collected during hours 1,5, 19,20, and 21.  
+The inertia measurements are bounded by an upper and a lower value. The upper bound is on average 
+14.2% higher than the measurement, with a standard deviation of 4.2%. Conversely, the lower bound 
+is on average 10.9% lower than the measurement, with a standard deviation of 2%. 
+ 
+Figure 11 Distribution of inertia measurements by month 
+ 
+Figure 12 Distribution of inertia measurements by day of the week 
+
+
+===== PAGE 21 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+21 
+ 
+Figure 13 Distribution of inertia measurements by Hour of the day 
+4.2.1 
+Inertia by Demand Level 
+Figure 14 shows a bimodal distribution with a long tail for high inertia measures. The figure also shows 
+the average demand for each inertia level, revealing a positive correlation, where higher demand 
+coincides with higher inertia. 
+This behaviour is explained by two key factors. First, during periods of higher demand, more 
+generators are online to meet demand requirement. The combined inertia of these additional 
+generators naturally contributes to a higher overall system inertia. Second, beyond generator inertia, 
+there is also a hidden inertia attributed to the demand-side. Certain loads, like large industrial motors, 
+contribute to the system inertia. Therefore, periods of higher demand can be correlated to the 
+presence of these loads, leading to increased demand-side inertia and contributing to the observed 
+correlation. 
+ 
+Figure 14 Inertia histogram per demand level 
+4.2.2 
+Inertia by Renewable Penetration Levels  
+Figure 15 explore the relationship between the distribution of the inertia measurements and the 
+renewable penetration. In the figure, the colour gradient represents renewable penetration, which is 
+calculated using 5-minute SCADA data for solar and wind generators [29], along with a 5-minute 
+
+
+===== PAGE 22 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+22 
+rooftop PV penetration derived from the 30-minute AEMO data [29] through linear approximation 
+(refer to Appendix 0 for details about the linear approximation).  
+The figure reveals a tendency for high inertia measurements to coincide with low renewable 
+penetration. However, the values of 72 GWs and 76 GWs describe a zone with low inertia and low 
+renewable penetration. These conditions  typically occur during low-demand hours when fewer 
+generators are online, resulting in lower overall system inertia. 
+ 
+Figure 15 Inertia histogram per renewable penetration level 
+Figure 16 depicts the relationship between inertia and demand level for the measurement data, 
+including colour variations to indicate different renewable penetration levels. Notably, inertia tends 
+to be higher for measurements associated with high demand and low renewable penetration. 
+ 
+Figure 16 inertia per demand level considering renewable penetration 
+Figure 17 reinforces the trend observed in Figure 16. It depicts the relationship between renewable 
+penetration and demand, using colour variations to represent different inertia levels. This figure 
+shows different inertia zones, making the correlation between high demand, low renewable 
+penetration, and high inertia even clearer. 
+
+
+===== PAGE 23 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+23 
+ 
+Figure 17 Inertia by renewable penetration and demand level 
+4.3 Comparison against AEMO's current calculation methodology 
+AEMO shared their theoretical estimation of online inertia with the UoM at a 5-minute resolution. 
+These estimates data align in time with 893 inertia measurements obtained by Reactive. 
+Figure 18 shows a difference between measured and theoretical inertia for the analysed hours. 
+Measured inertia values consistently exceed theoretical values and exhibit significant dispersion, 
+while theoretical inertia values tend to be clustered around a central point. On average, the measured 
+inertia is 38% higher compared to AEMO’s estimate.  
+This difference arises from the limitations of theoretical calculations. The theoretical inertia 
+calculations rely on reported inertia constants for generators, which might not capture the actual 
+contribution of individual generators.  
+In contrast, measured inertia captures a more precise contribution of all operating conditions. This 
+includes not only generator inertia but also any other additional hidden inertia.  
+
+
+===== PAGE 24 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+24 
+ 
+Figure 18 Distribution per hour of measured inertia and theoretical inertia in the NEM 
+Figures 19 and 20 help to understand the relation between inertia and system demand. Figure 19 
+shows the average measured and theoretical inertia of the NEM. Figure 20 shows the average demand 
+and net demand of the NEM, where the net demand refers to the demand met by conventional 
+generators, which are the generators providing inertia. By comparing these figures, it can be seen how 
+the inertia tends to follow the behaviour of the net demand. This is because conventional generators 
+are the main contributors to system inertia. Therefore, as net demand increases, more conventional 
+generators come online, leading to a rise in overall system inertia.  
+Besides, it can also be seen how the estimated theoretical inertia is lower than the measured inertia. 
+Moreover, the hours with high demand levels tend to have higher measured inertia. 
+
+
+===== PAGE 25 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+25 
+ 
+Figure 19 Average measured and theoretical inertia 
+ 
+Figure 20 Average demand and net demand 
+
+
+===== PAGE 26 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+26 
+4.4 Calculations of demand-side inertia contributions 
+The difference between the measured and the theoretical inertia is called residual inertia3 [30]. The 
+residual inertia can be divided by the demand to calculate an inertia constant for the residual inertia 
+(this is attributed to the demand-side inertia). The average residual inertia and the average demand 
+inertia constant are shown in the Figure 21 and Figure 22, respectively.  
+Figure 21 shows residual inertia peaking near 52 GWs during high-demand hours, while dropping to a 
+minimum of 14 GWs in the morning. Figure 22 shows a similar behaviour for the residual inertia 
+constant, with a maximum value of 2.05 s, a minimum of 0.6 s and an average value of 1.4 s. 
+ 
+Figure 21 Average residual inertia per hour in the NEM 
+ 
+3 For simplicity, this report attributes residual inertia to demand-side inertia. However, it's important 
+to highlight that other factors might contribute to residual inertia, such as: Inaccurate data for on 
+online generators or synchronous condensers, incorrect inertia constants for generators or other 
+reasons. 
+
+
+===== PAGE 27 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+27 
+ 
+Figure 22 Average residual inertia constant (or demand inertia constant) per hour in the NEM 
+4.5 Reactive Technologies Regional Inertia Measurement  
+Several factors limited the availability of regional inertia data. Firstly, Reactive captured a reduced 
+dataset due to the limited number of modulation hours, and secondly, AEMO provided fewer inertia 
+theoretical calculations for the different regions. This combination resulted in a smaller dataset for 
+analysis. Additionally, the boundary power flow data between NSW and QLD during the modulation 
+was unavailable, resulting in a combined inertia measurement for QLD and NSW. 
+The number of inertia measurements collected in different regions of the NEM varies significantly. 
+Due to an earlier measurement start date, VIC collected the most extensive dataset, with 205 data 
+points recorded with a 5-minute resolution. In contrast, SA and a combined of QLD and NSW (denoted 
+as QLD+NSW) have a substantially smaller dataset, with only 67 measurements each.  
+Figure 23 shows a comparison of the distribution of measured and theoretical inertia in VIC. This figure 
+reveals a significant difference between measured inertia and theoretical estimates in Victoria. The 
+measured inertia values exhibit a wide dispersion, being on average 38% higher than AEMO's 
+estimate. 
+Due to the reduced dataset in SA and QLD + NSW, it is not possible to display the data dispersion for 
+these regions. However, average hourly measurements are shown in Figure 24 for SA and Figure 25 
+for QLD + NSW. The measured inertia in SA is on average 38% higher than AEMO's estimate. Similarly, 
+the measured inertia in QLD + NSW is 26% higher than AEMO’s estimate. 
+
+
+===== PAGE 28 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+28 
+ 
+Figure 23 Distribution per hour of measured inertia and theoretical inertia in VIC 
+ 
+Figure 24 Average measured inertia and theoretical inertia in SA 
+Hour
+Hour
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+6
+7
+8
+9
+10
+11
+12
+13
+14
+Inert ia	[GWs]
+Measured	Inertia
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+Theoretical	inertia
+
+
+===== PAGE 29 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+29 
+ 
+Figure 25 Average measured inertia and theoretical inertia in NSW + QLD 
+Finally, Table 1 summarizes the average residual inertia, demand, and the average and minimum 
+inertia constant for VIC, SA and QLD + NSW. The table additionally presents the average residual 
+inertia and average inertia constant for the NEM, based on the reduced dataset available for each 
+region. Since the data for QLD and NSW is combined, the residual inertia of each region can be 
+calculated proportionally to the average demand of each region. NSW has an average demand of 8501 
+MW, while QLD is 7662 MW. Using this demand data, the estimated average residual inertia in QLD is 
+6875 MWs, and in NSW it is 7629 MWs. 
+Table 1 Residual inertia, demand and inertia constant data for VIC, SA, QLD + NSW and NEM 
+ 
+Average 
+residual 
+inertia [MWs] 
+Average 
+demand 
+[MW] 
+Average 
+inertia 
+constant [s] 
+Minimum 
+inertia 
+constant [s] 
+Average NEM 
+residual 
+inertia 
+[MWs] 
+Average 
+NEM inertia 
+constant [s] 
+VIC 
+6,127 
+5,286 
+1.16 
+0.05 
+28,722 
+1.33 
+SA 
+2,642 
+1,664 
+1.58 
+0.14 
+23,672 
+1.02 
+QLD + NSW 
+14,505 
+16,164 
+0.90 
+0.46 
+23,672 
+1.02 
+4.6 Event-based verification 
+AEMO publishes quarterly reports detailing system contingencies, including their time of occurrence 
+and the RoCoF. One such event occurred in QLD, involving the disconnection of a generator at 7:36 
+AM on September 26th [31]. The report indicates a recorded RoCoF of -0.11 Hz/s, and the associated 
+event was the tripping of Kogan Creek Power Station while producing 517 MW. Data from Reactive 
+Hour
+Hour
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+50
+55
+60
+65
+70
+75
+80
+Inert ia	[GWs]
+Measured	Inertia
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+Theoretical	inertia
+
+
+===== PAGE 30 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+30 
+Technologies GridMetrix® platform [32] indicates the minimum system frequency during this event 
+was 49.8085 Hz. 
+To calculate system inertia from contingency data, reference [33] suggests equation (9). AEMO 
+calculates the RoCoF using a 500-millisecond rolling window [31]. However, for accurate inertia 
+calculation, it is required the RoCoF value before any automatic response activation.  
+To achieve this, we calculated the instantaneous RoCoF using high-resolution frequency data 
+(measured every 20 ms) obtained from [32]. This calculation yielded an instantaneous RoCoF value of 
+0.13 Hz/s. The calculated system inertia using this value is approximately 99.4 GWs. 
+Figure 26 shows the system frequency during the event in blue. The figure also displays the measured 
+inertia (red) with its upper (green) and lower (yellow) bounds. Additionally, the calculated inertia 
+based on contingency size and RoCoF (named event inertia in the figure) is shown in purple. Finally, 
+AEMO’s theoretical inertia is shown in black. By comparing these values, we observe that the 
+calculated inertia falls within the range of the measured inertia, providing confidence in the results 
+from the technology used to measure inertia. Besides, during the event, it was observed a difference 
+between AEMO's theoretical inertia and the actual system inertia. AEMO's theoretical inertia was 77 
+GWs, which is roughly 22 GWs lower than the event inertia, which was approximately 99 GWs. On the 
+other hand, the measured inertia was closer at approximately 92 GWs, deviating from the event 
+inertia by only 7 GWs. 
+𝐻𝑠𝑦𝑠= Δ𝑃
+2 𝑑𝑓
+𝑑𝑡
+∙𝑓0 
+(9) 
+ 
+Figure 26 Frequency, measured inertia and calculated inertia 
+ 
+ 
+
+
+===== PAGE 31 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+31 
+5 Economic assessment 
+This Chapter analyses how residual inertia could contribute to potential operational savings, reduced 
+inertia payments, and investment savings. The Chapter details the methodology employed and the 
+results. 
+The operational savings are studied through two case studies using a simplified single-area model for 
+the NEM and for the isolated operation of QLD. The cases explore different contingency sizes and 
+include a variable demand-side inertia for the NEM and QLD. The residual inertia is estimated as 
+demand-side inertia by using a 1.4 s inertia constant for the demand in the NEM, while the demand-
+side inertia constant used for QLD is 0.9 s. These values are in line with the average values found in 
+the Chapters 4.2 and 4.5. 
+The first case investigates the potential benefit of residual inertia that is assumed to come from the 
+demand-side in the current NEM conditions, utilising real system data from 2023. Notably, the model 
+incorporates the total available renewable energy, actual hydro generation profiles, and coal 
+generator availability (further information provided in Appendix 11.3). In this case, the contingency 
+size is the maximum power output given by Kogan Creek (744 MW). 
+The second case explores the impact of isolated operation of QLD. This case is studied because AEMO 
+identified the isolated operation of QLD as a credible event in [15]. This report also projects insufficient 
+inertia in the region by 2027. Therefore, this case study is crucial to understand the potential value of 
+demand-side inertia in the short and medium term. Since this system is isolated, the regional 
+contingency size is co-optimised with the dispatch, and it is given by the maximum power output of 
+any online generator in Queensland. Due to the uncertainty surrounding the inertia constant of QLD 
+(as detailed in Chapter 4.5), we analysed a sensitivity including the minimum inertia constant obtained 
+with the measurements, which is equal to 0.46 s.  
+The dispatch model incorporates the existing FCAS services (described in section 3.2) to capture the 
+current system behaviour. The inclusion of these services ensures the QSS requirements. However, 
+the RoCoF and nadir requirements are not included in the existing services, and they are implemented 
+as defined in chapter 3.1. The RoCoF limit is set to 1 Hz/s based on the current regulation [34]. The 
+nadir requirement considers the under-frequency load shedding activation frequency. These 
+protections operate from 49 Hz and require 100-200 milliseconds to operate [35]. Thus, to ensure the 
+nadir limit is higher than the frequency that triggers load shedding, we have set the nadir limit at a 
+slightly higher value of 49.2 Hz (which could drop to 49 Hz with a RoCoF of 1 Hz/s over 200 
+milliseconds). 
+Finally, we also analysed the savings coming from reduced inertia payments and deferred/reduced 
+investments. These cases were studied for QLD working isolated, which have a declared inertia 
+shortfall of 1.6 GWs from 2027 [15] and also for SA, which has an inertia shortfall of 0.5 GWs [15] the 
+second half of 2024 and it will last for at least 6 months.  
+5.1 Methodology to Assess the Potential Benefits of Inertia Measurements 
+As illustrated in the previous sections, inertia measurements may highlight the presence of ‘hidden’ 
+residual inertia (which we have for simplicity entirely associated with the demand side). Residual 
+inertia might mean that less inertia than otherwise anticipated could be needed to maintain system 
+
+
+===== PAGE 32 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+32 
+security, in turn potential leading to both operational and investment savings. This section discusses 
+the methodology adopted by UoM to assess such potential savings under different scenarios and 
+considering both the entire NEM and regional instances.  
+5.1.1 
+System Operational Cost Savings 
+Residual inertia (which again we will associate with the demand-side) identified via inertia 
+measurements could bring operational savings to the system that may generally arise from lower FCAS 
+procurement cost, avoided commitment and operational cost of additional units required to provide 
+inertia and FCAS, and associated reduced renewable energy curtailment. To quantify these potential 
+cost savings associated with residual inertia, we developed a unit commitment model including 
+variable costs, start-up/shut-down costs, and FCAS costs4. Additionally, the model considers key 
+generator limitations that impact dispatch decisions, including minimum/maximum power output and 
+start-up/shut-down times. 
+The system operational cost savings are calculated based on two dispatch cases:  
+• 
+Base case: This scenario represents the total system operating cost without the inclusion of 
+demand-side inertia. 
+• 
+Demand-side Inertia included: This case incorporates the demand-side inertia in the economic 
+dispatch.  
+The difference in total system operating cost between these two cases quantifies the potential 
+economic benefit of including demand-side inertia into the dispatch. The operational savings are 
+calculated using weekly profiles for different renewable penetrations (See Chapter 5.1.3 for more 
+details).  
+5.1.2 
+Other Savings from Avoided Investment in Inertia Sources to Maintain Regional Security 
+Further benefits from inertia measurements, associated for example with avoiding additional 
+payments to inertia sources or deferring/reducing inertia-related infrastructure investments could 
+also importantly emerge which might not be captured by the operational cost savings analysis 
+illustrated above. For simplicity, the savings discussed in this section will be referred to as "investment 
+savings”.  
+In the NEM, in particular, these savings may be driven by minimum regional inertia requirements 
+imposed by AEMO to ensure safe operation after a contingency, especially in those cases when specific 
+regions might have to operate islanded for a period of time. These minimum requirements and the 
+declining system inertia from retiring synchronous generators may lead to forecasting potential inertia 
+shortfall in specific regions. By revealing the presence of residual inertia, inertia measurements might 
+help address, or even completely compensate for, these shortfalls, and the system might potentially 
+achieve additional cost savings through:  
+ 
+4 The development of the evolving energy market, including potential future markets for inertia and other 
+services, is uncertain. Given the scope of this report, we focused on the current FCAS markets and values to 
+understand the impact of inertia and we have not made any assumption about cost projections. 
+
+
+===== PAGE 33 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+33 
+• 
+Reduced inertia or FFR procurement payments: There might be two kinds of payments to 
+address the inertia shortfall. Firstly, there might be some side payments (as capacity payments 
+or other incentives) to keep generators (which otherwise might leave the market) available to 
+avoid inertia shortfalls. The second option is the current mechanism, where the TNSPs may 
+contract FFR equivalent to the inertia shortfall [15]. By including demand-side inertia the 
+required amount of FFR services to be hired under this mechanism could be reduced or 
+completely avoided.  
+• 
+Deferred/Reduced investment in synchronous condensers: The investment in synchronous 
+condensers is an alternative to address potential inertia shortfall. However, by considering 
+demand-side inertia, the need of investing in these devices could be reduced in size or in the 
+best case completely deferred. 
+5.1.2.1 
+Reduced Inertia Payments  
+To estimate the potential savings from reduced inertia payments, we used the inertia shortfall 
+declared by AEMO, which can be met by contracting inertia or FFR. According to AEMO, this shortfall, 
+measured in MWs, directly reflects an amount of FFR capacity in MW that TNSPs need to contract 
+depending on the region and the 1-second market; the equivalent amount of FFR can be obtained 
+from inertia vs contracted FFR for each region as in [15]. Thus, we have estimated potential inertia 
+payments as cost of contracting FFR using the current average cost of the 1-second market5. 
+The demand-side inertia has the potential to reduce the inertia payments by reducing the amount of 
+FFR contracted to address inertia shortfalls. To estimate these potential savings, we calculate the 
+minimum contribution of demand-side inertia. This is determined by multiplying the minimum 
+demand by the minimum demand inertia constant.  
+The new FFR requirement is calculated by subtracting the minimum contribution of demand-side 
+inertia from the original requirement. It's important to note that real-time contributions from 
+demand-side inertia may be higher. However, these savings are based on a conservative estimate of 
+the "firm" inertia available from the demand side. Considering the new FFR requirement, two 
+situations might occur: 
+1. Full shortfall addressed by demand-side inertia: If demand-side inertia can fully address the 
+shortfall, the savings are given by the total cost associated with contracted FFR by the TNSPs. 
+2. Partial support from demand-side inertia: If demand-side inertia provides partial support, the 
+savings are determined by average cost of FFR, and the new reduced FFR requirement, 
+including the support given by the demand-side inertia during the shortfall.  
+5.1.2.2 
+Deferred/Reduced Investment 
+Inertia payments can address short-term and medium-term inertia shortfalls, especially for situations 
+lasting few months. However, investing in synchronous condensers is a more cost-effective solution 
+for anticipated longer shortfalls.  
+ 
+5 This cost might decrease as energy storage penetration grows. However, this methodology is used to assess a 
+current situation (South Australia 2024), and the utilisation of current costs is needed.  
+
+
+===== PAGE 34 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+34 
+To evaluate investment needs, a combination of synchronous condensers with varying capacities (80, 
+125, 200, and 250 MVA) could be considered to select the investment portfolio [36]. These 
+synchronous condensers can be equipped with flywheels to achieve an inertia constant of up to 16 s 
+[37]. 
+To calculate the capacity of demand-side inertia to defer or complement investment decisions we 
+calculate its contribution using the same methodology from Chapter 5.1.2.1. This consists in 
+multiplying the minimum demand by the minimum demand inertia constant. This approach provides 
+a conservative estimate to capture the "firm" contribution of demand-side inertia in the assessment 
+of new investment. 
+Then, depending on the calculated demand-side inertia, two situations might occur: 
+1. Full shortfall addressed by demand-side inertia: If demand-side inertia can fully address the 
+shortfall, the planning savings are equivalent to the minimum investment cost among the 
+different portfolios of synchronous condensers. 
+2. Partial support from demand-side inertia: If demand-side inertia can partially address the 
+shortfall, the cost savings are equal to the difference between the original investment 
+required for synchronous condensers/flywheels and the new investment needed to address 
+the reduced inertia shortfall. The new shortfall is calculated by subtracting the minimum 
+contribution of demand-side inertia from the original inertia shortfall.  
+5.1.3 
+Week Selection 
+To reduce the computational burden, the operational savings were assessed using weekly profiles. 
+The selection of the operating conditions is crucial for understanding both the current inertia state of 
+the NEM and its potential evolution by 2037, when it is expected the full retirement of coal generators. 
+Additionally, it's necessary to select conditions for QLD because AEMO defined the island operation 
+of QLD as a likely event and AEMO projects a potential 1.6 GWs inertia shortfall during isolated 
+operation by 2027 [15]. 
+To identify an operational year to select the operating conditions, we focused on identifying "low 
+inertia events". These events are defined as any 5-minute period where the online inertia falls below 
+the 10th percentile, which is 85 GWs for the NEM and 29 GWs for QLD. 
+Figure 27 show the number of low inertia events in the NEM over the past 14 years (calculated with a 
+5-minutes resolution using the average values of theoretical inertia shown in Chapter 4.1). The data 
+reveals a trend of increasing annual occurrences that coincides with the growing penetration of solar 
+and wind generators in the last few years. In fact, the number of events recorded in just 2 months of 
+2024 is already comparable to the total observed in 2015. Given this significant rise, the year 2023 
+was chosen as the base year to assess the value of demand-side inertia through case studies.  
+Figure 28 provides a more granular view of low inertia events in 2023, showing the weekly total 
+alongside the average and minimum system theoretical inertia. Figure 29 shows the average weekly 
+renewable penetration (including wind, large scale, and rooftop PV) along with the total available 
+generation (including curtailed capacity). Comparing Figure 28 and Figure 29 reveals a correlation 
+between higher low inertia events and increased renewable penetration. Therefore, renewable 
+energy penetration is a major factor contributing to low inertia conditions in the system. Thus, to 
+
+
+===== PAGE 35 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+35 
+calculate annual savings, we selected operating conditions with varying levels of renewable 
+penetration across different weeks.  
+Then, we calculated system savings by running these weeks with and without inertia from the demand 
+side. Finally, a polynomial regression was performed using the average weekly renewable penetration 
+to estimate the weekly savings for every week of the year, and then the annual saving is obtained as 
+the sum of the savings per week.  
+ 
+Figure 27 Number of low-inertia events per year (inertia below 85 GWs) 
+
+
+===== PAGE 36 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+36 
+ 
+Figure 28 Number of low-inertia events per week, average inertia and minimum theoretical inertia 
+for the NEM in 2023 
+ 
+Figure 29 Average renewable penetration and maximum availability of renewable penetration per 
+week for the NEM 
+1
+3
+5
+7
+9
+11
+13
+15
+17
+19
+21
+23
+25
+27
+29
+31
+33
+35
+37
+39
+41
+43
+45
+47
+49
+51
+																																																																																																																															Week																																																																																																																								
+0
+200
+400
+600
+800
+1000
+1200
+1400
+Number	of	low-inert ia	event s	per	week
+65K
+70K
+75K
+80K
+85K
+90K
+95K
+100K
+Inert ia	[MWs]
+1,469
+81,134
+64,950
+Average:	795
+Average:	90,439	MWs
+Average	Minimum	Inert ia:	74,903	MWs
+Week:	43
+1,469
+Week:	43
+81,134	MWs
+Week:	45
+64,950	MWs
+Legend
+NEM	Percent ile	10%
+NEM	minimum	inert ia
+NEM	average	inert ia
+
+
+===== PAGE 37 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+37 
+Since AEMO has identified the isolated operation of QLD as a likely event [15], understanding the 
+economic impact of demand-side inertia under these conditions becomes crucial. This analysis should 
+focus on potential weeks with minimal inertia to establish an upper limit on the cost savings achievable 
+by incorporating the demand-side inertia into the operation. For this reason, the selection process 
+prioritizes operating conditions where the system might have low inertia, including: 
+• 
+High frequency of low inertia events: Weeks with a high frequency of events where the 
+calculated 5-minute online inertia falls below the 10th percentile, which is 29 GWs for QLD.  
+• 
+Minimum system inertia conditions: Weeks exhibiting the lowest recorded system theoretical 
+inertia value.  
+• 
+Maximum renewable penetration: Weeks with the combined highest potential for renewable 
+energy contribution, considering both actual generation and curtailed generation. 
+Figure 30 shows the weekly low inertia events in QLD, alongside the average and minimum system 
+theoretical inertia. Figure 31 illustrates the average weekly renewable penetration (including wind, 
+large-scale, and rooftop PV) along with the total available generation (including curtailed capacity). 
+Based on these figures, the following weeks were selected to study the value of additional inertia in 
+the isolated operation of QLD: 
+• 
+Week 16: This week exhibits the highest number of low-inertia events. 
+• 
+Week 40: This week has the lowest average inertia observed throughout the year. 
+• 
+Week 41: This week experiences the highest level of renewable penetration. 
+ 
+Figure 30 Number of low-inertia events per week, average inertia and minimum theoretical inertia 
+for QLD in 2023 
+1
+3
+5
+7
+9
+11
+13
+15
+17
+19
+21
+23
+25
+27
+29
+31
+33
+35
+37
+39
+41
+43
+45
+47
+49
+51
+																																																																																																																															Week																																																																																																																								
+0
+200
+400
+600
+800
+1000
+1200
+1400
+Number	of	low-inert ia	event s	per	week
+22K
+24K
+26K
+28K
+30K
+32K
+Inert ia	[MWs]
+1,477
+28,580
+22,235
+Average:	658
+Average:	30,691	MWs
+Average	Minimum	Inert ia:	26,649	MWs
+Week:	40
+22,235	MWs
+Week:	40
+28,580	MWs
+Week:	16
+1,477
+Legend
+QLD	Percent ile	10%
+QLD	minimum	inert ia
+QLD	average	inert ia
+
+
+===== PAGE 38 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+38 
+ 
+Figure 31 Average renewable penetration and maximum availability of renewable penetration per 
+week for QLD 
+ 
+5.2 Operational Savings 
+5.2.1 
+NEM 2023 
+This case analyses the impact of additional inertia in the current market, assuming a fixed contingency 
+size of 744 MW, equivalent to the maximum power output of the Kogan Creek generator. However, 
+historical data reveals instances where this generator has exceeded this capacity. In fact, the largest 
+contingency in 2023 was a trip of Kogan Creek power station unit 1 on 12/06/2023 at 12:33, resulting 
+in the loss of 759 MW [38]. 
+5.2.1.1 
+Installed Capacity 
+Table 2 shows the installed capacity, the minimum power output of the generators (as a percentage 
+of maximum capacity) [39] and their start-up and shutdown times [40]. The variable cost and the start-
+up cost are obtained from [41] and [40], respectively. The cost of proving reserves for the different 
+markets is obtain as the average price from historical data from [29]6. The value of lost load is 16,600 
+$/MWh, based on the market price cap in [42].  
+ 
+6 The average raise prices (from January 2023 to March 2024) are 24.06 $/MW/h and 5.74 $/MW/h for the 1-
+second and 6-second markets, respectively.  
+
+
+===== PAGE 39 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+39 
+Conventional generators are assumed to provide up to 10% of their capacity for the 6-second and 60-
+second markets, while the 5-minutes market is limited by the ramp-up capabilities of the generators 
+detailed in [41]. Additionally, PS can provide PFR, while BESS can provide both FFR and PFR. 
+Table 2 Characteristic of power generators NEM 2023 
+ 
+Coal Gas 
+Other 
+thermal Hydro 
+PS 
+BESS VPP 
+Large-
+scale PV 
+Rooftop 
+PV7 
+Wind 
+Installed capacity 
+[GW] 
+23 
+10 
+1 
+5 
+0.8 
+2 
+0 
+9 
+12 
+11 
+Pmin [% of Pmax] 
+50 
+40 
+5 
+0 
+0 
+0 
+0 
+0 
+0 
+0 
+Start-up/shut 
+down time [h] 
+8 
+4 
+0 
+0 
+0 
+0 
+0 
+0 
+0 
+0 
+5.2.1.2 
+Results 
+Figure 32, 33 and 34 show the online inertia, FFR requirements and PFR requirements, respectively, 
+for the week with the maximum renewable penetration and an inertia constant of 1.4 s. An analysis 
+of these figures together reveals interactions between these 3 services.  
+A critical factor influencing the allocation of both, PFR and FFR is the system’s nadir constraint, which 
+depends on the system inertia and is described in Chapter 3.1.3. As shown in Figure 32, during low-
+inertia periods (e.g., hour 132), the FFR requirement is higher in the case without additional inertia 
+for the same amount of PFR reserves, as shown in figures 33 and 34. This highlights the role of inertia 
+in the FCAS markets modelled including the nadir constraint, where a higher system inertia reduces 
+the need for expensive FFR services.  
+ 
+Figure 32 Online inertia in NEM 2023 case for Max renewable week 
+ 
+7 The installed rooftop capacity shows the maximum power output 
+
+
+===== PAGE 40 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+40 
+ 
+Figure 33 FFR requirements in the NEM 2023 case for Max renewable week 
+ 
+Figure 34 PFR requirements in the NEM 2023 case for Max renewable week 
+Figure 35 shows the potential cost savings in the NEM 2023 case for different levels of renewable 
+penetration by adding demand-side inertia (with an inertia constant of 1.4 s). The figure analyses five 
+weeks with varying levels of renewable penetration in the NEM, ranging from the minimum of 24% to 
+the maximum of 44%, with increments of around 5%. As the figure illustrates, weekly operational 
+savings increase as the penetration of renewable sources rises. 
+The figure also includes a dashed line representing a polynomial curve that approximates the original 
+data points. This curve is used to estimate the annual savings achievable by including additional 
+demand-side inertia. The analysis reveals that annual savings of including additional demand-side 
+inertia may be estimated as $1.56 million. The primary factor behind these cost savings is the reduced 
+need for FFR and PFR requirements, which translates into a cheaper dispatch/commitment of 
+generators.  
+
+
+===== PAGE 41 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+41 
+ 
+Figure 35 Savings in NEM 2023 for different levels of renewable penetration by including an inertia 
+constant of 1.4 s in the demand side 
+5.2.2 
+Islanded Queensland 
+This case study is crucial to understand the potential value of demand-side inertia the region of QLD. 
+In this case, the contingency size is co-optimized with the dispatch, and it is given by the maximum 
+power output of the online generators. 
+5.2.2.1 
+Installed Capacity 
+Table 3 shows the installed capacity, the minimum power output of the generators [39] and their start-
+up and shutdown times in QLD. This case study considers the same assumptions about the 
+conventional generators as in the NEM 2023 case mentioned in 5.2.1.1.  
+Table 3 Characteristic of power generators QLD 
+ 
+Coal Gas 
+Other 
+thermal Hydro 
+PS 
+BESS VPP 
+Large-
+scale PV 
+Rooftop 
+PV8 
+Wind 
+Installed capacity 
+[GW] 
+8 
+3 
+0 
+0 
+0.6 
+0.25 
+0 
+4 
+4 
+1 
+Pmin [% of Pmax] 
+50 
+40 
+5 
+0 
+0 
+0 
+0 
+0 
+0 
+0 
+Start-up/shut 
+down time [h] 
+8 
+4 
+0 
+0 
+0 
+0 
+0 
+0 
+0 
+0 
+5.2.2.2 
+Results 
+Figures 36, 37 and 38 show the online inertia, FFR requirements and PFR requirements, respectively, 
+for the islanded operation of QLD during the week with the highest renewable penetration. The 
+relation between the three requirements can be observed in the hour 120. The figure shows the same 
+provision of FFR across all cases (see Figure 37). However, the PFR requirements differ between the 
+ 
+8 The installed rooftop capacity shows the maximum power output 
+
+
+===== PAGE 42 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+42 
+different cases, with the case without additional inertia exhibiting the highest PFR requirement (Figure 
+38). This highlights the role of inertia because additional inertia can potentially lead to operational 
+cost savings by reducing PFR requirements.  
+ 
+ 
+Figure 36 Online inertia for islanded QLD case for Max renewable week 
+ 
+Figure 37 FFR requirements for islanded QLD case for Max renewable week 
+ 
+Figure 38 PFR requirements for islanded QLD case for Max renewable week 
+Table 4 presents the potential weekly savings of the islanded QLD case by including an inertia constant 
+of 0.6 s and 0.9 s for the three selected weeks: minimum inertia, maximum number of low inertia 
+
+
+===== PAGE 43 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+43 
+events (called just ‘low inertia’) and Max renewable weeks. The maximum benefits are observed 
+during the max renewable week, while the lowest savings occur during the low inertia week. 
+By comparing these savings with the savings coming from the NEM 2023 case in Figure 35, it can be 
+seen how the operational savings are higher in the islanded conditions. The factors behind the higher 
+cost savings are two. Firstly, including demand-side inertia decreases the PFR requirements (nadir 
+constraints less restrictive) while allows for higher maximum power output from cheaper generators 
+(RoCoF constraints less restrictive). The second source of savings is given by avoided renewable energy 
+curtailment. The renewable curtailment is reduced by 1.02 GWh with a demand inertia constant of 
+0.46 s. This reduction increases to 2.18 GWh when the inertia constant is 0.9 s. 
+Although this analysis highlights potential cost savings during isolated QLD operation, these savings 
+cannot be directly extrapolated to annual figures without performing risk analysis to consider the 
+probability and duration of islanded operation. 
+Table 4 Savings in QLD isolated case 
+Case 
+Weekly savings (+0.46 s 
+Inertia constant) ($) 
+Weekly savings (+0.9 s 
+Inertia constant) ($) 
+QLD 2023 Min inertia 
+152,686 
+273,443 
+QLD 2023 Low inertia 
+91,778 
+155,610 
+QLD 2023 Max renewable 
+190,050 
+383,958 
+5.3 Other Savings 
+5.3.1 
+Islanded Queensland 
+Demand-side inertia offers additional benefits, which cannot be addressed by dispatch models. One 
+of these benefits is helping to meet inertia security requirements in the short and medium term. The 
+region of QLD has a projected inertia shortfall of 1.6 GWs by 2027, requiring a short-term solution 
+from TNSPs. 
+To address this inertia shortfall, it might be necessary to invest in synchronous condensers. The 
+procurement and installation of these devices could take 2.5 years [43]; therefore, to meet the 2027 
+inertia requirements, investment decisions must be made in advance. 
+There are two potential investment solutions to address the shortfall, which are summarized in Table 
+5. The first option is to build two synchronous condensers of 80 MVA each with a 10 s inertia constant 
+(investment cost for synchronous condenser are available in [44]). Besides, an additional $2.9 million 
+(investment cost per $/MWs is available in [45]) would be needed for flywheels to fully address the 
+shortfall. Thus, the total cost of this option is $144.9 million. 
+
+
+===== PAGE 44 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+44 
+The second option consists of a single, larger synchronous condenser of 125 MVA (costing $96 million) 
+paired with a flywheel with a 13 s inertia constant, costing $2.95 million. Thus, the total cost of this 
+option is $98.95 million9. 
+An alternative approach could involve implementing inertia measurement in QLD. To analyse the 
+potential of the residual inertia to address the shortfall, we observe the minimum residual inertia 
+measured in QLD. The minimum observed combined inertia in NSW and QLD was 6,863 MWs at a 
+demand of 14,938 MW. Under such conditions, the minimum inertia constant would be 0.46 seconds. 
+In 2023, the minimum demand in QLD was 4,880 MW. Using these values, the minimum contribution 
+of demand-side inertia is estimated at 2,242 MWs. This suggests that demand-side inertia has the 
+potential to address inertia shortfalls of 1,600 MWs even considering its minimum contribution.  
+Therefore, demand-side inertia in QLD might have the potential to at least delay investments in 
+synchronous condensers, leading to potential cost savings of $98.95 million. However, more inertia 
+measurements throughout the year are necessary to confirm this potential and ensure there are no 
+situations where demand-side inertia cannot meet the shortfall. 
+Table 5 Projects to supply inertia shortfall in QLD isolated 
+Case 
+Project 1 
+Project 2 
+Synchronous condensers size [MVA] 
+80 
+125 
+Number of synchronous condensers 
+2 
+1 
+Synchronous condenser cost [$ million] 
+142 
+96 
+Flywheel inertia constant [s] 
+10 
+13 
+Flywheel cost [$ million] 
+2.9 
+2.95 
+Total inertia [MWs] 
+1,600 
+1,625 
+Total cost [$ million] 
+144.9 
+98.95 
+5.3.2 
+South Australia 
+AEMO's report [15] identifies a temporary inertia shortfall of 500 MWs in SA, which would need 50 
+MW of FFR to be met. This temporary inertia shortfall is expected from July 2024, until early 2025. 
+This six-month gap coincides with the commissioning of a critical transmission line and related 
+infrastructure.  
+Given the temporary inertia shortfall and the fact that islanding operation of SA is unlikely according 
+to [15], the analysis for SA focuses on potential cost savings achievable by reducing inertia payments 
+associated to the extra FFR services required to supply the period of the inertia shortfall.  
+ 
+9 It should be noted that synchronous condensers are installed in networks to provide system strength to weak 
+areas, and that with the inclusion of flywheels can also provide inertia. Whilst higher inertia measurement 
+(indicating greater inertia than expected) could result in savings by reducing the number of synchronous 
+condensers, it may not displace a synchronous condenser all together. Potentially there is the possibility to save 
+or delay the implementation of synchronous condensers, and/or flywheels, but this will be based upon 
+conditions in the network and the use of synchronous condensers for system strength 
+
+
+===== PAGE 45 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+45 
+The average cost of the 1-second FFR service between October 2023 and March 2024 was $24/MW/h. 
+Assuming the inertia shortfall needs to be procured every hour, the total cost of contracting 50 MW 
+of FFR from July 2024 to January 2025 would be approximately $5.3 million. 
+To estimate the minimum contribution of demand-side inertia, we calculated it using the minimum 
+demand of 1010 MW and a minimum inertia constant of 0.14 s. Using these values, we estimate that 
+the demand-side inertia could provide an additional 141 MWs of inertia, reducing the inertia shortfall 
+to 359 MWs. By incorporating this estimate and using the inertia-FFR curves for SA [15], we 
+determined a potential reduction of approximately 20 MW in contracted FFR capacity. This reduction 
+might lead to potential cost savings of approximately $2 million based on the current FFR market 
+prices. 
+ 
+ 
+
+
+===== PAGE 46 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+46 
+6 Future use case: Discussions of future use cases for inertia 
+management 
+This section explores the potential cost savings driven by demand-side inertia in a future NEM 
+scenario. The NEM is represented by a simplified single-area model, incorporating existing FCAS 
+requirements along with RoCoF and nadir limits. The limits used in this study are 1 Hz/s for RoCoF and 
+49.2 Hz for nadir, which are the same values used for the 2023 case. 
+The future scenario analysed in this section is based on AEMO's 2037 projections for the "Step Change" 
+scenario [46]. The Step scenario is defined in the Integrated System Plan (ISP) 2024 [47] and it is the 
+most likely to occur, being assigned a 43% probability by the Delphi panel [48]. This is a scenario with 
+a high decarbonization and penetration of renewable technologies. In fact, the Step change scenario 
+anticipates the complete retirement of coal generators by 2037 [46].  
+Coal generators contribute significantly to the system inertia due to their constant operation. Hence, 
+it is important to understand the absence of coal generation in the overall system inertia, helping to 
+understand the long-term value of demand-side inertia.  
+The retirement of coal-fired generators makes selecting the right contingency for assessment more 
+challenging. To address this challenge, we will analyse the loss of a renewable energy zone (REZ). 
+Figure 39 shows the REZ considered by AEMO in the ISP. V7 is an offshore wind farm connected to 
+Victoria. This zone has a projected installed capacity of 4,913 MW in 2037 with a capacity factor of 
+0.46. While specific projects are not yet finalised, the Victorian government and AEMO are currently 
+studying the zone's development [49]. 
+We assume the construction of four separate wind farms within REZ V7. Our contingency size will be 
+based on the fault of a single wind farm generating at maximum capacity, resulting in a loss of 1,230 
+MW10. This scenario reflects real-world events, such as the August 9th incident, that occurred in the 
+UK in 2020 where an entire offshore wind farm was lost [50].  
+Additionally, to assess the long-term value of demand-side inertia, it is important to analyse potential 
+reductions in both the load-damping factor and demand-side inertia itself11. Two sensitivity analyses 
+are conducted to assess these potential impacts. 
+The first sensitivity analysis investigates the impact of the reduced damping factor. To base this 
+analysis on realistic numbers, we considered historical reductions. In 2019, the damping factor in the 
+NEM observed a drop from 1.5% to 0.5%, representing a 66% decrease [51]. Due to the uncertainty in 
+predicting future load-damping reductions, a hypothetical decrease of 80% (from 0.5% to 0.1%) was 
+chosen to try representing a potential worst-case scenario. This selection builds upon the historical 
+trend, extending the previously observed 66% reduction to a more extreme 80% decrease. 
+ 
+10 Losing approximately 1,230 MW is similar to assuming the loss of half of the installed capacity in REZ V7 
+operating at its capacity factor (2,260 MW / 2 = 1,130 MW). This alternative approach yields a contingency size 
+of 1,130 MW, which closely aligns with the chosen value. 
+11 A higher penetration of inverter-based technologies might reduce load damping and residual inertia. 
+
+
+===== PAGE 47 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+47 
+A second sensitivity analysis explores the reduction in both damping factor and demand-side inertia. 
+Here, the inertia constant is reduced from its current value of 1.4 s to 0.28 s, following the same logic 
+applied to the damping factor (a reduction of 80%). 
+ 
+Figure 39 Renewable energy zones [41] 
+6.1 Installed Capacity 
+Table 6 shows the installed capacity [46], the minimum power output of the generators, and their 
+start-up and shutdown times. This scenario assumes improved generator flexibility, resulting in a 
+decreased minimum power output and faster start-up and shutdown times. However, the cost of 
+proving reserves for the different markets is obtained as the average price from historical data from 
+[29]. The value of lost load is projected to increase to 20,000 $/MWh, based on the market price cap 
+trend of increasing every couple of years [42]. Additionally, the demand growth rate for 2037 is 
+projected to be 42% [52]. 
+In this scenario, conventional generators are assumed to provide up to 10% of their capacity for the 
+6-second and 60-second markets, while the 5-minutes market is limited by the ramp-up capabilities 
+Brisbane
+Sydney
+Hobart
+Bundaberg
+Rockhampton
+Mackay
+Proserpine
+Forsayth
+Cairns
+  Armidale
+Wollongong
+Broken Hill
+Coober Pedy
+Ceduna
+Bendigo
+Launceston
+Queenstown
+Canberra
+Longreach
+N4
+N8
+N7
+N1
+N2
+Q7
+Q6
+Q5
+Q4
+Q3
+Q2
+Q1
+V1
+V3
+V4
+V5
+T1
+T2
+T3
+S6
+S9
+S8
+S4
+S5
+S2
+S1
+S3
+S7
+Queensland
+Q1  Far North QLD
+Q2  North Qld Clean Energy Hub
+Q3  Northern Qld
+Q4  Isaac
+Q5  Barcaldine
+Q6  Fitzroy
+Q7  Wide Bay
+Q8  Darling Downs
+Q9  Banana
+New South Wales
+N1  North West NSW
+N2  New England
+N3  Central-West Orana
+N4  Broken Hill
+N5  South West NSW
+N6  Wagga Wagga
+N7  Tumut
+N8  Cooma-Monaro
+N9  Hunter-Central Coast
+N10  Hunter Coast
+N11  Illawarra Coast
+N12  Illawarra
+Victoria
+V1  Ovens Murray
+V2  Murray River
+V3  Western Victoria
+V4  South West Victoria
+V5  Gippsland
+V6  Central North Victoria
+V7  Gippsland Coast
+V8  Portland Coast
+South Australia
+S1  South East SA
+S2  Riverland
+S3  Mid-North SA
+S4  Yorke Peninsula
+S5  Northern SA
+S6  Leigh Creek
+S7  Roxby Downs
+S8  Eastern Eyre Peninsula
+S9  Western Eyre Peninsula
+S10  South East SA Coast
+Tasmania
+T1  North East Tasmania
+T2  North West Tasmania
+T3  Central Highlands
+T4  North Tasmania Coast
+N6
+Q8
+Melbourne
+Ballarat
+Adelaide
+Port Lincoln
+Gladstone
+Townsville
+Q9
+Mount Gambier
+V6
+Candidate Renewable Energy Zone (REZ)
+Candidate Offshore Renewable Energy Zone
+Indicative wind farm
+Indicative offshore wind farm
+Indicative solar farm
+Indicative pumped hydro
+Indicative battery storage
+N5
+V2
+Dubbo
+Newcastle
+N3
+N9
+S10
+N12
+V8
+N10
+N11
+T4
+V7
+
+
+===== PAGE 48 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+48 
+of the generators detailed in [41]. Additionally, PS can provide PFR, and BESS can participate in all the 
+FCAS markets, including the 1-second, 6-second, 60-second and 5-minutes markets. 
+Table 6 Characteristic of power generators NEM 2037 
+ 
+Coal Gas 
+Other 
+thermal Hydro 
+PS 
+BESS VPP 
+Large-
+scale PV 
+Rooftop 
+PV12 
+Wind 
+Installed capacity 
+[GW] 
+0 
+13 
+1 
+5 
+0.8 
+19 
+14 
+30 
+28 
+53 
+Pmin [% of Pmax] 
+- 
+15 
+5 
+0 
+0 
+0 
+0 
+0 
+0 
+0 
+Start-up/shut 
+down time [h] 
+- 
+2 
+0 
+0 
+0 
+0 
+0 
+0 
+0 
+0 
+6.2 Results 
+6.2.1 
+Damping 0.5 % 
+Figures 40, 41, and 42 show the online inertia along with the number of online units, FFR 
+requirements, and PFR requirements, respectively, for the case NEM 2037 with a damping of 0.5% 
+and an extra demand-side inertia in the week with the highest renewable penetration. The higher 
+contingency size of this case with respect to the other case studies, makes the requirement of all these 
+services higher. Besides, the relation between inertia, PFR, and FFR can be seen between hours 36 
+and 48. In this time window, the system without additional inertia from the demand side needs to 
+turn on additional generators to obtain more inertia and at the same time to provide more reserves.  
+ 
+Figure 40 Online inertia and units in NEM 2037 case for Max renewable week 
+ 
+12 The installed rooftop capacity shows the maximum power output 
+
+
+===== PAGE 49 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+49 
+ 
+Figure 41 FFR requirements in NEM 2037 case for Max renewable week 
+ 
+Figure 42 PFR requirements in NEM 2037 case for Max renewable week 
+Figure 43 shows the potential operational cost savings achievable in the NEM 2037 for different levels 
+of renewable penetration by adding demand-side inertia (with an inertia constant of 1.4 s). This figure 
+analyses four weeks with varying levels of renewable penetration in the NEM, ranging from a 
+minimum of 33% to a maximum of 61%. As the figure illustrates, weekly savings increase linearly as 
+the penetration of renewable sources rises. 
+Moreover, the annual operational savings are around $60 million. Compared to the yearly savings in 
+the NEM 2023, the expected yearly savings in this future scenario (NEM 2037) are significantly higher. 
+This increase in savings is explained by the contingency size and inertia levels. Figure 5 shows how 
+larger contingencies increase the PFR and inertia requirements substantially (due to nadir constraint). 
+Moreover, a larger contingency size requires either a higher online inertia or a greater allocation of 
+FFR (due to RoCoF constraint). 
+As a result, inertia becomes more valuable to reduce these requirements. Therefore, in a future 
+system characterised by high renewable penetration and low inertia, the need for FFR and PFR 
+services rises significantly due to stricter requirements. Demand-side inertia helps to reduce both FFR 
+and PFR services, leading to cost savings.  
+Furthermore, demand-side inertia could significantly reduce renewable energy curtailment in a future 
+scenario. In this case, with a demand inertia constant of 1.4 s during the week with the highest 
+renewable penetration, curtailment could be reduced by up to 31 GWh. 
+
+
+===== PAGE 50 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+50 
+ 
+Figure 43 Savings in NEM 2023 for different levels of renewable penetration by including an inertia 
+constant of 1.4 s in the demand side 
+6.2.2 
+Damping 0.1 % 
+Figures 44, 45, and 46 display the key metrics for the NEM 2037 scenario including different damping 
+factors during the week with the highest renewable penetration. Figure 44 presents the online inertia 
+along with the number of online units. Figures 45 and 46 show FFR requirements and PFR 
+requirements, respectively.  
+These figures show the relation between inertia, FFR, and PFR requirements with a reduced damping 
+factor. A lower damping factor leads to dispatching more generators due to the higher PFR 
+requirements. This can be seen in the solar hours, when the PFR requirements are higher for the case 
+with a reduced damping while the levels of inertia and FFR are similar in both cases. 
+
+
+===== PAGE 51 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+51 
+ 
+Figure 44 Online inertia and units in NEM 2037 with different damping factors in the Max renewable 
+week 
+ 
+Figure 45 FFR requirements in NEM 2037 with different damping factors in the Max renewable week 
+
+
+===== PAGE 52 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+52 
+ 
+Figure 46 FFR requirements in NEM 2037 with different damping factors in the Max renewable week 
+Figures 47, 48, and 49 display the key metrics for the NEM 2037 scenario including sensitivities with a 
+reduced damping factor and inertia constant during the week with the highest renewable penetration. 
+Figures 47 presents the online inertia along with the number of online units. Figures, 48 and 49 shows 
+FFR requirements and PFR requirements, respectively.  
+These figures show the relation between inertia, FFR, and PFR requirements, and the reduced 
+damping factor and inertia constant. A lower damping factor calls for dispatching more generators to 
+meet the increased PFR/FFR needs during solar hours. Similarly, a reduced inertia constant for demand 
+also increases PFR/FFR requirements, resulting in more generators online in that sensitivity. 
+Reducing the damping factor in the 2037 scenario with a 1.4 s inertia constant and a damping factor 
+of 0.1% yields annual savings of $87 million. These savings decrease to $26 million when the inertia 
+constant is reduced to 0.28s but are still very substantial.  
+
+
+===== PAGE 53 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+53 
+ 
+Figure 47 Online inertia and units in NEM 2037 with different damping factors and inertia constants 
+in the Max renewable week 
+ 
+Figure 48 FFR requirements in NEM 2037 with different damping factors and inertia constants in the 
+Max renewable week 
+ 
+
+
+===== PAGE 54 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+54 
+ 
+Figure 49 FFR requirements in NEM 2037 with different damping factors and inertia constants in the 
+Max renewable week 
+ 
+ 
+
+
+===== PAGE 55 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+55 
+7 Summary of potential savings13 
+Table 7 summarizes the potential cost savings achievable through demand-side inertia. As the table 
+shows, planning savings in QLD offer the higher benefits in the short and medium term. These savings 
+stem from the avoided investment in QLD, where the estimated contribution of demand-side inertia 
+could potentially fully address the region's declared inertia shortfall. Beyond potential economic 
+benefits, the rapid deployment of an inertia measurement scheme is a critical advantage. In contrast, 
+the procurement and installation of a new synchronous condenser might take some 2.5 years or more 
+[43]. 
+Furthermore, with declining system inertia, the operational savings projected for 2037 become 
+increasingly important, highlighting the growing value of residual inertia in the future. 
+Table 7 System savings 
+ 
+Case 
+Damping 
+factor 
+[%] 
+Residual 
+inertia 
+constant [s] 
+Operational 
+annual cost 
+savings [$ 
+million] 
+Total 
+“Planning” cost 
+savings [$ 
+million] 
+Current system 
+NEM 2023 
+0.5 
+1.4 
+1.56 
+- 
+QLD 
+0.5 
+0.46 
+0.09 - 0.1914 
+100 – 145 
+SA 
+- 
+0.14 
+- 
+2 
+Future system 
+NEM 2037 
+0.5 
+1.4 
+60 
+- 
+NEM 2037: Reduced 
+damping 
+0.1 
+1.4 
+87 
+- 
+NEM 2037: Reduced 
+damping + Reduce 
+demand-side inertia 
+0.1 
+0.28 
+26 
+- 
+In addition to the savings above, we have not costed the benefits in the following areas: 
+- 
+Reduced carbon emissions, which AEMO price at $70/tonne [53] 
+- 
+Reduced costs of retaining coal plant for regional system security as a result of 
+reduced inertia requirements. 
+ 
+ 
+13 The University of Melbourne team do not have access to the cost details of the scheme to measure inertia; 
+therefore, the cost-benefit analysis does not include these costs. However, Reactive has reported that several 
+variables impact the implementation cost such as network size, the technology used for the modulator (e.g., 
+BESS, capacitors, others), and the size and location of this element. 
+14 Potential savings per week in case of islanded operation. 
+
+
+===== PAGE 56 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+56 
+8 Regulatory Consideration and Pathway to Commercialisation 
+Integrating inertia measurements into the NEM has the potential to help optimising FCAS markets, 
+decrease unnecessary costs associated with side-payments, and optimise investment decisions. 
+However, to unlock these benefits, a review of the existing regulatory framework and its requirements 
+is crucial. 
+The current NEM regulation requires the TNSPs to procure sufficient inertia within their sub-networks 
+to prevent any potential inertia shortfall [15]. In the short term, this can be addressed by contracting 
+with existing third-party inertia providers or acquiring an equivalent amount of FFR service. In the long 
+term, this regulation might incentivise new investments in network assets to meet inertia 
+requirements [54]. 
+In this context, the demand-side inertia (potentially obtained through inertia measurements) would 
+help procure the optimal amount of inertia or FFR to prevent excessive contracting of these resources, 
+potentially leading to cost reduction. Besides, a better understanding of the regional demand-side 
+inertia would defer or drive investments (transmission, synchronous condenser or other) according to 
+the actual inertia requirements.  
+Another key consideration lies in the existing FCAS markets within the NEM. Currently, most markets 
+only focus on QSS requirements, delivered in different timeframes (6-second, 60-second, and 5-
+minute services). The exception is the 1-second market, which depends on system inertia to limit the 
+RoCoF (refer to Appendix 11.1 for details on NEM FCAS service calculations). 
+However, as Chapter 3.1.3 highlights, with declining inertia, the nadir requirement becomes the 
+binding constraint for system operation. This constraint adjusts the PFR requirement based on inertia 
+levels, FFR availability, and contingency size. Therefore, current RoCoF-based requirements might be 
+insufficient to guarantee system security. Thus, the system could be exposed to under-frequency load 
+shedding in low inertia conditions if nadir constraints are not included in the operation.  
+This report does not study the impact of the potential creation of an inertia market [16]. However, it 
+is important to highlight that the implementation of inertia measurement would play an important 
+role in this market. Recent research highlights the importance of co-optimising regional inertia and 
+FCAS allocation, managing contingency size, and considering interconnector flows [10]. Additionally, 
+recent works suggest potential transient instability risks due to unbalanced regional inertia and FFR 
+location (see [55] and [56]).  
+Therefore, designing a future inertia market for a multi-area system requires careful consideration of 
+several factors beyond just balancing FCAS and inertia. These factors include incorporating additional 
+risk assessments to mitigate transient instability risks, and strategically placing both FCAS and inertia 
+resources to optimise system security. In this context, having a more accurate measure of inertia 
+would provide valuable insights for ensuring secure system operation. 
+ 
+ 
+
+
+===== PAGE 57 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+57 
+9 Conclusions and Recommendations 
+Key findings on data analysis of inertia and system conditions  
+The data analysis explored the relation between inertia and system conditions. As expected, a strong 
+positive correlation exists between high demand and high inertia. This is because more online 
+generators contribute to greater inertia during periods of high energy consumption. However, the 
+existence of residual inertia (the difference between measured and theoretical inertia) is noticeable 
+in the comparison of theoretical and measured inertia. The residual inertia could be attributed to 
+several factors, including inaccuracies in generator data (inertia constant and MVA capacity), which 
+are generally expected to be relatively small, as well as, more importantly, the presence of significant 
+demand-side inertia due to the presence of synchronously connected generators and motors 
+embedded in the distribution network and generally the demand side. For simplicity, in the studies 
+performed here all the residual inertia is attributed to the demand-side inertia.  
+Furthermore, the analysis revealed an inverse relation between high renewable penetration and 
+system inertia. This suggests a potential increase in low-inertia events as inverter-based resources 
+become more prominent in the future. 
+Key findings on validating inertia measurement with real-world events 
+The inertia measured were validated through an event-based approach. In this context, it was 
+analysed from the disconnection of a generator in Queensland at 7:36 AM on September 26th. The 
+analysis employed instantaneous RoCoF calculations using frequency data from Reactive’s 
+GridMetrix® platform and contingency size information published by AEMO. The results from this 
+event gave confidence in the effectiveness of using Reactive’s technology to measure real-time inertia. 
+Furthermore, the event highlighted a significant discrepancy between theoretical and actual system 
+inertia. AEMO's pre-calculated inertia for this moment was 77 GWs, a 22 GWs difference from the 
+actual inertia observed during the event (approximately 99 GWs). In contrast, Reactive's technology 
+yielded measured inertia of 92 GWs, deviating from the actual event inertia by only 7 GWs. 
+These results highlight the limitations of relying on theoretical calculations for inertia estimation. By 
+incorporating real-time measurements, the accuracy of the inertia estimation can be significantly 
+improved, allowing for better decision-making in real-time situations. 
+Key findings on the value of inertia 
+This study investigated the integration of demand-side inertia into power system dispatch. We 
+implemented a state-of-the-art model encompassing the existing FCAS markets along with the RoCoF 
+and nadir requirements. We applied the model to assess a single-area NEM and an isolated QLD 
+system. Additionally, we analysed a future scenario (2037) simulating the NEM's first year without 
+coal generation. This analysis included sensitivity analyses to assess potential reductions in system 
+damping and demand-side inertia contribution. 
+Furthermore, we also analysed the economic benefits of demand-side inertia beyond traditional 
+dispatch models. The performed analysis assessed the value of avoiding additional inertia stand-by 
+payments and deferring/reducing infrastructure investments. 
+The results underscore the importance of considering low inertia conditions when designing FCAS 
+requirements. We found that demand-side inertia may hold significant value in the current system, 
+
+
+===== PAGE 58 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+58 
+especially under the isolated operation of some regions. Besides, in a high renewable scenario with 
+reduced online inertia, demand-side inertia might play an even more crucial role, potentially lowering 
+overall system costs and FCAS requirements. The sensitivity analyses indicate that the potential value 
+of demand-side inertia persists in the future, even with a reduced contribution from these resources. 
+Furthermore, incorporating demand-side inertia might defer or reduce the need for critical 
+infrastructure investments, such as synchronous condensers, which currently require a deployment 
+time of at least 2.5 years. Thus, this rapid deployment capability of inertia measurement technology 
+significantly enhances its overall value.  
+Additionally, demand-side inertia can directly lead to cost savings through lower inertia payments, 
+which are currently used to compensate for inertia shortfalls by contracting additional generators or 
+FFR services. These translate to cost savings across both short-term and long-term operations in 
+scenarios and regions where an inertia shortfall has been identified. 
+Future Considerations: Inertia Markets  
+The current regulation requires the TNSPs to procure inertia or FFR under inertia shortfall periods. In 
+this context, the demand-side inertia (potentially obtained by the inertia measurement) would help 
+to procure the optimal amount of inertia or FFR. Moreover, a better understanding of the actual 
+system inertia would defer or drive investments according to the actual system requirements. 
+In the future, it is expected an inertia ancillary services market, which could address potential inertia 
+shortfalls while improving efficiency in procuring inertia. However, current RoCoF-based requirements 
+might be insufficient if nadir constraints are not considered, leading to the potential activation of 
+under-frequency load shedding. Therefore, to capture the value of inertia and in particular demand-
+side inertia, it is important to consider nadir requirements, at least at a national level. 
+While this study focused on a single-area model, the specific design of an inertia market requires 
+further evaluation. Previous research highlights the importance of co-optimising regional inertia and 
+FCAS allocation, managing contingency size, and considering interconnector flows. Additionally, 
+recent works suggest potential transient instability risks due to unbalanced regional inertia and FFR 
+location. Therefore, the development of a future inertia market needs to consider not only a careful 
+balance between FCAS and inertia but also the location of these services in a multi-area system. 
+As such, our results show a potential benefit in the adoption of inertia measurement as follows: 
+- 
+Adoption of inertia measurement across the NEM would support more efficient operation 
+today with significant growth in value as renewable energy penetration increases;  
+- 
+Inertia measurement data would offer improvements to planning and modelling to support 
+future system investment; 
+- 
+Measurements of inertia would support effective developments of inertia markets and 
+regional inertia allocation to avoid potential imbalances and instability which could lead to 
+system-wides disturbances. 
+ 
+ 
+
+
+===== PAGE 59 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+59 
+10 References 
+ 
+[1]  Renewable Energy Institute, Agora Energiewende, “Integrating renewables into the Japanese 
+power grid by 2030,” 2018. 
+[2]  ERCOT, “Inertia: Basic Concepts and Impacts on the ERCOT Grid,” 2018. 
+[3]  ERCOT , “ERCOT Control Room Situational Awareness Tools,” 2024. 
+[4]  AFRY and National Grid ESO, “Stability market design innovation project 2 nd Engagement 
+Webinar,” 2022. 
+[5]  B. Berry, “Inertia Estimation Methodologies vs Measurement Methodology: Impact on System 
+Operations,” in Symposium Alborg, Denmark, 2019.  
+[6]  C. Matamala, L. Badesa, R. Moreno and G. Strbac, “Cost Allocation for Inertia and Frequency 
+Response Ancillary Services,” IEEE Transactions on Energy Markets, Policy and Regulation, pp. 1-
+11, 2024.  
+[7]  L. Badesa, C. Matamala, Y. Zhou and G. Strbac, “Assigning Shadow Prices to Synthetic Inertia and 
+Frequency Response Reserves From Renewable Energy Sources,” IEEE Transactions on 
+Sustainable Energy, vol. 14, no. 1, pp. 12-26, 2023.  
+[8]  Nationa Grid ESO, “National Grid ESO Stability Market Design: Final Webinar,” 2023. 
+[9]  P. Mancarella et al., “"Power system security assessment of the future national electricity 
+market," The independent review into the future security of the national electricity market,” 
+Australia, June 2017.. 
+[10]  Püschel-Løvengreen, G. D. M. S., S. Low and P. Mancarella, “Separation event-constrained 
+optimal power flow to enhance resilience in low-inertia power systems,” Electric Power Systems 
+Research, vol. 189, p. 2020.  
+[11]  H. Haes Alhelou, B. Bahrani, J. Ma and D. J. Hill, “GPTS Stage 2: Topic 6 - Services: Frequency 
+Support and Generation-Demand Active Power Balance Services for Enabling Global Power 
+System Transformation in Australia,” 2023. 
+[12]  Economic Regulation Authority (AEC), “Frequency co-optimised essential system services offer 
+price ceiling determination,” 2023. 
+[13]  Australian Energy Market Operator (AEMO), “WEM Procedure: Essential System Service 
+Quantities,” Australia, 2023. 
+
+
+===== PAGE 60 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+60 
+[14]  Australian Energy Market Operator (AEMO), “Market Ancillary Service Specification,” Oct. 2023. 
+[15]  Australian Energy market Operator (AEMO), “2023 Inertia Report,” 2023. 
+[16]  Australian Energy Market Commission (AEMC), Efficient Provision of Inertia- Consultation Paper, 
+2023.  
+[17]  Australian Renewable Energy Agency (ARENA), “ARENA,” ARENA, 18 05 2023. [Online]. 
+Available: 
+https://arena.gov.au/projects/reactive-technologies-system-inertia-measurement-
+demonstration/. [Accessed 20 05 2024]. 
+[18]  Reactive Technologies, “reactive-technologies,” 2024. [Online]. Available: https://reactive-
+technologies.com/grid-sonar/. [Accessed 20 05 2024]. 
+[19]  B. Berry, A. Enas, A. Blackwell and S. Reid, “C2-inertia measurements in the GB power system 
+used for operations and planning improvements,” in CIGRE Paris Session, 2022.  
+[20]  D. Burt and P. Mancarella, “Inertia Measurement Challenges in Modern Power Grids.,” 2024. 
+[21]  L. Badesa, F. Teng and G. Strbac, “Economic Value of Inertia in Low-Carbon Power Systems,” in 
+2017 IEEE PES Innovative Smart Grid Technologies Conference Europe (ISGT-Europe), 2017.  
+[22]  L. Badesa, F. Teng and G. Strbac, “Optimal Portfolio of Distinct Frequency-Response Services in 
+Low-Inertia Systems,” IEEE Transaction on Power Systems, 2020.  
+[23]  F. Teng, V. Trovato and G. Strbac, “Stochastic Scheduling With Inertia-Dependent Fast Frequency 
+Response Requirements,” IEEE Transactions on Power Systems, vol. 31, no. 2, pp. 1557 - 1566, 
+2016.  
+[24]  V. Trovato, A. Bialecki and A. Dallagi, “Unit Commitment With Inertia-Dependent and Multispeed 
+Allocation of Frequency Response Services,” IEEE Transactions on Power Systems, vol. 34, no. 2, 
+pp. 1537 - 1548, 2019.  
+[25]  L. Badesa, “Towards a Cost-E ective Operation of Low-Inertia Power Systems,” 2020. 
+[26]  L. Badesa, F. Teng and G. Strbac, “Simultaneous Scheduling of Multiple Frequency Services in 
+Stochastic Unit Commitment,” IEEE Transactions on Power Systems, vol. 34, no. 5, pp. 3858 - 
+3868, 2019.  
+[27]  Australian Energy Market Operator (AEMO), “Review of NEM load relief 2023,” 2023. 
+[28]  J. Susanto, “Frequency control in low inertia power systems,” in 2020 International Conference 
+on Smart Grids and Energy Systems (SGES), Australia, 2020.  
+
+
+===== PAGE 61 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+61 
+[29]  Australian Energy Market Operator (AEMO), “AEMO,” AEMO, 01 May 2024. [Online]. Available: 
+https://visualisations.aemo.com.au/aemo/nemweb/index.html#mms-data-model. 
+[Accessed 
+19 05 2024]. 
+[30]  S. Pil Oe, “Measuring and understanding the residual inertia of demand and embedded 
+generation - The Great Britain case study,” 2022. 
+[31]  Australian Energy Market Operator (AEMO), “Frequency and Time Error Monitoring Quarter 3 
+2023,” 2023. 
+[32]  Reactive Technologies, [Online]. Available: https://reactive-technologies.com/. [Accessed 20 05 
+2024]. 
+[33]  Y. Bian, H. Wyman-Pain, F. Li, R. Bhakar, S. Mishra and N. Prasad Padhy, “Demand Side 
+Contributions for System Inertia in the GB Power System,” IEEE Transactions on Power Systems, 
+vol. 33, no. 4, pp. 3521 - 3530, 2018.  
+[34]  AEMC Reliability Panel, “Frequency operating standard.,” 2023. 
+[35]  Australian Energy Market Operator (AEMO), “Under Frequency Load Shedding: Exploring 
+dynamic arming options for adapting to distributed PV,” 2023. 
+[36]  AEMO, “2023 Transmission Expansion Options Report,” 2023. 
+[37]  Andritz, “Boosting inertia of Synchronous condensers,” Andritz, 2022. [Online]. Available: 
+https://www.andritz.com/hydro-en/hydronews/hn36/technology-flywheels. [Accessed 25 06 
+2024]. 
+[38]  Australian Energy Market Operator (AEMO), “Frequency and Time Error Monitoring Quarter 2 
+2023,” 2023. 
+[39]  Australian Energy Market Operator (AEMO), “NEM generation information,” 2023. 
+[40]  GHD, “2018-19 Costs and technical parameter,” 2018. 
+[41]  Australian Energy Market Operator (AEMO), “IASR Assumptions Woorkbook,” 2023. 
+[42]  Australian Energy Market Commission (AEMC), “aemc,” 23 02 2023. [Online]. Available: 
+https://www.aemc.gov.au/news-centre/media-releases/aemc-publishes-schedule-reliability-
+settings-2023-24. [Accessed 27 05 2024]. 
+[43]  Digsilent, “Repurposing existing generators as synchronous condensers,” 2023. 
+[44]  AEMO, “2023 Transmission Expansion Options Report,” 2023. 
+
+
+===== PAGE 62 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+62 
+[45]  AEMO, “Appendix 7. System Security,” 2023. 
+[46]  Australian Energy Market Operator (AEMO), “2024 Draft ISP results workbook - Step Change,” 
+2024. 
+[47]  Australian Energy Market Operator (AEMO), “2023 Electricity Statement of Opportunities,” 
+2023. 
+[48]  Australian Energy Market Operator (AEMO), “2024 ISP Delphi Panel,” 2024. 
+[49]  Australian Energy Market Operator (AEMO), “Appendix 3 . Renewable Energy Zones,” 2023. 
+[50]  UK Energy Research Centre, “UKERC,” UKERC, 20 01 2020. [Online]. Available: 
+https://ukerc.ac.uk/news/august-9-investigations/. [Accessed 20 05 2024]. 
+[51]  AEMO, “aemo.com.au,” aemo, 23 06 2023. [Online]. Available: https://aemo.com.au/energy-
+systems/electricity/national-electricity-market-nem/system-operations/ancillary-
+services/load-relief. [Accessed 28 06 2024]. 
+[52]  Australian Energy Market Operator (AEMO), “Forecasting,” AEMO, 2018. [Online]. Available: 
+https://forecasting.aemo.com.au/Electricity/AnnualConsumption/Operational. [Accessed 21 05 
+2024]. 
+[53]  AEMO, “2024 Integrated System Plan,” 2024. 
+[54]  Australian Energy Market Comission (AEMC), “National Electricity Amendment (Managing the 
+rate of change of power system frequency) Rule 2017,” 2017. 
+[55]  Z. Zhang and R. Preece, “Effects of Droop Based Fast Frequency Response on Rotor Angle 
+Stability During System Wide Active Power Deficits,” IEEE Transactions on Power Systems, 2024.  
+[56]  Z. Zhang, S. Asvapoositkul and R. Preece, “IMPACT OF FAST FREQUENCY RESPONSE ON POWER 
+SYSTEM TRANSIENT STABILITY,” in The 17th International Conference on AC and DC Power 
+Transmission, Online Conference, 2021.  
+[57]  Australian Energy Market Operator (AEMO), “Constraint Implementation Guidelines,” 2023. 
+[58]  Australian Energy Market Operator (AEMO), “AEMO,” AEMO, 23 06 2023. [Online]. Available: 
+https://aemo.com.au/energy-systems/electricity/national-electricity-market-nem/system-
+operations/ancillary-services/load-relief. [Accessed 20 05 2024]. 
+ 
+ 
+ 
+
+
+===== PAGE 63 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+63 
+11 Appendix 
+11.1 FCAS Markets in Australia 
+There are currently 10 markets to provide FCAS services in Australia. The name of these markets from 
+the fastest operation to the slowest are as follow: 
+- 
+1-second market (Raise and Lower) 
+- 
+6-second market (Raise and Lower) 
+- 
+60-second market (Raise and Lower) 
+- 
+5-minute market (Raise and Lower) 
+- 
+Regulation market (Raise and Lower) 
+The requirement for the fastest service, the 1-second market (also known as FFR) is determined using 
+equation (10). In this equation, the load relief is calculated considering a frequency deviation of 0.5 
+Hz, and 𝐻𝑎𝑤𝑠 is the inertia awareness factor, which is a number between 0 and 1 as described in [31] 
+and [57]. This factor is calculated as the minimum of 3 linear equations incorporating the peak RoCoF 
+risk, defined in defined in equation (11), where 𝐻𝑠𝑦𝑠 is the total inertia in the mainland NEM. By 
+incorporating the peak RoCoF risk, the inertia directly impacts the FFR requirement by increasing the 
+requirement of this service when the inertia decreases.  
+(|∆𝑃𝑙𝑜𝑠𝑠| −𝐿𝑟Δ𝑓=0.5𝐻𝑧) ∙𝐻𝑎𝑤𝑠 
+(10) 
+𝑃𝑒𝑎𝑘𝑅𝑂𝐶𝑂𝐹_𝑟𝑖𝑠𝑘= 25 ∙|∆𝑃𝑙𝑜𝑠𝑠|
+𝐻𝑠𝑦𝑠
+ 
+(11) 
+For the 6-second and 60-seconds markets, the requirements are calculated using a simpler equation 
+defined in (12). This equation only considers the contingency size and a load relief calculated with a 
+frequency deviation of 0.5 Hz. 
+|∆𝑃𝑙𝑜𝑠𝑠| −𝐿𝑟Δ𝑓=0.5𝐻𝑧 
+(12) 
+The calculation for the 5-minute service is given by (13). In this equation the frequency deviation 
+consider is 0.15 Hz to reach the deadband of frequency deviation. This service is co-optimized with 
+the regulation FCAS, which must be at least 220 MW [57] for the whole NEM and 170 MW for the 
+mainland NEM. The requirement for this service increases as the cumulative frequency deviation 
+grows.  
+|∆𝑃𝑙𝑜𝑠𝑠| −𝐿𝑟Δ𝑓=0.15 𝐻𝑧 
+(13) 
+ 
+ 
+ 
+ 
+
+
+===== PAGE 64 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+64 
+11.2 5-minutes Rooftop PV 
+The rooftop PV profiles are available with a 30-minute resolution. We applied a linear approximation 
+to obtain the 5-minutes resolution. Figure 50 shows the measured distributed PV and the 
+approximation to obtain the 5-minutes resolution. The result of implementing this methodology is 
+plot in the Figure 51. This figure shows the results for the different regions for the 16 and 17 of June 
+of 2023.  
+ 
+Figure 50 Example of linear approximation to obtain 5-minutes resolution for rooftop PV 
+ 
+Figure 51 5-minutes resolution for rooftop PV per region 
+ 
+
+
+===== PAGE 65 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+65 
+11.3 Availability of Coal Generators 
+A coal generator is considered unavailable if it experiences an outage lasting 5 or more days in a week. 
+The weekly average unavailable capacity for coal generators per year are shown in Figure 52. Figure 
+53 shows more details about the weekly unavailability for the year 2023.  
+ 
+Figure 52 Weekly average of coal generators unavailable per year in the NEM 
+
+
+===== PAGE 66 =====
+ 
+Final Knowledge Sharing Report - System Inertia Measurement Demonstration Project 
+66 
+ 
+Figure 53 Number of coal generators unavailable per week in 2023 for the NEM 

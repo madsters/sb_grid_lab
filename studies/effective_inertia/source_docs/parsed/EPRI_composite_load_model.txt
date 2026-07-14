@@ -1,0 +1,4357 @@
+===== TABLE OF CONTENTS =====
+1 A BRIEF HISTORY OF LOAD MODELING .... p15
+  References .... p16
+2 THE COMPLEX LOAD MODEL .... p17
+  The CLOD Model .... p17
+  References .... p18
+3 THE COMPOSITE LOAD MODEL .... p19
+  The Composite Load Model Structure .... p19
+    MVA rating and interpretation .... p20
+    The Substation and the Feeder Equivalent .... p21
+    The Motor A Component .... p22
+      Protection model in motor A .... p24
+    The Motor B Component .... p25
+      Protection model in motor B .... p27
+    The Motor C Component .... p27
+      Protection models in motor C .... p27
+    The Motor D Component .... p28
+      Protection models in motor D .... p33
+    The Power Electronic Component .... p36
+    The Static Load Component .... p37
+  A Note on Motor Stalling .... p37
+  References .... p38
+4 PARAMETERIZING THE COMPOSITE LOAD MODEL .... p41
+  The Component-Based Load Modeling Approach .... p41
+    Residential and Commercial Load Composition Estimation .... p44
+    Agricultural Load Composition Estimation .... p47
+    Industrial Load Composition Estimation .... p47
+  The Measurement-Based Load Modeling Approach .... p48
+  Recommendations on Load Model Parameterization .... p50
+  References .... p52
+5 RECENT DEVELOPMENTS IN LOAD MODELING .... p55
+  The Motorc or Motor1ph Model .... p55
+    Phasor modeling of single-phase induction motor .... p55
+    Comparison of the performance model with the flux-based phasor model of a single-phase induction motor .... p57
+    Modeling improvements and future research .... p62
+  Enhancement to the Stall Behavior of the Motor D Model .... p63
+    Proposal .... p63
+    Background for this enhancement .... p64
+  New Variable Speed Drive Model .... p70
+    Modeling approach .... p71
+    Representative results .... p72
+  References .... p77
+A COMPOSITE LOD MODEL COMPONENTS .... p79
+  Dynamic model of 3 phase induction motors (Motor A, Motor B and Motor C) .... p79
+  Dynamic model for Motor D .... p81
+  Static Load Model .... p82
+B RULES OF ASSOCIATION .... p83
+
+
+
+===== PAGE 1 =====
+ 
+Technical Reference on the Composite Load Model 
+ 
+3002019209 
+ 
+ 
+ 
+ 
+ 
+0
+
+
+===== PAGE 2 =====
+0
+
+
+===== PAGE 3 =====
+ 
+EPRI Project Manager 
+P. Mitra 
+ELECTRIC POWER RESEARCH INSTITUTE 
+3420 Hillview Avenue, Palo Alto, California 94304-1338  PO Box 10412, Palo Alto, California 94303-0813  USA 
+800.313.3774  650.855.2121  askepri@epri.com  www.epri.com 
+Technical Reference on the Composite Load Model 
+ 
+3002019209 
+Technical Update, September 2020 
+ 
+ 
+0
+
+
+===== PAGE 4 =====
+ 
+ 
+DISCLAIMER OF WARRANTIES AND LIMITATION OF LIABILITIES 
+THIS DOCUMENT WAS PREPARED BY THE ORGANIZATION(S) NAMED BELOW AS AN ACCOUNT OF 
+WORK SPONSORED OR COSPONSORED BY THE ELECTRIC POWER RESEARCH INSTITUTE, INC. (EPRI). 
+NEITHER EPRI, ANY MEMBER OF EPRI, ANY COSPONSOR, THE ORGANIZATION(S) BELOW, NOR ANY 
+PERSON ACTING ON BEHALF OF ANY OF THEM: 
+(A) MAKES ANY WARRANTY OR REPRESENTATION WHATSOEVER, EXPRESS OR IMPLIED, (I) WITH 
+RESPECT TO THE USE OF ANY INFORMATION, APPARATUS, METHOD, PROCESS, OR SIMILAR ITEM 
+DISCLOSED IN THIS DOCUMENT, INCLUDING MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
+PURPOSE, OR (II) THAT SUCH USE DOES NOT INFRINGE ON OR INTERFERE WITH PRIVATELY OWNED 
+RIGHTS, INCLUDING ANY PARTY'S INTELLECTUAL PROPERTY, OR (III) THAT THIS DOCUMENT IS 
+SUITABLE TO ANY PARTICULAR USER'S CIRCUMSTANCE; OR 
+(B) ASSUMES RESPONSIBILITY FOR ANY DAMAGES OR OTHER LIABILITY WHATSOEVER (INCLUDING 
+ANY CONSEQUENTIAL DAMAGES, EVEN IF EPRI OR ANY EPRI REPRESENTATIVE HAS BEEN ADVISED OF 
+THE POSSIBILITY OF SUCH DAMAGES) RESULTING FROM YOUR SELECTION OR USE OF THIS 
+DOCUMENT OR ANY INFORMATION, APPARATUS, METHOD, PROCESS, OR SIMILAR ITEM DISCLOSED IN 
+THIS DOCUMENT. 
+REFERENCE HEREIN TO ANY SPECIFIC COMMERCIAL PRODUCT, PROCESS, OR SERVICE BY ITS TRADE 
+NAME, TRADEMARK, MANUFACTURER, OR OTHERWISE, DOES NOT NECESSARILY CONSTITUTE OR 
+IMPLY ITS ENDORSEMENT, RECOMMENDATION, OR FAVORING BY EPRI.  
+THE ELECTRIC POWER RESEARCH INSTITUTE (EPRI) PREPARED THIS REPORT. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+This is an EPRI Technical Update report. A Technical Update report is intended as an informal report of 
+continuing research, a meeting, or a topical study. It is not a final EPRI technical report. 
+ 
+ 
+ 
+NOTE 
+For further information about EPRI, call the EPRI Customer Assistance Center at 800.313.3774 or  
+e-mail askepri@epri.com. 
+Electric Power Research Institute, EPRI, and TOGETHER…SHAPING THE FUTURE OF ELECTRICITY 
+are registered service marks of the Electric Power Research Institute, Inc. 
+Copyright © 2020 Electric Power Research Institute, Inc. All rights reserved. 
+0
+
+
+===== PAGE 5 =====
+ 
+This publication is a corporate document that should be cited in the literature in the following 
+manner: 
+Technical Reference on the Composite Load Model. EPRI, Palo Alto, CA: 2020. 3002019209. 
+iii 
+ACKNOWLEDGMENTS 
+The Electric Power Research Institute (EPRI) prepared this report. 
+Principal Investigators 
+P. Mitra 
+A. Gaikwad 
+D. Ramasubramanian 
+L. Sundaresh 
+ 
+This report describes research sponsored by EPRI. EPRI would like to acknowledge the support 
+of the following organizations:  
+Ameren Services Co. 
+American Electric Power Service Corp. 
+CenterPoint Energy Houston Electric, LLC 
+CPS Energy 
+Dominion Energy, Inc. 
+Eskom Holdings SOC Limited 
+FirstEnergy Service Company 
+Great River Energy 
+Hoosier Energy Rural Electric Coop., Inc. 
+Hydro One Networks Inc. 
+Lincoln Electric System  
+Midcontinent Independent System Operator, Inc. 
+National Grid UK, Ltd. 
+Nebraska Public Power District 
+New York ISO  
+New York Power Authority 
+PJM Interconnection  
+Salt River Project Agricultural Improvement and Power District 
+Southern Company 
+Southwest Power Pool, Inc. 
+Tri-State Generation & Transmission Association, Inc. 
+Xcel Energy Services, Inc. 
+The project team would like to thank the following individuals for their feedback, reviews and 
+comments: 
+Pouyan Pourbeik, Power and Energy, Analysis, Consulting and Education (PEACE), PLLC 
+Irina Green, California Independent System Operator 
+Dmitry Kosterev, Bonneville Power Administration 
+0
+
+
+===== PAGE 6 =====
+0
+
+
+===== PAGE 7 =====
+ 
+v 
+ABSTRACT 
+This document serves as a technical reference document for load modeling and the composite 
+load model. The document is intended to be used as a guide for transmission planners and utility 
+engineers to understand and use the composite load model for transmission planning studies. The 
+document is organized in 5 chapters.  
+Chapter 1 provides a brief introduction to the history of load modeling and summarizes the 
+journey from basic ZIP models to the present composite load model. Chapter 2 provides a brief 
+summary of the CLOD model, which was a predecessor to the latest composite load model. 
+Chapter 3 provides a detailed summary of the WECC composite load model, also known simply 
+as the composite load model. Chapter 4 provides a note on the practices and methods for 
+composite load model parameterization. Finally, chapter 5 briefly summarizes some of the major 
+research initiatives that are being pursued towards the improvement of the composite load model 
+at the time of writing of this report. Additionally, the document contains an Appendix that lists 
+some additional mathematical details about the individual components of the composite load 
+model.  
+Keywords 
+Load modeling 
+Composite load model 
+Model parameterization 
+Transmission planning 
+ 
+0
+
+
+===== PAGE 8 =====
+0
+
+
+===== PAGE 9 =====
+ 
+vii 
+CONTENTS 
+ABSTRACT .................................................................................................................................... v 
+1 A BRIEF HISTORY OF LOAD MODELING ............................................................................ 1-1 
+References ............................................................................................................................. 1-2 
+2 THE COMPLEX LOAD MODEL .............................................................................................. 2-1 
+The CLOD Model ................................................................................................................... 2-1 
+References ............................................................................................................................. 2-2 
+3 THE COMPOSITE LOAD MODEL .......................................................................................... 3-1 
+The Composite Load Model Structure ................................................................................... 3-1 
+MVA rating and interpretation .......................................................................................... 3-2 
+The Substation and the Feeder Equivalent ..................................................................... 3-3 
+The Motor A Component ................................................................................................. 3-4 
+The Motor B Component ................................................................................................. 3-7 
+The Motor C Component ................................................................................................. 3-9 
+The Motor D Component ............................................................................................... 3-10 
+The Power Electronic Component ................................................................................. 3-18 
+The Static Load Component .......................................................................................... 3-19 
+A Note on Motor Stalling ...................................................................................................... 3-19 
+References ........................................................................................................................... 3-20 
+4 PARAMETERIZING THE COMPOSITE LOAD MODEL ........................................................ 4-1 
+The Component-Based Load Modeling Approach ................................................................ 4-1 
+Residential and Commercial Load Composition Estimation ........................................... 4-4 
+Agricultural Load Composition Estimation ...................................................................... 4-7 
+Industrial Load Composition Estimation .......................................................................... 4-7 
+The Measurement-Based Load Modeling Approach ............................................................ 4-8 
+Recommendations on Load Model Parameterization ......................................................... 4-10 
+References ........................................................................................................................... 4-12 
+5 RECENT DEVELOPMENTS IN LOAD MODELING ............................................................... 5-1 
+The Motorc or Motor1ph Model ............................................................................................. 5-1 
+Phasor modeling of single-phase induction motor .......................................................... 5-1 
+Comparison of the performance model with the flux-based phasor model of a 
+single-phase induction motor ........................................................................................... 5-3 
+Modeling improvements and future research .................................................................. 5-8 
+Enhancement to the Stall Behavior of the Motor D Model .................................................... 5-9 
+Proposal ........................................................................................................................... 5-9 
+Background for this enhancement ................................................................................. 5-10 
+New Variable Speed Drive Model........................................................................................ 5-16 
+Modeling approach ........................................................................................................ 5-17 
+Representative results ................................................................................................... 5-18 
+0
+
+
+===== PAGE 10 =====
+ 
+viii 
+References ........................................................................................................................... 5-23 
+A COMPOSITE LOD MODEL COMPONENTS.......................................................................... A-1 
+Dynamic model of 3 phase induction motors (Motor A, Motor B and Motor C) .................... A-1 
+Dynamic model for Motor D ................................................................................................... A-3 
+Static Load Model .................................................................................................................. A-4 
+B RULES OF ASSOCIATION ..................................................................................................... B-1 
+ 
+ 
+0
+
+
+===== PAGE 11 =====
+ 
+ix 
+LIST OF FIGURES 
+Figure 2-1 The CLOD model [1] .................................................................................................. 2-1 
+Figure 3-1 WECC Composite Load Model [2] ............................................................................. 3-2 
+Figure 3-2 Torque – slip and current – slip characteristics of a NEMA type D motor ................ 3-6 
+Figure 3-3 Torque – slip and current – slip characteristics of a NEMA type B motor ................ 3-8 
+Figure 3-4 Schematic of the motor D model [9] ........................................................................ 3-10 
+Figure 3-5 Active and reactive power consumption of the motor D component ....................... 3-11 
+Figure 3-6 Motor D active power change with voltage when stalling is disabled  
+(Tstall = 9999) ...................................................................................................................... 3-13 
+Figure 3-7 Motor D active power change with voltage when stalling is enabled and  
+Vstall < Vstallbrk (Tstall = 2-3 cycles) ................................................................................. 3-14 
+Figure 3-8 Motor D active power change with voltage when stalling is enabled and  
+Vstall > Vstallbrk (Tstall = 2-3 cycles) ................................................................................. 3-15 
+Figure 3-9 Motor D thermal relay model.................................................................................... 3-17 
+Figure 3-10 Motor D contactor characteristics .......................................................................... 3-17 
+Figure 3-11 Power electronic component of the composite load model ................................... 3-18 
+Figure 4-1 Component based load modeling approach .............................................................. 4-3 
+Figure 4-2 Example of normalized load shapes for a residential and a commercial 
+building. .................................................................................................................................. 4-5 
+Figure 5-1 abc-dq transformation with d-axis and q-axis components on the abc 
+waveform ................................................................................................................................ 5-2 
+Figure 5-2 Phasor of a sinusoidal signal ..................................................................................... 5-3 
+Figure 5-3 Conversion from rotor and stator frames to single stationary frame ......................... 5-3 
+Figure 5-4 Actual sinusoid and phasor envelope ........................................................................ 5-3 
+Figure 5-5 Test system for comparing the performance of ld1pac and motor1ph ..................... 5-4 
+Figure 5-6 ld1pac and motor1ph response for a 0.5 pu 4 cyc sag ............................................. 5-5 
+Figure 5-7 ld1pac and motor1ph response for a 0.45 pu 4 cyc sag with  
+frst in ld1pac set to 1 .............................................................................................................. 5-6 
+Figure 5-8 Modified one-line diagram replicating the test setup. ................................................ 5-7 
+Figure 5-9 Comparison of the ld1pac and motor1ph model with lab test measurements of 
+a 4 ton scroll compressor based HVAC unit, for a 0.5 pu, 4 cycles sag. .............................. 5-7 
+Figure 5-10 Detailed portion of the plot in Figure 5-9 ................................................................. 5-8 
+Figure 5-11 Inverse time Vstall-Tstall characteristic ................................................................. 5-10 
+Figure 5-12 Sample voltage dip impressed at the terminal of the machine ............................. 5-11 
+Figure 5-13 Vstall vs. Tstall characteristics for single phase residential 
+scroll/reciprocating compressor equipped HVAC system tested by the BPA [1] ............... 5-11 
+Figure 5-14 Vstall vs. Tstall characteristics hard-coded in the GE PSLF™ ld1pac  
+model [2] .............................................................................................................................. 5-12 
+Figure 5-15 Vstall vs. Tstall characteristics of different HVAC units tested by EPRI  
+at 85 deg F ........................................................................................................................... 5-13 
+Figure 5-16 Vstall vs. Tstall characteristics of different HVAC units tested by EPRI  
+at 100 deg F ......................................................................................................................... 5-14 
+0
+
+
+===== PAGE 12 =====
+ 
+x 
+Figure 5-17 Vstall vs. Tstall characteristics of different HVAC units tested by EPRI  
+at 110 deg F ......................................................................................................................... 5-15 
+Figure 5-18 Combined plot for Vstall vs. Tstall characteristics ................................................. 5-16 
+Figure 5-19 Block diagram of modeling approach .................................................................... 5-17 
+Figure 5-20 Profile of trip characteristic..................................................................................... 5-19 
+Figure 5-21 Trip characteristics for specific sag durations ....................................................... 5-20 
+Figure 5-22 Partial trip characteristic ......................................................................................... 5-21 
+Figure 5-23 Comparison of active power for a 120 cycle 0.9pu voltage sag ........................... 5-22 
+Figure 5-24 Comparison of reactive power for a 120 cycle 0.9pu voltage sag ........................ 5-22 
+Figure 5-25 Comparison of active power for an 8 cycle 0.4pu voltage sag.............................. 5-23 
+Figure 5-26 Comparison of reactive power for an 8 cycle 0.4pu voltage sag .......................... 5-23 
+Figure A-1 Block diagram of PSLF motorw model used to model motor A, B and C in the 
+composite load model (Source: GE PSLF ™ User Manual) ................................................. A-1 
+Figure A-2 Block diagram of PSS®E induction motor model used to model motor A,  
+B and C in the composite load model (Source: Siemens PTI PSS®E Program 
+Application Guide Volume II) ................................................................................................. A-2 
+ 
+ 
+0
+
+
+===== PAGE 13 =====
+ 
+xi 
+LIST OF TABLES 
+Table 3-1 NERC default feeder models for 5 different feeder types........................................... 3-4 
+Table 3-2 Motor A parameters for commercial constant torque loads ....................................... 3-6 
+Table 3-3 Motor A parameters for industrial constant torque loads............................................ 3-6 
+Table 3-4 Motor A protection parameters for commercial and industrial type motors ............... 3-7 
+Table 3-5 Motor B parameters for commercial high inertia variable torque loads  
+(fans etc.) ............................................................................................................................... 3-8 
+Table 3-6 Motor B parameters for industrial high inertia variable torque loads (fans etc.) ........ 3-8 
+Table 3-7 Motor B protection parameters for commercial and industrial type motors ............... 3-9 
+Table 3-8 Motor C parameters for commercial high inertia variable torque loads  
+(fans etc.) ............................................................................................................................... 3-9 
+Table 3-9 Motor C parameters for industrial high inertia variable torque loads (fans etc.) ........ 3-9 
+Table 3-10 Motor C protection parameters for commercial and industrial type motors ........... 3-10 
+Table 3-11 NERC recommended default parameter set for motor D ....................................... 3-12 
+Table 3-12 NERC recommended default protection parameter set for motor D ...................... 3-16 
+Table 4-1 Example rules of association for residential end use types (Single and Multi-
+family homes) ......................................................................................................................... 4-5 
+Table 4-2 Example rules of association for commercial end use types (grocery stores 
+and strip malls) ....................................................................................................................... 4-6 
+Table 4-3 Load composition for agricultural load ........................................................................ 4-7 
+Table 4-4 NERC default load composition for some industrial load types ................................. 4-8 
+Table 4-5 Recommendations for load model parameter derivation.......................................... 4-11 
+Table 5-1 Proposed values of Vstall and Tstall for inverse time stall characteristic 
+representation ...................................................................................................................... 5-10 
+Table 5-2 Vstall vs. Tstall (average characteristics) ................................................................. 5-16 
+Table 5-3 Parameter and variable list ....................................................................................... 5-18 
+Table 5-4 Lab tests run on the drives ........................................................................................ 5-18 
+Table 5-5 Derivation of per unit ride through parameter values ............................................... 5-20 
+Table 5-6 Parameter description for partial trip characteristic .................................................. 5-21 
+Table B-1 LCET rules of association for downtown commercial building loads ......................... B-1 
+Table B-2 LCET rules of association for all commercial loads except downtown building 
+loads ....................................................................................................................................... B-1 
+Table B-3 LCET rules of association for residential loads .......................................................... B-2 
+Table B-4 LMDT rules of association for al commercial loads except downtown office  
+or lodging ............................................................................................................................... B-2 
+Table B-5 LMDT rules of association for commercial loads in WECC ....................................... B-3 
+Table B-6 LMDT rules of association for residential feeders in WECC ...................................... B-3 
+ 
+ 
+0
+
+
+===== PAGE 14 =====
+0
+
+
+===== PAGE 15 =====
+ 
+1-1 
+1  
+A BRIEF HISTORY OF LOAD MODELING 
+The importance of proper representation of loads in power system studies has long been 
+recognized. In the early days of power system simulation, simple load models were adopted, 
+where the active power of loads was represented as constant current and the reactive power was 
+represented as constant impedance [1]. This was done due to computational limitations. To 
+enhance the simple load models, research conducted by EPRI in 1980s demonstrated the 
+advantages of a component-based load modeling process [2,3,4]. Later, EPRI developed the 
+LOADSYN software that could take in information about load class mix, load composition and 
+load characteristics and construct a load model consisting of an algebraic constant impedance 
+(Z), constant current (I), and constant power (P) component for use in power flow and transient 
+stability studies. This structure is commonly referred to as the ZIP load model. Thus, utilities 
+could develop a variety of static ZIP models to represent the diversity of loads in their footprint.   
+With advancements in computational technology, incorporation of dynamic load models became 
+possible. In 1993, IEEE recommended the use of dynamic load models in power system stability 
+studies [5] but the recommendation did not gain much traction till 1996. In 1996, model 
+validation studies for July 2 and August 10, 1996 outages in the Western Electricity 
+Coordinating Council (WECC) concluded that dynamic motor models were needed to capture 
+the North-South power oscillations [6]. To address this, in 2001, WECC developed a model in 
+which 20% of load was represented as induction motor load and the rest 80% was represented  
+as static load. This load model representation was good enough to capture the power oscillations 
+but was not realistic because the loads were aggregated at high-voltage buses (115 kV or  
+138 kV) without any representation of substation transformer and distribution feeder 
+impedances. The interim load model was not able to capture the fault induced delayed voltage 
+recovery (FIDVR) events that were observed in the Southern California and Florida. These 
+FIDVR events were seen as reliability risks and needed to be captured in simulation studies. 
+Thus, WECC set up the load modeling task force to develop a full-scale composite load model in 
+2002 [7]. By 2005, WECC developed a load model which included a distribution system 
+equivalent and could be used in interconnection studies without numerical instability. 
+By 2007, a composite load model was developed based on the basic structure developed by 
+Southern California Edison (SCE). This composite model included three different induction 
+motor models that could be used to capture the response of diverse motor loads. However, this 
+model excluded a representation of single-phase induction motor driven residential air-
+conditioning systems that were prone to stalling and primarily responsible for FIDVR. To 
+address this shortcoming, the Electric Power Research Institute (EPRI), Bonneville Power 
+Administration (BPA), and SCE conducted comprehensive tests on residential air conditioners at 
+their lab facilities. The test results were used to develop a performance-based model of single-
+phase air conditioner and was completed in in 2009 [9]. After a series of system impact studies 
+were conducted on the WECC system, the modeled was approved and formally included in the 
+composite load model [10]. This version of the composite load model was commonly referred to 
+as the WECC composite load model. The most recent addition to the composite load model is the 
+0
+
+
+===== PAGE 16 =====
+ 
+1-2 
+DER_A component [11], which is used to model the behind-the-meter distributed generation in 
+the system. 
+References 
+[1] 
+C. Concordia and S. Ihara, “Load Representation in Power System Stability Studies,” in 
+IEEE Transactions on Power Apparatus and Systems, vol. PAS-101, no. 4, pp. 969-977, 
+April 1982, doi: 10.1109/TPAS.1982.317163. 
+[2] 
+Gentile, T, Ihara, S, Murdoch, A, and Simons, N. “Determining load characteristics for 
+transient performance”. Volume 3. Load-composition data analysis. Final report. United 
+States: N. p., 1981. 
+[3] 
+EPRI Load Model Synthesis Program Package: Load Modeling Reference Manual, 
+September 1986. 
+[4] 
+W. W. Price, K. A. Wirgau, A. Murdoch, J. V. Mitsche, E. Vaahedi and M. El-Kady, 
+“Load modeling for power flow and transient stability computer studies,” IEEE 
+Transactions on Power Systems, vol. 3, no. 1, pp. 180-187, Feb. 1988, doi: 
+10.1109/59.43196. 
+[5] 
+IEEE Task Force on Load Representation for Dynamic Performance, “Load 
+Representation for Dynamic Performance Analysis,” IEEE Transactions on Power 
+Systems, vol.8, no.2, May 1993, pp.472-482. 
+[6] 
+D.N.Kosterev, C.W.Taylor, W.A.Mittelstadt, “Model Validation for the August 10, 1996 
+WSCC System Outage,” IEEE Transactions on Power Systems, vol.14, no.3, pp.967-979, 
+August 1999. 
+[7] 
+Les Pereira, Dmitry Kosterev, Peter Mackin, Donald Davies, John Undrill, Wenchun Zhu, 
+“An Interim Dynamic Induction Motor Model for Stability Studies in WSCC,” IEEE 
+Transactions on Power Systems, vol.17, no.4, November 2002, pp1108-1115.  
+[8] 
+Dmitry Kosterev, Anatoliy Meklin , John Undrill, Bernard Lesieutre, William Price, David 
+Chassin, Richard Bravo, Steve Yang, “Load Modeling in Power System Studies: WECC 
+Progress Update”, presented at 2008 IEEE Power Engineering Society General Meeting, 
+Pittsburgh, PA. 
+[9] 
+A.M.Gaikwad, Richard Bravo, D.Kosterev, S.Yang, A. Maitra, P.Pourbeik, B.Agrawal, 
+R.Yinger, D, Brooks, “Results of Air-Conditioner Testing in WECC,”  Power and Energy 
+Society General Meeting – Conversion and Delivery of Electrical Energy in the 21st 
+Century, 2008 IEEE. 
+[10] North American Electric Reliability Corporation (NERC) Load Modeling Task Force,” 
+Dynamic load modeling Technical Reference Document”, December 2016. 
+[11] EPRI Report, A New Aggregated Distributed Energy Resources (DER_A) Model for 
+Transmission Planning Studies, Product ID: 3002013498, May 8, 2018. 
+ 
+0
+
+
+===== PAGE 17 =====
+ 
+2-1 
+2  
+THE COMPLEX LOAD MODEL 
+The complex load model or CLOD is often considered a predecessor of the composite load 
+model and is still widely used by utilities within the United States as well as worldwide. 
+Although the model is a significant development from the simple ZIP representation, it still lacks 
+the capability to model events like FIDVR, which can have significant consequences on planning 
+decisions. At present a significant number of utilities are transitioning from the CLOD model to 
+the composite load model, and the North American Electricity Reliability Corporation’s (NERC) 
+load modeling task force is spearheading this effort. This chapter provides a very brief 
+description of the CLOD model. 
+The CLOD Model 
+Complex load model (CLOD) was developed to capture the aggregate dynamic response of 
+loads. This model is simple and requires far fewer computational resources than the composite 
+load model. It is also useful when the comprehensive data about the load is not available for the 
+composite load model. The basic structure of the model is shown in Figure 2-1. 
+ 
+Figure 2-1 
+The CLOD model [1] 
+The CLOD structure includes a large induction motor, a small induction motor, discharge 
+lighting, transformer saturation and static load models. The percentage of each of these 
+components in the load can be changed based on the load mix it is being used to represent. The 
+distribution transformer impedance can also be specified by the user. The CLOD model has the 
+following features [1], [2]: 
+1. During initialization of this model, the tap on the distribution transformer is adjusted to 
+maintain a voltage level of 0.98 pu at load end of the transformer.  
+2. The real power for each of the components is calculated based on the percentage specified by 
+the user (except the transformer excitation current which does not include active power).  
+0
+
+
+===== PAGE 18 =====
+ 
+2-2 
+3. The reactive powers of the induction motors are calculated during model initialization.  
+4. The discharge lighting is assumed to have a power factor of 0.9, that is the reactive power is 
+approximately 0.388 times the actual power consumed by the discharge lighting load. 
+5. The transformer excitation current is calculated based on the percentage specified by the 
+user. 
+6. The static load is adjusted to match the reactive power load at the high side of the 
+transformer. This is done to ensure that the reactive power at the high side matches with that 
+in the power flow case.  
+The induction motor models have fixed parameters that are hard coded in the model and cannot 
+be changed by the user. It is however important to note that the induction motor models used in 
+Siemens PTI PSS®E and GE PSLF™ are different [2]. In GE PSLF™, the rotor flux dynamics 
+as well as the mechanical dynamics are modeled with differential equations similar to that in the 
+motorw model.  In PSS®E however, only the mechanical dynamics of the induction motor 
+models in CLOD are represented by differential equations. The flux dynamics are modeled using 
+algebraic equations. Furthermore, in GE PSLF™ the mechanical torque is computed as [2] 
+𝑻𝑻𝒎𝒎= 𝑻𝑻𝒎𝒎𝒎𝒎𝝎𝝎𝑫𝑫 
+(Eq. 1) 
+whereas, in PSS®E the mechanical torque is linearly approximated as [2] 
+𝑻𝑻𝒎𝒎= 𝑻𝑻𝒎𝒎𝒎𝒎(𝟏𝟏+ 𝑫𝑫𝑫𝑫𝑫𝑫) 
+(Eq. 2) 
+where D in (1) and (2) are the speed dependence factors of the driven loads. 
+The discharge lighting component is used to model mercury vapor lamps which are primarily 
+used for outdoor lighting of public spaces [1], [2]. When the terminal voltage is above 0.75 pu, 
+the discharge lighting is modeled as a constant current real part and an imaginary part 
+proportional to the voltage raised to 4.5. When the voltage is in the 0.65 -0.75 pu range, the 
+lighting load linearly decreases and finally trips as the voltage drops below 0.65 pu. 
+In addition to the load components, the CLOD model also has a representation of the distribution 
+transformer. The transformation excitation characteristics is given by [2] 
+flux = V / (1 + Δf) [f = p.u. frequency]  
+Iexc = flux * 0.01 / 0.98 if (flux ≤ 0.98) 
+Iexc = 0.01 + (flux - 0.98) * (0.02 – 0.01) / (1.05 – 0.98) if (0.98 ≤ flux ≤ 1.0) 
+Iexc = 0.02 + (flux - 1.05) * (0.03 – 0.02) / (1.10 – 1.05) if (1.0 ≤ flux ≤ 1.1) 
+Iexc = 0.03 + (flux - 1.10) * (0.04 – 0.03) / (1.13 – 1.10) if (1.1 ≤ flux) 
+Qexc = Iexc * V * Iexcbase 
+(Eq. 3) 
+where,  
+Iexcbase = (Initial Qexc) * (initial Pload) / (0.01 * 0.98 ). 
+(Eq. 4) 
+References 
+[1] SIEMENS PTI PSS®E 33 Program Application Guide VOLUME 2, May 2016. 
+[2] GE PSLF™ User’s Manual, 2019. 
+ 
+0
+
+
+===== PAGE 19 =====
+ 
+3-1 
+3  
+THE COMPOSITE LOAD MODEL 
+The composite load model (also known as the WECC composite load model) is the latest and the 
+most updated dynamic load model available for use in all major power system simulation tools. 
+Similar to its predecessor, the complex load model, this model represents an aggregation of 
+consumer loads at the substation level. However, in contrast to the complex load model, the 
+composite load model provides more flexibility in modeling the distribution feeder equivalent, as 
+well as the diverse range of consumer load types. The composite load model can be used to 
+model residential, commercial, and industrial loads for dynamic studies by making suitable 
+changes to its parameters and structure.  
+The Composite Load Model Structure 
+The composite load model is available in all the most commonly used power system simulators 
+such as: 
+A. Siemens PTI PSS®E [1]: the CMLDXXU2 model 
+B. GE PSLF™ [2]: the cmpldw (and the _cmpldw) model  
+C. Powerworld Simulator [3]: can read both PSS®E (.dyre) and PSLF™ (.dyd) formats 
+D. PowerTech Labs DSATools [4]: can read both PSS®E (.dyre) and PSLF™ (.dyd) formats 
+Figure 3-1, shows the structure of the composite load model. The implementation of the 
+composite load model may have slight differences across the different software platforms, 
+however, conceptually the models are identical. Additionally, a series of rigorous benchmarking 
+activities performed by different entities has confirmed that the response of the composite load 
+model is essentially identical across major software platforms. The results of the benchmarking 
+study can be found in [5], [6]. The composite load model consists of the following key 
+components: 
+1. A distribution substation and feeder equivalent 
+2. Motor A: 3 phase induction motor driving a relatively low inertia, constant torque type load 
+like positive displacement compressors and pumps 
+3. Motor B: 3 phase induction motor driving a relatively high inertia, variable torque type load 
+like blower fans and large centrifugal compressors 
+4. Motor C: 3 phase induction motor driving a relatively low inertia, variable torque type load 
+small centrifugal pumps 
+5. Motor D: A performance based algebraic model of a single-phase residential heat ventilation 
+and air-conditioning (HVAC) system 
+6. Static load: The conventional constant impedance (Z), constant current (I) and constant 
+power (P) model; and 
+7. Electronic load. 
+0
+
+
+===== PAGE 20 =====
+ 
+3-2 
+In addition to the detailed mathematical representation of the load components, the composite 
+load model also has the provision for modeling the manufacturer installed equipment protection 
+that consumer loads have. A detailed description of the composite load model along with the end 
+uses that these components are intended to model is presented in this section.    
+ 
+Figure 3-1 
+WECC Composite Load Model [2] 
+MVA rating and interpretation 
+When the composite load model data is supplied in a dynamic file (dyre or dyd) the MVA rating 
+for the load record needs to be specified. It is important that the MVA base be specified properly 
+since the per unit (pu) parameter values for the substation transformer and distribution feeder 
+equivalent is set on this MVA base. An incorrect choice for the MVA base can result in 
+unrealistic values of transformer and feeder impedance, causing issues with initialization and in 
+some cases erroneous dynamic simulation results. 
+Typically, the choice of MVA base is guided by the MVA rating of the distribution transformer. 
+Both dyd and dyre formats have two general options of specifying the MVA base for the load 
+model [1], [2]: 
+1. Actual MVA: the user can supply the actual MVA rating of the aggregated load in the 
+distribution feeder. E.g. the load at a load bus in the power flow file is 10 MW and a user 
+specifies the MVA base as 12 MVA based on the knowledge of the substation transformer 
+rating.  
+0
+
+
+===== PAGE 21 =====
+ 
+3-3 
+2. Loading factor: the user can choose to set a loading factor instead of an actual MVA rating. 
+In this case, for the same 10 MW load at a load bus, a loading factor of 0.8 would indicate 
+that the transformer and the feeder is rated as 10/0.8 =12.5 MVA. This condition indicates 
+that the transformer is rated more than the actual load on that feeder for the snapshot being 
+studied. Similarly, a loading factor of 1.25 would indicate that the transformer and is rated at 
+8 MVA, which indicates that the transformer is operating above its rating for that snapshot. 
+Such a situation may be encountered when a distribution transformer has forced air cooling 
+which allows them to operate above their ratings for a brief period of time.  
+In general, the loading factor is the preferred method of specifying the MVA base for load 
+modeling. For the dyd and the dyre data formats a positive value for the MVA base is interpreted 
+as the actual MVA, whereas a negative value for MVA base is treated as the loading factor. The 
+readers are strongly encouraged to consult the relevant software user manuals for further 
+guidance on specifying the MVA base appropriately. 
+The Substation and the Feeder Equivalent 
+The composite load model allows for the modeling of a distribution feeder equivalent to emulate 
+the voltage regulation over a typical distribution feeder. Typical distribution feeders have a 
+voltage regulation of 4 to 6% from the high side of the distribution transformer to the load 
+terminals. A description of the substation and distribution feeder equivalent is as follows: 
+1. The distribution substation transformer: the distribution transformer is equipped with an on-
+load tap changer (OLTC) and can be used to regulate the low side voltage of the transformer 
+both during model initialization and during the dynamic simulation [1, 2]. In case the 
+distribution transformer is already modeled in the power flow case, the transformer 
+impedance Xxf in the composite load model should be set to 0 and the transformed will be 
+omitted.  
+2. The substation shunt capacitor: The composite load model has the option of modeling any 
+shunt capacitors located at the distribution substation. This can be done by selecting an 
+appropriate value for Bss. 
+3. The distribution feeder equivalent: The parameters Rfdr and Xfdr are used to model the 
+equivalent distribution feeder. It is important to note that if the voltage at the load component 
+terminals (refered to as load bus in Figure 3-1) is less than 0.95 pu during model 
+initialization, the composite load model automatically adjusts the values of Rfdr and Xfdr to 
+ensure that the voltage is greater than or equal to 0.95 pu. For voltages less than 0.95 pu, it is 
+difficult to initialize the motor models in the composite load model. This adjustment is 
+reasonable since the service voltage at the consumer terminal is expected to be within a ±5% 
+range during normal steady state operation. In general, it is not recommended that the 
+composite load model be added to load buses, where the voltages are below 0.95 pu in the 
+powerflow. At such low voltages, the composite load model is difficult to initialize and may 
+result in initialization errors.  
+When the composite load model is initialized, the active power of the motors and the 
+static/electronic component is determined based on the percentages allocated to these 
+components. The reactive power of the motors (motor A, B and C) are computed based on the 
+calculated slip during initialization. The reactive power for Motor D, power electronic 
+0
+
+
+===== PAGE 22 =====
+ 
+3-4 
+component and the static (ZIP) model is computed based on the user specified power factor. It is 
+possible that the total reactive power computed during initialization does not match with the load 
+flow solution. In this case, a computed additional shunt capacitance, Bfdr, is added to the 
+composite load model to account for this mismatch. Depending on the value of Fb, Bf1 (see 
+Figure 3-1) is set to Fb*Bfdr and Bf2 (see Figure 3-1) is set to (1-Fb)*Bfdr. Table 3-1 lists the 
+NERC recommended parameters for 5 different feeder types. 
+Table 3-1 
+NERC default feeder models for 5 different feeder types 
+ 
+FDR_01 
+FDR_01_noLTC 
+FDR_02_CVR 
+FDR_02_noLTC 
+FDR_IND 
+Bss 
+0 
+0 
+0 
+0 
+0 
+Rfdr 
+0.04 
+0.04 
+0.04 
+0.04 
+0.02 
+Xfdr 
+0.04 
+0.04 
+0.04 
+0.04 
+0.02 
+Fb 
+0.75 
+0.75 
+0.75 
+0.75 
+1 
+Xxf 
+0.08 
+0.08 
+0.08 
+0.08 
+0.08 
+TfixHS 
+1 
+1 
+1 
+1 
+1 
+TfixLS 
+1 
+1 
+1 
+1 
+1 
+LTC 
+1 
+1 
+1 
+1 
+1 
+Tmin 
+0.9 
+0.9 
+0.9 
+0.9 
+0.9 
+Tmax 
+1.1 
+1.1 
+1.1 
+1.1 
+1.1 
+step 
+0.00625 
+0.00625 
+0.00625 
+0.00625 
+0.00625 
+Vmin 
+1.025 
+1.025 
+1 
+1 
+1 
+Vmax 
+1.04 
+1.04 
+1.02 
+1.02 
+1.02 
+Tdel 
+30 
+999 
+30 
+999 
+999 
+Ttap 
+5 
+5 
+5 
+5 
+5 
+Rcomp 
+0 
+0 
+0 
+0 
+0 
+Xcomp 
+0 
+0 
+0 
+0 
+0 
+Abbreviations 
+FDR 
+Feeder 
+LTC 
+Load Tap Changer 
+CVR 
+Conservation Voltage Reduction 
+IND 
+Industrial 
+The Motor A Component 
+Motor A is used to represent an aggregation of 3-phase induction motors that drive low inertia 
+constant torque loads. Typical examples of constant torque loads connected to a power system 
+are: 
+1. positive displacement compressors (reciprocating, scroll, screw, rotary vane etc.) 
+2. positive displacement pumps 
+0
+
+
+===== PAGE 23 =====
+ 
+3-5 
+3. conveyors 
+4. hoists, etc. 
+Most commonly motor A is used to represent commercial HVAC compressors, that can be found 
+in the rooftop air-conditioning units of grocery stores, small offices and businesses, malls and 
+other large commercial buildings. Many large commercial buildings which have centralized air-
+conditioning systems also use positive displacement compressors. Most constant torque loads, 
+due to the dimensions and design of the rotating parts, have a relatively low inertia. 
+Motors that run constant torque loads that require high starting torque. These types of loads are 
+typically run using NEMA type A or type B motors, which are the most common NEMA motors 
+in use. A large percentage of these loads are also run using special designed motors and thus may 
+not fall precisely into the major NEMA categories. Realizing that all of the models in the 
+composite load model are simply an aggregated behavior of a class of motors, the electrical 
+characteristics of Motor A has been chosen to emulate a motor similar to the NEMA A category 
+motors. Figure 3-2 shows the torque – slip characteristics of motor A for a terminal voltage of  
+1 pu and a terminal voltage of 0.5 pu. The black dotted line in Figure 3-2 shows the constant load 
+torque line of 0.8 pu. From Figure 3-2 it can be seen that, for the shown motor, a steady state 
+terminal voltage of 0.5 pu the motor A produces a steady state locked rotor torque equal to the 
+load torque of 0.8 pu. This implies that the motor should theoretically be able to reaccelerate if a 
+stiff terminal voltage of more than 0.5 pu is applied. This type of starting behavior is typical for 
+NEMA type D motors. 
+Table 3-2 lists the NERC recommended parameters for motor A when used to model commercial 
+low inertia constant torque loads. Table 3-3 lists the NERC recommended parameters when 
+motor A is used for industrial low inertia constant torque loads. Based on industry experience, an 
+inertia constant (H) of 0.1s is recommended for modeling these loads. This inertia constant in 
+reflected in the motor A parameters listed in Table 3-2 and Table 3-3. Additionally, the 
+parameter LF shown in  Table 3-2 and Table 3-3 indicates the loading factor of the motor. A 
+loading factor of 0.75 indicates that if the amount of load assigned to motor A is X MW during 
+initialization, the MVA base for motor A will be X/0.75 = 1.33X MVA. The interpretation of the 
+loading factor is same for all load components, wherever applicable. 
+0
+
+
+===== PAGE 24 =====
+ 
+3-6 
+ 
+Figure 3-2 
+Torque – slip and current – slip characteristics of a NEMA type D motor 
+ 
+Table 3-2 
+Motor A parameters for commercial constant torque loads 
+Motor A (induction motor) parameters (NERC recommended for commercial type motors) 
+LF 
+Ra 
+Ls 
+Lps 
+Lpps 
+Tpo 
+Tppo 
+H 
+0.75 
+0.02 
+1.8 
+0.12 
+0.104 
+0.08 
+0.0021 
+0.1 
+ 
+Table 3-3 
+Motor A parameters for industrial constant torque loads 
+Motor A (induction motor) parameters (NERC recommended for industrial type motors) 
+LF 
+Ra 
+Ls 
+Lps 
+Lpps 
+Tpo 
+Tppo 
+H 
+0.8 
+0.01 
+3.1 
+0.1384 
+0.121 
+0.1028 
+0.0028 
+0.15 
+Protection model in motor A 
+All 3-phase motor models including motor A has the provision of capturing the aggregated 
+response of the manufacturer installed protection that all customer equipment have. Typically, 
+most motors have some form of under/over-voltage and/or over-current relays, and contactors. 
+0
+0.2
+0.4
+0.6
+0.8
+1
+slip
+0
+1
+2
+3
+4
+Torque
+Telec at 1 pu
+Telec at 0.5 pu
+Tload
+0
+0.2
+0.4
+0.6
+0.8
+1
+slip
+0
+1
+2
+3
+4
+5
+6
+Current
+Imot at 1 pu
+imot at 0.5 pu
+0
+
+
+===== PAGE 25 =====
+ 
+3-7 
+The effect of the protection system is to trip a portion of the load as the system voltage drops and 
+then reconnect a portion of the load as the voltage recovers over a preset threshold. In the 
+composite load model, for 3 phase motors the aggregated response is captured by a staggered 
+two stage tripping and reconnection. Table 3-4 lists a sample set of protection parameters for 
+motor A. The parameters listed in Table 3-4 are subject to changes as more information on 
+industrial motors and grid events are available. The readers are advised to check with the 
+NERC/WECC LMTF for guidance on the most updated list of protection parameters. 
+The operation of the protection function is as follows: 
+1. if the voltage drops below Vtr1 for Ttr1 seconds, fraction Ftr1 of motor A trips, 
+2. if the voltage drops below Vtr2 for Ttr2 seconds fraction Ftr2 of motor A trips, 
+3. when the voltage recovers above Vrc1 for Trc1 seconds fraction Ftr1 of motor A reconnects, 
+and 
+4. when the voltage recovers above Vrc2 for Trc2 seconds fraction Ftr2 of motor A reconnects.  
+Table 3-4 
+Motor A protection parameters for commercial and industrial type motors 
+ 
+Vtr1 
+Ttr1 
+Ftr1 
+Vrc1 
+Trc1 
+Vtr2 
+Ttr2 
+Ftr2 
+Vrc2 
+Trc2 
+Commercial 
+0.5 
+0.03 
+0.5 
+0.8 
+0.1 
+0.6 
+0.15 
+0.25 
+1 
+9999 
+Industrial 
+0.7 
+0.05 
+0.3 
+1 
+9999 
+0.6 
+0.02 
+0.7 
+1 
+9999 
+Reference [7] presents a survey of trip and reconnection settings of a wide variety of 3 phase 
+motors used by commercial class customers. 
+The Motor B Component 
+Motor B is used to represent an aggregation of 3-phase induction motors that drive high inertia 
+variable torque loads. Typical loads that fall under this category are: 
+1. Large fans, and 
+2. Centrifugal compressors 
+Most commonly motor B is used to model large fans that are used in commercial/industrial 
+blowers and air handlers and centrifugal compressors typically used in commercial/industrial 
+grade large central cooling systems. Large fans and commercial centrifugal compressors to their 
+design and dimensions typically have relatively higher inertia. 
+Motors that run variable torque loads typically have a standard NEMA type B design, which 
+have medium starting torque capabilities and small operating slip around 0.5 - 5% (better power 
+factor). Figure 3-3 shows the torque – slip and the current – slip characteristics of motor B motor 
+at 1 pu and 0.55 pu terminal voltage. Observing the load torque and the electric torque 
+characteristics in Figure 3-3 it can be inferred that motor B can be theoretically reaccelerated to a 
+steady operating condition (for the shown load torque) at a stiff terminal voltage of 0.55 pu.  
+The values listed in Table 3-5 are the NERC recommended values when motor B is used to 
+model an aggregation of commercial high inertia variable torque loads. Table 3-6 lists the NERC 
+recommended parameters when motor B is used to model an aggregation of industrial high 
+0
+
+
+===== PAGE 26 =====
+ 
+3-8 
+inertia variable torque loads. Based on industry experience, an inertia constant (H) of 0.5s is 
+recommended for modeling these loads. This inertia constant in reflected in the motor A 
+parameters listed in Table 3-5 and Table 3-6. 
+ 
+Figure 3-3 
+Torque – slip and current – slip characteristics of a NEMA type B motor 
+ 
+Table 3-5 
+Motor B parameters for commercial high inertia variable torque loads (fans etc.) 
+Motor B (induction motor) parameters (NERC recommended for commercial type motors) 
+LF 
+Ra 
+Ls 
+Lps 
+Lpps 
+Tpo 
+Tppo 
+H 
+0.75 
+0.02 
+1.8 
+0.19 
+0.14 
+0.2 
+0.0026 
+0.5 
+ 
+Table 3-6 
+Motor B parameters for industrial high inertia variable torque loads (fans etc.) 
+Motor B (induction motor) parameters (NERC recommended for industrial type motors) 
+LF 
+Ra 
+Ls 
+Lps 
+Lpps 
+Tpo 
+Tppo 
+H 
+0.8 
+0.01 
+4 
+0.1964 
+0.1639 
+0.893 
+0.0044 
+0.8 
+0
+0.1
+0.2
+0.3
+0.4
+0.5
+0.6
+0.7
+0.8
+0.9
+1
+slip
+0
+0.5
+1
+1.5
+2
+2.5
+Torque (pu)
+Telec at 1 pu
+Telec at 0.55 pu
+T driven load
+0
+0.1
+0.2
+0.3
+0.4
+0.5
+0.6
+0.7
+0.8
+0.9
+1
+slip
+0
+2
+4
+6
+Current (pu)
+Imot at 1 pu
+Imot at 0.5 pu
+0
+
+
+===== PAGE 27 =====
+ 
+3-9 
+Protection model in motor B 
+The protection model of motor B is similar to the one in motor A. Table 3-7 lists a sample set of 
+protection parameters for motor B in the composite load model. The parameters listed in Table 
+3-7 are subject to changes as more information on industrial motors and grid events are available. 
+The readers are advised to check with the NERC/WECC LMTF for guidance on the most 
+updated list of protection parameters. 
+Table 3-7 
+Motor B protection parameters for commercial and industrial type motors 
+ 
+Vtr1 
+Ttr1 
+Ftr1 
+Vrc1 
+Trc1 
+Vtr2 
+Ttr2 
+Ftr2 
+Vrc2 
+Trc2 
+Commercial 
+0 
+9999 
+0 
+1 
+9999 
+0 
+9999 
+0 
+1 
+9999 
+Industrial 
+0.7 
+0.05 
+0.3 
+1 
+9999 
+0.6 
+0.02 
+0.5 
+0.75 
+0.25 
+The Motor C Component 
+The motor C component is used to model low inertia variable torque loads in the system. Typical 
+low inertia, variable torque loads are the centrifugal pumps that are used widely for a variety of 
+applications is circulation systems. Pump type loads have similar torque-speed dependence like 
+fans, and hence NEMA type B design motors are typically used to drive these loads. Therefore 
+motor C, like motor B have the same electrical parameters listed in Table 3-5 and Table 3-6 and 
+the same torque-slip characteristics as shown in Figure 3-3. Centrifugal pumps have a small 
+impeller diameter and therefore a significantly smaller inertia as compared to similar sized fans 
+and compressors.  To reflect the smaller inertia, an inertia constant of 0.1s is used for motor C. 
+The parameter sets of Table 3-5 and Table 3-6 are repeated in Table 3-8 and Table 3-9 for the 
+convenience of the readers. 
+Table 3-8 
+Motor C parameters for commercial high inertia variable torque loads (fans etc.) 
+Motor C (induction motor) parameters (NERC recommended for commercial type motors) 
+Ls 
+Lp 
+Lpp 
+Ll 
+Ra 
+Tpo 
+Tppo 
+H 
+0.75 
+0.02 
+1.8 
+0.19 
+0.14 
+0.2 
+0.0026 
+0.1 
+ 
+Table 3-9 
+Motor C parameters for industrial high inertia variable torque loads (fans etc.) 
+Motor C (induction motor) parameters (NERC recommended for industrial type motors) 
+Ls 
+Lp 
+Lpp 
+Ll 
+Ra 
+Tpo 
+Tppo 
+H 
+0.8 
+0.01 
+3.1 
+0.1954 
+0.1557 
+0.4759 
+0.0036 
+0.8 
+Protection models in motor C 
+The protection model of motor C is similar to the ones in motor A and motor B. Table 3-10 lists 
+a sample set of protection parameters for motor C in the composite load model. The parameters 
+listed in Table 3-10 are subject to changes as more information on industrial motors and grid 
+events are available. The readers are advised to check with the NERC/WECC LMTF for 
+guidance on the most updated list of protection parameters. 
+0
+
+
+===== PAGE 28 =====
+ 
+3-10 
+Table 3-10 
+Motor C protection parameters for commercial and industrial type motors 
+ 
+Vtr1 
+Ttr1 
+Ftr1 
+Vrc1 
+Trc1 
+Vtr2 
+Ttr2 
+Ftr2 
+Vrc2 
+Trc2 
+Commercial 
+0 
+9999 
+0 
+1 
+9999 
+0 
+9999 
+0 
+1 
+9999 
+Industrial 
+0.7 
+0.05 
+0.3 
+1 
+9999 
+0.6 
+0.02 
+0.5 
+0.75 
+0.25 
+The Motor D Component 
+The motor D component of the composite load model is used to represent the aggregated 
+response of single-phase residential air-conditioners and heat ventilation and air-conditioning 
+(HVAC) systems connected downstream of a distribution substation. Residential air-conditioners 
+typically have a positive displacement compressor, which is either a reciprocating type (piston 
+armed) or scroll type. The motor-compressor set for a residential HVAC unit has a very small 
+inertia and therefore prone to stalling during voltage sags [8].  Stalled single phase induction 
+motors have a significantly higher active and reactive power consumption, and hence a large 
+number of stalled residential HVAC systems typically cause a slow voltage recovery following a 
+fault. This phenomenon is called fault induced delayed voltage recovery or FIDVR [8].  
+The motor D model is a performance-based model that captures the changes in the active and 
+reactive power consumption of the motor using algebraic equations. Figure 3-4 shows the 
+schematic diagram of the motor D model along with the associated protection models. 
+ 
+Figure 3-4 
+Schematic of the motor D model [9] 
+The active and reactive power characteristics of the model were developed based on extensive 
+testing of numerous residential HVAC systems in laboratory facilities. The active and reactive 
+power consumption of motor D is shown in Figure 3-5. The active and reactive power 
+characteristics of motor D (Figure 3-5) has three distinct regions: 
+a. run state I, 
+b. run state II, and  
+0
+
+
+===== PAGE 29 =====
+ 
+3-11 
+c. stall state. 
+The initial values of active and reactive power (P0 and Q0) for the motor D model are calculated 
+during the initialization process. The voltage level Vstallbrk in Figure 3-5, where the run state 
+curve intersects the stall state curve is also computed automatically during model initialization 
+[1, 2, 3].  
+ 
+Figure 3-5 
+Active and reactive power consumption of the motor D component 
+Each of the different states in Figure 3-5 are represented by separate algebraic equations. The 
+detailed equations for the motor D model can be found in Appendix A. The NERC recommended 
+default parameters used for the motor D model is listed in Table 3-11. Note that the parameters 
+listed in Table 3-11 are the best estimates available during the compilation of this work. The 
+readers are advised to check with the NERC/WECC LMTF for the most updated parameter set 
+while using the model. The detailed description of the parameters can be found in the user 
+manuals of the various software vendors [1-4] and are used in the equations listed in Appendix 
+A. 
+ 
+ 
+0
+
+
+===== PAGE 30 =====
+ 
+3-12 
+Table 3-11 
+NERC recommended default parameter set for motor D 
+Parameter 
+Value 
+Parameter 
+Value 
+LFm 
+1 
+Tth 
+15 
+CompPF 
+0.98 
+Th1t 
+0.7 
+Vstall 
+0.45 
+Th2t 
+1.9 
+Rstall 
+0.1 
+Tv 
+0.025 
+Xstall 
+0.1 
+Tf 
+0.05 
+Tstall 
+0.03 
+LFadj 
+0 
+Frst 
+0.2 
+Kp1 
+0 
+Vrst 
+0.95 
+Np1 
+1 
+Trst 
+0.3 
+Kq1 
+6 
+Fuvr 
+0.1 
+Nq1 
+2 
+vtr1 
+0.6 
+Kp2 
+12 
+ttr1 
+0.02 
+Np2 
+3.2 
+vtr2 
+0 
+Kq2 
+11 
+ttr2 
+9999 
+Nq2 
+2.5 
+Vc1off 
+0.5 
+Vbrk 
+0.86 
+Vc2off 
+0.4 
+CmpKpf 
+1 
+VC1on 
+0.6 
+CmpKqf 
+-3.3 
+VC2on 
+0.5 
+  
+ 
+Since the motor D model is a performance model, the transition of the model from the running 
+state to the stall state and vice versa is determined by user specified voltage and time thresholds. 
+These thresholds are set by the Vstall, Tstall pair, and Vrst, Trst pair respectively as listed in 
+Table 3-11. The transition of the model between the different states is explained as follows:  
+a. Transition from run state to the stall state: when the voltage at the composite load model 
+terminal dips below the user specified Vstall for a time duration of Tstall, the motor 
+transitions to the stall condition. 
+b. Transition from stall state to the run state: When the voltage at the terminal of the 
+composite load model where motor D has stalled recovers over Vrst for a time duration of 
+Trst, the restartable portion of the composite load model (given by Frst in Table 3-11 and 
+Figure 3-4) transitions back to the run state. Note that the non-restartable portion the motor D 
+remains stalled state for the remainder of the simulation once it has stalled.  
+Depending of the values of the Vstall and Tstall, the transition of motor D from a run to a stall 
+condition can vary notably. This transition has been explained for some sample values of Vstall 
+and Tstall in the following sub sections.  
+Vstall = any value, Tstall = 999 (Stalling disabled) 
+When Tstall is set to 999 in a simulation, it is expected that the residential HVACs modeled in 
+the system do not go into a stalled condition where they draw excessive active and reactive 
+power. The variation of the active and reactive power drawn by motor D as the terminal voltage 
+0
+
+
+===== PAGE 31 =====
+ 
+3-13 
+varies, is shown in Figure 3-6 by the blue arrows. As seen in Figure 3-6 the active and reactive 
+power consumption of motor D does not increase excessively from its steady state values even 
+when the terminal voltage dips to low levels.  
+ 
+Figure 3-6 
+Motor D active power change with voltage when stalling is disabled (Tstall = 9999) 
+Vstall <Vstallbrk, Tstall = 2 – 3 cycles (60 Hz) (Stalling enabled) 
+When stalling is enabled, the value of Tstall is set close to 2-3 cycles and the value of Vstall can 
+be either greater or less than the Vstallbrk point shown in Figure 3-7. When Vstall is set lower 
+than Vstallbrk, the transition of motor D from a run condition to a stall condition is smooth as 
+indicated by the blue arrows in Figure 3-7. In this case, the active and reactive power drawn by 
+motor D increases significantly as the terminal voltage recovers (as shown by the arrows). This 
+represents a widespread stalling of residential HVACs in a distribution system due to a voltage 
+sag in the system.  
+As the voltage recovers above Vrst for time Trst, the restartable fraction (Frst) of motor D 
+transitions to the run state whereas the remaining fraction (1-Frst) continues to remain stalled. 
+This is shown by the purple and brown arrows in Figure 3-7 respectively. 
+0
+
+
+===== PAGE 32 =====
+ 
+3-14 
+ 
+Figure 3-7 
+Motor D active power change with voltage when stalling is enabled and Vstall < Vstallbrk  
+(Tstall = 2-3 cycles) 
+Vstall >Vstallbrk, Tstall = 2 – 3 cycles (60 Hz) (Stalling enabled) 
+If Vstall is set higher than the value Vstallbrk, motor D exhibits an abrupt jump in the active and 
+reactive power consumption as the motor transitions into a stall state from the run state. This is 
+shown by the blue arrows in Figure 3-8. The remainder of the behavior is similar to that 
+described in the previous section.  
+ 
+0
+
+
+===== PAGE 33 =====
+ 
+3-15 
+ 
+Figure 3-8 
+Motor D active power change with voltage when stalling is enabled and Vstall > Vstallbrk  
+(Tstall = 2-3 cycles) 
+Protection models in motor D 
+The motor D component allows for modeling the aggregated effect of three different protection 
+features that covers the spectrum of protection options typically found in residential HVAC 
+systems. The three protection features are: 
+1. the thermal (overcurrent) protection of the compressor motor,  
+2. contactor based instantaneous undervoltage protection 
+3. time dependent undervoltage protection 
+Table 3-1 lists the parameters in the motor D model related to these protection features and their 
+default values. 
+ 
+ 
+0
+
+
+===== PAGE 34 =====
+ 
+3-16 
+Table 3-12 
+NERC recommended default protection parameter set for motor D 
+Parameter 
+Value 
+Fuvr 
+0 
+vtr1 
+0 
+ttr1 
+9999 
+vtr2 
+0 
+ttr2 
+9999 
+Vc1off 
+0.5 
+Vc2off 
+0.4 
+VC1on 
+0.6 
+VC2on 
+0.5 
+Tth 
+15 
+Th1t 
+0.7 
+Th2t 
+1.9 
+A detailed description of each protection function is as follows: 
+1. Thermal relay: All residential HVAC compressors are equipped with thermal overcurrent 
+protection which trips the HVAC compressor when the current drawn by the units exceeds its 
+locked rotor ampere rating for a certain period. This protection typically takes the form of a 
+bimetallic plate that forms the contact for the motor.  When the motor draws excessive 
+current for a significant period of time, the heating of the motor windings and bimetallic plate 
+results in the contact being opened and thus the motor tripping.  It then requires many 
+minutes to cool down before the motor contact is established and it can be restarted.  To 
+model this physical phenomenon an emulation of this process is made with what is referred 
+to here as a thermal relay.  The model computes the I2Rstall losses (essentially heating 
+energy in the conductors) and uses a time constant Tth to compute a value which serves as a 
+proxy for the compressor motor winding temperature. This is shown in Figure 3-9. As the 
+temperature increases beyond Tth1 the motor D load is linearly tripped with the entire 
+fraction tripped as the temperature rises beyond Tth2. Note: this linear tripping (rather than a 
+sudden trip) is done to emulate the fact that since this is an aggregate load model, not every 
+single compressor motor will trip at the same instant.  Thus, again it is an emulation of the 
+expected staggered tripping of the individual (100’s) of motors that are being modeled by a 
+single aggregated Motor D model. 
+0
+
+
+===== PAGE 35 =====
+ 
+3-17 
+ 
+Figure 3-9 
+Motor D thermal relay model 
+2. Contactor model: The contactor model represents a linear trip of the motor D component as 
+the voltage dropped below the threshold Vc1off and trips the motor D component entirely 
+when the voltage reaches Vc2off. Similar to the tripping process, the contactor linearly 
+reconnects the motor D component as the voltage starts to recover above Vc2on and 
+reconnects the entire motor D component after the voltage recovers above Vc1on. The 
+contactor operation is shown in Figure 3-10. The black arrows in Figure 3-10shows the 
+contactor operation as the voltage dips and then recovers from an intermediate voltage level 
+(between Vc1off and Vc2off).  Note that the contactor model does not have a time comparator 
+and hence trips/reconnects the motor D fraction almost instantaneously as the voltage 
+thresholds are breached. This implementation is in line with the observations made for actual 
+contactor operation during lab testing of residential HVACs. 
+ 
+Figure 3-10 
+Motor D contactor characteristics 
+3. Undervoltage relay: In addition to the contactor model, a time dependent undervoltage trip 
+relay is also available in the motor D model. If the terminal voltage at the composite load 
+model drops below Vtr1 for Ttr1 seconds or if the voltage drops below Vtr2 for Ttr2 seconds 
+0
+
+
+===== PAGE 36 =====
+ 
+3-18 
+the fraction Fuvr is permanently tripped for the remainder of the simulation. This protection 
+is used to represent the tripping of some residential HVACs which take a significantly longer 
+time (1 minute – 5 minutes) to reconnect once tripped. Such protection schemes are often 
+used in residential HVACs to protect the compressor from cycling (a cycle of failed restarts) 
+and reverse rotation after momentary sags.  
+The Power Electronic Component 
+The power electronic component of the composite load model is intended to model all consumer 
+loads that are connected to the system through an inverter-based interface. These types of loads 
+include consumer electronic devices like computers, televisions etc. to variable speed drive 
+interfaced motor loads. The power electronic component has a simple algebraic representation 
+with: 
+1. a constant active and reactive power consumption over a user specified voltage range, and 
+2. a linear reduction in the active and reactive power consumption as the voltage drops below 
+the user specified voltage range, to represent the undervoltage trip of these devices.  
+The model also allows for a user specified percentage of electronic load to reconnect back to the 
+system as the voltage recovers above the trip threshold. The electronic load behavior is shown in 
+Figure 3-11. The model starts tripping load when the terminal voltage drops below Vd1 and 
+drops 100% of the load below Vd2. The model keeps a track of the minimum terminal voltage 
+Vmin and uses it along with the parameter frcel to compute the fraction of load reconnected as 
+the voltage recovers. 
+ 
+Figure 3-11 
+Power electronic component of the composite load model 
+0
+
+
+===== PAGE 37 =====
+ 
+3-19 
+The Static Load Component 
+The static load component is used to represent the constant impedance (Z), constant current (I) 
+and constant power (P) loads in the system. The ZIP component is typically used to model 
+resistive heating type loads (heating, cooking etc.), and incandescent and LED type lighting 
+loads in the system. The detailed equations of the ZIP model are provided in Appendix A. 
+A Note on Motor Stalling 
+Stalling of motors following a voltage disturbance is a topic of great interest for power system 
+planners. Stalling of a motor is a condition when a motor runs down to a zero speed and then gets 
+stuck in a locked rotor condition, unable to restart. Motors typically stall when the terminal 
+voltage drops significantly during a voltage disturbance. If the motor is unable to restart and 
+remains in a stalled (locked rotor) it acts as a constant impedance load, drawing a high amount of 
+both active and reactive power. In this stalled (high slip) condition, the reactive power drawn by 
+the motor is significantly higher than its active power consumption. This can be observed in 
+Figure 3-5 for a single-phase induction motor. A three-phase induction motor has a similar 
+behavior as well.  
+The stalling of an induction motor (single and three-phase) depends on a number of factors, 
+which include: 
+1. The severity of the disturbance 
+2. The design of the induction motor 
+3. The nature of the driven load.  
+A detailed analysis of stalling of induction motors is beyond the scope of this document, 
+however a brief discussion on this topic is presented here.  
+During a momentary voltage sag (caused by a fault) a motor starts to decelerate. Once the 
+voltage recovers, if the motor cannot generate enough torque to reaccelerate back the motor 
+decelerates and goes into a stalled condition. The ability of a motor to generate reaccelerating 
+torque depends on 
+1. The speed to which a motor has decelerated during a disturbance: In general motors that 
+drive high inertia loads have a slower rate of deceleration as compared motors that drive low 
+inertia loads. Motors that decelerate less are more likely to be able to reaccelerate. 
+2. The driven load behavior: Loads like fans and centrifugal produce a torque that decreases as 
+the speed decreases. It may be easier for a motor to generate enough torque at a lower speed 
+to overcome this load torque and reaccelerate. On the other hand, a motor driving a constant 
+torque load like a positive displacement pump or a compressor may not be able to produce 
+enough reaccelerating torque and remain in a stalled condition.  
+3. The design of the motor: The design of the motor plays an important role in its ability to 
+reaccelerate back. Some special design three phase motors like NEMA type D motors 
+produce very high torque under a low slip condition. These motors can reaccelerate against 
+significantly high torque. The torque producing capability of a three-phase induction motor 
+depends on this rotor resistances and reactances and whether they have a single cage or a 
+0
+
+
+===== PAGE 38 =====
+ 
+3-20 
+double cage or deep bar design. In the case of a single-phase motor, this also depends on 
+whether the motor has a properly designed starting capacitor.  
+It is worthwhile to mention that a combination of the three factors listed above is responsible for 
+causing a motor to stall. It is possible that a motor with a poor design may stall even if the driven 
+load has a high inertia and may have a variable torque characteristic. Similarly, a motor driving a 
+constant torque load with low inertia may not stall if the motor is designed well to produce the 
+required reaccelerating torque.   
+In practice, the single-phase motors driving residential HVAC systems are the motors that are 
+most likely to stall. This is due to the fact that single phase motors have considerably lower 
+inertia as compared to three-phase induction motors. Moreover, even if three phase motors stall it 
+happens over a period of seconds, whereas single phase motors due to their low inertia can stall 
+within a few cycles. Additionally, many large motors used in industrial as well as commercial 
+applications have protection systems in place that trips these motors when a voltage dip is 
+detected. This is done to protect the motor against damage from high currents. As such these 
+motors are not likely to remain stalled on the power system and draw large amounts of current. 
+Finally, the three-phase motors modeled in the composite load have a full representation of the 
+flux as well as the electromechanical dynamics. Therefore, if the motor parameters are chosen in 
+a particular way and the terminal voltage remains significantly depressed, the motor A, B and C 
+components can all go into a stalled condition like the motor D. An example of a study where 
+stalling of three phase motors were observed can be found in [10]. A detailed treatment on 
+stalling of motors can be found in [12], [13].  
+References 
+[1] PSS®E 33.9 Documentation 
+[2] PSLF 19.02 User’s Manual 
+[3] Powerworld documentation, available at:  
+http://www.powerworld.com/WebHelp/Default.htm. 
+[4] TSAT 16.0 User Manual 
+[5] Technical update on load modeling: EPRI, Palo Alto, CA: 2017, 3002010754. 
+[6] WECC composite load model benchmarking summary, available online: 
+https://www.wecc.org/Administrative/Composite%20Load%20Model%20Bench%20Marki
+ng%20Summary%20Report%20v5.pdf 
+[7] PNNL report 24468, Commercial building motor protection response report, available 
+online: https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-
+24468.pdf 
+[8] NERC report, A technical reference paper  fault induced delayed voltage recovery, available 
+online: https://www.nerc.com/docs/pc/tis/FIDVR_Tech_Ref%20V1-2_PC_Approved.pdf 
+0
+
+
+===== PAGE 39 =====
+ 
+3-21 
+[9] WECC composite load model specifications, available online: 
+http://home.engineering.iastate.edu/~jdm/ee554/WECC%20Composite%20Load%20Model
+%20Specifications%2001-27-2015.pdf 
+[10] P. Pourbeik, R. J. Koessler and B. Ray, “Addressing Voltage Stability Related Reliability 
+Challenges of San Francisco Bay Area with a Comprehensive Reactive Analysis”, 
+Proceedings of IEEE PES General Meeting, July 2003. 
+[11] C. Taylor, Power System Voltage Stability, McGraw-Hill, 1994. 
+[12] J. H. Dymond, “Stall time, acceleration time, frequency of starting: the myths and the facts 
+(electric motors)”, IEEE Trans. Industry Applications, January 1993. 
+ 
+ 
+0
+
+
+===== PAGE 40 =====
+0
+
+
+===== PAGE 41 =====
+ 
+4-1 
+4  
+PARAMETERIZING THE COMPOSITE LOAD MODEL 
+Developing a model to provide a better representation of the load is only halfway towards having 
+an appropriate representation of the load in dynamic studies. Another important aspect of load 
+modeling is parameterizing the load model such that the model is reasonably representative of 
+the aggregated load response. Parameterizing a load model is a challenging task since the system 
+load is always changing in its level and composition, and the fact that most transmission planners 
+have poor visibility into the very details of the consumer loads. To tackle the challenge of load 
+model parameterization, two different approaches have been used in tandem, and the combined 
+use of these approaches have shown promising results for model parameterization. The two 
+commonly used and complementary approaches are: 
+1. The component-based aggregated load modeling approach [1], 
+2. The measurement-based aggregated load modeling approach [2 - 4]. 
+A brief description of these two approaches and the common tools that implement these 
+approaches are described in the following sections. It is worthwhile to emphasize that modeling 
+and parameterizing a single load component like a motor or an industrial drive is a much simpler 
+process, that modeling an aggregation of such devices that are operating in a distribution feeder. 
+To model and parameterize a single device, the approach is to develop a model based on first 
+principles and then parameterize the model based on some staged test on the actual equipment. 
+However, for aggregated load modeling, this approach is challenging since: 
+1. The aggregation of loads is intended to model a mix of devices from different manufactures 
+that are distributed downstream of an aggregation point in a random manner. 
+2. Stage testing of an aggregation of devices is not possible and grid events that might provide 
+measurements to validate and parameterize these models are quite rare. This point will be 
+elaborated later. 
+The Component-Based Load Modeling Approach 
+The component-based load modeling approach is a bottoms-up approach where the end-use 
+consumer load types are first identified using a survey type approach and then the end use types 
+are assigned to the different components of the composite load model through some rules of 
+association. This process differs slightly for commercial and residential loads as compared to that 
+for industrial loads. It is important to emphasize that the component-based load modeling 
+approach is used to determine only the fractions of the different components, Fma, Fmb, Fmc, 
+Fmd and Fel parameters of the composite load model. The physical parameters of the models 
+like the resistances and reactances of the induction motors cannot be derived using this method. 
+A measurement-based approach is more suitable for estimating those components. 
+The component-based load modeling process starts with determining the load classes at a 
+distribution substation. For the purposes of load modeling, the load class at a substation is 
+determined by the percentage composition (in MW preferably) of: 
+a. Residential loads e.g. single and multi-family homes, condominiums, apartments etc. 
+0
+
+
+===== PAGE 42 =====
+ 
+4-2 
+b. Commercial loads e.g. grocery store, strip malls, hotels and motels, office buildings etc. 
+c. Agricultural loads e.g. Farms 
+d. Industrial loads. 
+As an example, a residential class feeder may comprise of about 70% – 90% pure residential 
+loads like houses and apartments, and 10%-30% commercial loads like grocery stores and 
+supermarkets. Similarly, an example of a typical commercial feeder can be a downtown area, 
+where 80% to 100% of the loads comprise of power consumption in commercial offices, and 
+hotels. Certain feeders in suburban areas can also have a mix of residential houses along with 
+farms which are agricultural loads. These feeders are typically called rural agricultural feeders. 
+It is important to highlight that the percentages of the individual components at a load serving 
+substation will typically vary throughout the day. The load class should therefore be estimated 
+separately at load buses for peak and off-peak hours, which are typically of interest for 
+transmission planners. In general, as the industry transitions towards multi-hour analysis, the 
+load class should be estimated for each of the pertinent hours for which the system is being 
+analyzed.  
+Once the load class at each distribution substation is determined, the next task in the component-
+based approach is to determine the proportion of end use load components of the residential 
+commercial, agricultural and industrial load classes. Once the end uses are determined 
+appropriately, a set of rules of association is used to determine the final percentages of the motor 
+A, B, C, D, the power electronic component and the static (ZIP) load components. The block 
+diagram of the process is shown in Figure 4-1. The process of determining of end use load 
+composition for residential, commercial, agricultural and industrial loads and finally deriving the 
+composite load model percentages is detailed in the following subsections. 
+0
+
+
+===== PAGE 43 =====
+ 
+4-3 
+ 
+Figure 4-1 
+Component based load modeling approach 
+ 
+0
+
+
+===== PAGE 44 =====
+ 
+4-4 
+Residential and Commercial Load Composition Estimation 
+A description of the component-based approach to load composition estimation for residential 
+and commercial loads are presented here. Various tools like the EPRI Load Composition Export 
+Tool (LCET) [5], the NERC/DOE Load Model Data Tool (LMDT) and the Pacific Northwest 
+National Lab’s Load Model Data Tool [6] have automated this approach and are being used by 
+different utilities in the United States and elsewhere. Although different tools approach this 
+problem in a slightly different way, the basic concept and steps remain the same. The core steps 
+involved in a component-based load modeling approach are as follows:  
+1. A load model of an individual consumer load block e.g. residential house or a commercial 
+building is first developed. This load model includes hourly (typical) electrical load shapes 
+for consumer end use equipment like heating, cooling, cooking, lighting, consumer 
+electronics etc. Figure 4-2 shows some example normalized load shapes for a residential and 
+a commercial building. 
+2. A statistical or a typical mix of the individual load blocks that comprise the aggregated load 
+at a location is then determined using census data or in consultation with the distribution 
+companies in the utility’s footprint. The load aggregation point is typically at the low side of 
+a distribution substation transformer. 
+3. The load shapes developed in step one for each individual load block is then added based on 
+the statistical mix derived in step 2 form an aggregated load shape at a load aggregation 
+point. 
+4. Finally, a set of rules of association are used to then convert this aggregated hourly load 
+shapes into hourly composite load model records, and the user can then choose a desired 
+composition of the different components based on the hour under study (typically peak and 
+off peak). Note that the load shapes vary depending on the season, since certain loads like 
+air-conditioning and heating loads are ambient temperature dependent. Therefore, different 
+load shapes are used for selecting peak and off peak hours for different seasons. Some 
+sample rules of association used to map the residential and commercial end use load types for 
+the composite load components are listed in Table 4-1 and Table 4-2. Again, the readers are 
+strongly encouraged to consult the manuals of any tool that they are using for the exact rules 
+of association being used. These may differ slightly or be the same between the different 
+tools. Appendix A lists the rules of association that are used in the EPRI LCET and the 
+NERC LMDT tools. 
+ 
+0
+
+
+===== PAGE 45 =====
+ 
+4-5 
+ 
+Figure 4-2 
+Example of normalized load shapes for a residential and a commercial building. 
+ 
+Table 4-1 
+Example rules of association for residential end use types (Single and Multi-family homes) 
+End Use 
+Motor A 
+Motor B 
+Motor C 
+Motor D 
+Pelec 
+z 
+i 
+p 
+Computer Use 
+0 
+0 
+0 
+0 
+1 
+0 
+0 
+0 
+Cooking 
+0 
+0 
+0 
+0 
+0 
+1 
+0 
+0 
+Cooling 
+0.65 
+0.05 
+0.1 
+0 
+0.2 
+0 
+0 
+0 
+Heating 
+0 
+0 
+0 
+0 
+0 
+1 
+0 
+0 
+Lighting 
+0 
+0 
+0 
+0 
+0 
+0 
+1 
+0 
+Miscellaneous Use 
+0 
+0 
+0 
+0 
+0.5 
+0.5 
+0 
+0 
+Office Equipment 
+0 
+0 
+0 
+0 
+1 
+0 
+0 
+0 
+Refrigeration 
+0.8 
+0.1 
+0.1 
+0 
+0 
+0 
+0 
+0 
+Ventilation 
+0 
+0.7 
+0 
+0 
+0.3 
+0 
+0 
+0 
+Water Heating 
+0 
+0 
+0 
+0 
+0 
+1 
+0 
+0 
+ 
+ 
+ 
+0
+
+
+===== PAGE 46 =====
+ 
+4-6 
+Table 4-2 
+Example rules of association for commercial end use types (grocery stores and strip malls) 
+End Use 
+Motor 
+A 
+Motor 
+B 
+Motor 
+C 
+Motor 
+D 
+Pelec 
+z 
+i 
+p 
+Cooking 
+0 
+0 
+0 
+0 
+0 
+1 
+0 
+0 
+Cooling 
+0 
+0.1 
+0.1 
+0.8 
+0 
+0 
+0 
+0 
+Heating 
+0 
+0 
+0 
+0.1 
+0 
+0.9 
+0 
+0 
+Lighting 
+0 
+0 
+0 
+0 
+0 
+1 
+0 
+0 
+Refrigeration 
+0 
+0 
+0 
+1 
+0 
+0 
+0 
+0 
+Water Heating 
+0 
+0 
+0 
+0 
+0 
+1 
+0 
+0 
+Clothes Dryer 
+0 
+0 
+0.4 
+0 
+0 
+0.6 
+0 
+0 
+Dishwasher 
+0 
+0.5 
+0 
+0 
+0 
+0.5 
+0 
+0 
+Freezer 
+0 
+0 
+0 
+1 
+0 
+0 
+0 
+0 
+Furnace Fans 
+0 
+1 
+0 
+0 
+0 
+0 
+0 
+0 
+Other 
+0 
+0 
+0 
+0 
+0.5 
+0.5 
+0 
+0 
+Hot Tubs and Spas 
+0 
+0 
+1 
+0 
+0 
+0 
+0 
+0 
+Pool Pumps and 
+Filters 
+0 
+0 
+1 
+0 
+0 
+0 
+0 
+0 
+Personal Computers 
+0 
+0 
+0 
+0 
+1 
+0 
+0 
+0 
+Television 
+0 
+0 
+0 
+0 
+1 
+0 
+0 
+0 
+Within the United States, various open access resources and databases are available to aid the 
+component-based load composition estimation for residential and commercial loads. A list of 
+these some of these resources are as follows: 
+1. The US DOE’s residential energy consumption survey (RECS) [7], the BPA residential 
+building stock assessment (RBSA) [8] provides information on the residential end use load 
+shapes. 
+2. The US DOE’s commercial building energy consumption survey (CBECS) [9] and California 
+end use load shapes (CEUS) database [10]. 
+3. The United States census division data [11], and finally  
+4. The typical meteorological data sets (TMY3) [12] and National oceanic and atmospheric 
+administration (NOAA) [13] weather data. The weather data is required for determining the 
+temperature and humidity sensitive loads like cooling and space heating, which comprise a 
+significant chunk of the residential and commercial loads. 
+Note that the tools developed for creating the load model fractions use these databases and 
+transmission planners are typically not required to deal with these databases directly. 
+0
+
+
+===== PAGE 47 =====
+ 
+4-7 
+Agricultural Load Composition Estimation 
+The bulk of the agricultural load typically consists of small and large pumps that are required for 
+irrigation and some cooling load required for storing produce. A typical load composition of 
+agricultural load is shown in Table 4-3. In recent years, commercial vertical farming (also called 
+indoor or container farms) are becoming more and more popular. These farming loads can have 
+significantly higher proportions of lighting as well as HVAC load in addition to the pumps for 
+irrigation. 
+Table 4-3 
+Load composition for agricultural load 
+Motor A Motor B Motor C Motor D Pelec 
+Z 
+I 
+0.15 
+0.2 
+0.2 
+0 
+0.2 
+0.1 
+0.15 
+Industrial Load Composition Estimation 
+The industrial load composition estimation process is slightly different from the residential and 
+commercial load composition estimation process. Industrial loads typically do not vary as a 
+function of weather like commercial and residential loads. In addition, similar industrial loads 
+typically tend to have similar processes and hence the load components tend to be approximately 
+similar. Therefore, from the perspective of transmission planning, a single type of load 
+composition can be used to model a broad range of similar industrial plans. As an example, 
+although different aluminum smelters may have different technologies, from the perspective of 
+their impact on the bulk system all aluminum smelters can be represented by the same load 
+composition. Therefore, if the typical processes in an industry is known based on some surveys, 
+literature and experience, a set of rules of association can be used to derive the component 
+estimates. Table 4-4 lists the NERC default industrial load composition for some industrial load 
+types. It is worthwhile to mention that in most new industrial facilities the overwhelming 
+majority of motor loads are connected through variable speed drives (VSDs). As such, a 
+recommended practice would be to revisit the industrial load composition estimates regularly and 
+update them to reflect such changes in technology adoption. 
+It should be noted that, these default compositions are not intended for performing specialized 
+studies, where the industrial load may have a significant impact on the local system. In such 
+cases, a detailed model of the processes needs to be developed for the industrial facility in order 
+to perform such studies.  
+ 
+ 
+0
+
+
+===== PAGE 48 =====
+ 
+4-8 
+Table 4-4 
+NERC default load composition for some industrial load types 
+Industrial Load Type 
+PSLF 
+Code 
+Motor A Motor B Motor C Motor D Pelec 
+Z 
+I 
+Petro-Chemical Plant 
+IND_PCH 
+0.1 
+0.4 
+0.3 
+0 
+0.15 
+0.02 
+0.03 
+Oil Pumping 
+IND_OIL 
+0.3 
+0 
+0.4 
+0 
+0.3 
+0 
+0 
+Shale Gas Extraction 
+Plant 
+IND_SHG 
+0 
+0.2 
+0.4 
+0 
+0.4 
+0 
+0 
+Liquified Natural Gas 
+IND_LNG 
+0 
+0.3 
+0.2 
+0 
+0.5 
+0 
+0 
+Paper Mill, Kraft Process IND_PMK 
+0.1 
+0.2 
+0.3 
+0 
+0.3 
+0.05 
+0.05 
+Paper Mill with Refiners IND_PMT 
+0.05 
+0.6 
+0.15 
+0 
+0.15 
+0.02 
+0.03 
+Lumber Mill 
+IND_LMB 
+0.4 
+0.2 
+0.3 
+0 
+0 
+0.05 
+0.05 
+Mining 
+IND_MIN 
+0.25 
+0.25 
+0.3 
+0 
+0.2 
+0 
+0 
+Aluminum Smelter 
+IND_ASM 
+0.05 
+0 
+0.05 
+0 
+0.05 
+0.85 
+0 
+Steel Mill 
+IND_SML 
+0.15 
+0.35 
+0.25 
+0 
+0.15 
+0.05 
+0.05 
+Car Manufacturing 
+IND_CAR 
+0.15 
+0 
+0.3 
+0 
+0.3 
+0.1 
+0.15 
+Semiconductor 
+IND_SCD 
+0 
+0.25 
+0.3 
+0 
+0.4 
+0 
+0.05 
+Server Farm 
+IND_SRF 
+0 
+0 
+0.1 
+0 
+0.9 
+0 
+0 
+Industrial - Other 
+IND_OTH 
+0.1 
+0.3 
+0.3 
+0 
+0.2 
+0.05 
+0.05 
+Transportation - Rail 
+IND_RAIL 
+0 
+0 
+0.05 
+0 
+0.95 
+0 
+0 
+Power Plant Auxiliaries 
+PPA_AUX 
+0 
+0.4 
+0.3 
+0 
+0.2 
+0.05 
+0.05 
+Irrigation and pumping 
+AGR_IRR 
+0 
+0 
+1 
+0 
+0 
+0 
+0 
+Food processing 
+AGR_PRO 
+0.6 
+0 
+0.25 
+0 
+0.05 
+0.05 
+0.05 
+The Measurement-Based Load Modeling Approach 
+A measurement-based approach relies on developing a model structure based on an estimate of 
+the underlying components and then using measurement data to parameterize the model 
+structure. In the context of load modeling, a measurement-based approach would require a 
+measurement of voltages, frequency and current, or voltages, frequency and power (active and 
+reactive) for a grid event, that will then be utilized to parameterize the composite load model. 
+The core steps involved in the measurement-based approach are as follows: 
+1. Derive raw measurements of voltage and current, or voltage and power (active and reactive) 
+for a grid event. 
+2. Process the raw measurements such that it can be used in the relevant modeling framework 
+(positive sequence, phasor or electromagnetic transient simulation platform). 
+3. Use a framework to play in the input voltage and frequency into the model and tune the 
+model parameters to achieve a reasonable match between the measurements of active and 
+reactive power and the model output. 
+0
+
+
+===== PAGE 49 =====
+ 
+4-9 
+Even though the process sounds straightforward, there are significant challenges with using a 
+measurement-based approach. These challenges revolve around the acquisition of measurement 
+data that is needed for the measurement-based approach. The main challenges are as follows: 
+1. Availability of measurement devices: For a measurement-based approach the measurement 
+needs to be made closer to the load aggregation point. However, majority of measurement 
+devices which can be used for load modeling like phasor measurement units (PMUs), micro 
+PMUs, and digital fault recorders (DFRs) are typically placed at high voltage buses and 
+generator buses. The measurements from these devices are influenced (or polluted) by 
+dynamic response of other equipment in the power system and may not be directly usable for 
+a measurement-based load modeling approach. In theory, for perfect measurement based 
+modeling, the relevant measurements need to be made at the location or as close as possible 
+to the location where the model will used in the simulation studies (i,e. at the high side of the 
+distribution substation transformer). If load models connected to a 12.47 kV bus in 
+simulation studies is parameterized based on measurements made at a 345 kV level 
+transmission bus, using a least-squares minimization approach, it is highly likely that the 
+optimization exercise would fail. In general, such an exercise is not recommended since any 
+optimization method would parameterize (or try to parameterize) the load model to account 
+for dynamic responses from other power system equipment that may be influencing the 
+measurements at the transmission bus. Having said that, transmission level measurements 
+sometimes do provide valuable information on load loss and voltage recovery rate in the 
+system. In such cases, this information along with engineering judgement can be used to 
+manually tune multiple instances of nearby load models to replicate the event. It is also 
+worthwhile to mention that, load dynamics are a mix of electromagnetic and fast 
+electromechanical transients which are significantly fast. As such, the entirety of the load 
+dynamic response is not likely to be captured in PMU measurements because of the filtering 
+of signals in PMUs. This important factor should be given due consideration when PMU 
+measurements are used for load model as well as event validation. 
+2. Availability of events: Even though in recent years many utilities made significant 
+investments for installing measurement devices like phasor measurement units (PMUs) and 
+micro-PMUs closer to load serving substations, acquiring a relevant event can still be 
+challenge. Typically, in transmission planning three phase faults are studied as these are the 
+most severe type of faults on the transmission system. In addition to this, such events are 
+studied during system peak conditions. Therefore, ideally it is expected that the load models 
+used in the studies are parameterized based on measurements of three-phase faults made 
+during system peak conditions (or heavy load conditions). Three-phase faults by nature are 
+rare for most systems. In addition to that, having a three-phase fault coincident with the 
+system peak conditions can be extremely rare. Since single phase faults are more common in 
+power systems, measurement made for single phase faults are typically not sufficient to 
+parameterize positive sequence models used in transmission planning studies. As an 
+example, the response of a three-phase motor to an unbalanced fault cannot be captured 
+adequately in positive sequence simulations. Therefore, parameterizing a positive sequence 
+model of a 3-phase induction motor (motor A, B, and C) using the positive sequence 
+component of the unbalanced 3 phase voltage and 3 phase power can result in an erroneous 
+parameterization of the model. In addition, single line to ground faults are not known to 
+cause widespread residential HVAC stalling that leads to FIDVR. As such, these fault 
+0
+
+
+===== PAGE 50 =====
+ 
+4-10 
+measurements are not sufficient to parameterize the motor D component of the composite 
+load model. The only parameters of the composite load model that can be tuned using single-
+phase to ground fault recordings are the aggregate protection settings. An estimate of load 
+lost during a single line to ground fault can be used to adjust the trip settings in the composite 
+load model. 
+EPRI at present has a tool, the load model data processing and parameter derivation (LMDPPD) 
+[13] tool that automates the process of measurement-based load modeling when relevant 
+measurements are available. 
+Recommendations on Load Model Parameterization 
+It is important to highlight that both the approaches, the component-based and the measurement-
+based, are not mutually exclusive approaches. Ideally, both these approaches are needed for 
+proper load model parameterization as these approaches complement each other.  
+Most measurement-based approaches require an optimization method that reduces the least 
+squares error between the measurements and model output by modifying the control variables, in 
+this case the load model parameters. Deterministic optimization methods heavily depend on a 
+good initial estimate of the control variables, and poor estimates can result in the divergence of 
+the optimization process. A component-based approach combined with knowledge of parameters 
+of typical motors and system loads can help develop a baseline model that can be used as a 
+starting point for the measurement-based approach. A recommended two-step process is as 
+follows: 
+1. Use a component-based approach to get a baseline estimate of the percentages (Fma, Fmb, 
+Fmc, Fmd, Fel) of the different components of the load model. An initial parameter set 
+(physical parameters like r and x, time constants and typical protection settings) for the 
+different load components can be derived by inspecting data sheets of commonly used motor 
+types or by testing load components in a laboratory setting.  
+2. When an appropriate measurement for an event is made available, the developed baseline 
+model in step 1 should be parameterized by using either manual tuning or an optimization 
+technique. 
+Applying proper engineering judgement is crucial in the measurement-based approach. A prior 
+working knowledge of linear systems, basic optimization, and sensitivity analysis is required as 
+the composite load model has a complex mathematical structure. Due to the nature of the load it 
+represents, the composite load model has multiple components (e.g motor A, B and C) with 
+similar responses in certain operation ranges. As such, engineering judgement and knowledge of 
+load responses is needed to assign appropriate bounds to the parameters that are being tuned. 
+Without appropriate bounds on the parameters, the optimization method may either diverge or 
+provide unrealistic values for certain parameters. This can often lead to a model being able to 
+replicate one specific event but fail to replicate other events. There may also be issues with poor 
+conditioning of the problem, leading to divergence of the optimization problem. The trick there 
+is to optimize only a few parameters and fix the remaining based on engineering judgement and 
+device knowledge. In addition to this, the protection parameters should not be tuned by any 
+automatic optimization technique. Protection components like relays and contactors induce non-
+linear abrupt transitions in the load model. Optimization techniques that typically work on the 
+principles of linear analysis are therefore not appropriate for tuning these parameters. These 
+0
+
+
+===== PAGE 51 =====
+ 
+4-11 
+parameters should be strictly tuned based on survey of common protection settings and 
+experiences of load loss during measured grid events. A detailed treatment of these topics is 
+beyond the scope of this document. The readers are encouraged to refer [3, 4, 14] for an in-depth 
+discussion on these topics. Table 4-5 lists some of the recommendations for tuning the different 
+parameters of the composite load model. 
+It is extremely important to note that all best efforts made to determine a reasonable composite 
+load model parameterization (component + measurement based) in the end will still not be the 
+definitive load model.  This is because the load is constantly changing, and moreover, there will 
+always be uncertainties in any and all methods.  Therefore, some suitable sensitivity analysis is 
+key in any planning study, and should be based on engineering judgment to identify the 
+parameters to which the particular system and conditions being studied are sensitive too, and 
+coming up with physically meaningful and reasonable range of sensitivities to study relative to 
+those parameters.  This will then help to gauge how uncertainties in the load model parameters 
+may affect system performance. 
+Table 4-5 
+Recommendations for load model parameter derivation 
+Percentage composition 
+Fma, Fmb, Fmc, Fmd, Fel, Z, I, P 
+The base values of these parameters should be generated 
+using the component-based approach and these can be fine-
+tuned using the measurement-based approach using a least 
+square error minimization or equivalent optimization method 
+Motor A, B, and C inductances, load characteristic and inertia 
+LF, Ra, Ls, Lps, Lpps, Tpo, Tppo, H, 
+Etrq,  
+Typical values for these parameters should be chosen based on 
+NEMA type category, motor size and end load type. A limited 
+tuning of these parameters can be done with the 
+measurement-based approach using a least square error 
+minimization or equivalent method, however, if such an exercise 
+is done extreme care should be taken to ensure the derived 
+tuning does not lead to physically meaningless motor 
+characteristics. In general, it is not highly recommended to tune 
+these electrical parameters of the motors.  If tuning is 
+attempted, it should only be done after a reasonable 
+percentage composition has been established. 
+Vstall, Tstall, Frst, Vrst 
+The base values of these parameters are to be determined 
+based on lab tests of actual HVAC systems. These threshold 
+values can be fine-tuned further based on event data. However, 
+a manual tuning process coupled with knowledge of 
+compressor motor stalling and restarting is strongly 
+recommended rather than an optimization-based method 
+since these are thresholds that trigger step changes in the 
+model behavior 
+ 
+ 
+ 
+0
+
+
+===== PAGE 52 =====
+ 
+4-12 
+Table 4 5 (continued) 
+Recommendations for load model parameter derivation 
+Motor D parameters 
+Rstall, Xstall 
+The base values of these parameters are to be determined 
+based on lab tests of actual HVAC systems. These can be 
+tuned further using a measurement-based approach. These 
+parameters are only to be tuned once a reasonable 
+estimate of Fmd is established. 
+Kp1, Np1, Kq1, Nq1, Kp2, Np2, Kq2, 
+Nq2, Vbrk, CmpKpf,  CmpKqf 
+These parameters are best left as is and should not be 
+altered. These are based on lab testing of HVACs 
+Protection parameters 
+Vtr1, Ttr1, Ftr1, Vrc1, Trc1, Vtr2, Ttr2, 
+Ftr2, Vrc2, Trc2, Fuvr, vtr1, ttr1, vtr2, 
+ttr2, Vc1off, Vc2off, VC1on, VC2on, 
+Tth, Th1t, Th2t, Tv, Vd1, Vd2, Frcel 
+The base values are based on surveys and inspection of actual 
+motors and HVACs deployed in the system. These parameters 
+should be fine-tuned further based on event data. However, a 
+manual tuning process coupled with engineering judgment 
+is strongly recommended rather than an optimization-
+based method since protection parameters trigger step 
+changes in the model behavior. 
+References 
+[1] 
+A. Gaikwad, P. Markham, P. Pourbeik, “Implementation of the WECC Composite Load 
+Model for utilities using the component-based modeling approach,” Proc. of IEEE T&D 
+Exposition, May 2016, Dallas TX. 
+[2] 
+A. Maitra, A. Gaikwad, P. Pourbeik, D. Brooks, “Load model parameter derivation using 
+an automated algorithm and measured data,” Proc. of the IEEE PES General Meeting, 
+Pittsburgh, July 2008. 
+[3] 
+S. Son, S.H. Lee, D. Choi, K. Song, J. Park, Y. Kwon, K. Hur, J. W. Park, “Improvement 
+of Composite Load Modeling Based on Parameter Sensitivity and Dependency Analyses,” 
+IEEE Trans. on Power Systems, vol. 29, no. 1, pp. 242-250, 2014. 
+[4] 
+P. Mitra, V. Vittal, “Role of Sensitivity Analysis in Load Model Parameter Estimation,” 
+Proc. of IEEE PES General Meeting, July 2017, Chicago, IL. 
+[5] 
+LCET Version 3.1 available online: 
+http://membercenter.epri.com/abstracts/Pages/ProductAbstract.aspx?ProductId=000000003
+002015441 
+[6] 
+PNNL Load model data tool, available online: https://svn.pnl.gov/LoadTool 
+[7] 
+Residential Energy Consumption Survey, available online: 
+https://www.eia.gov/consumption/residential/ 
+[8] 
+Residential Building Stock Assessment, available online: http://ecotope.com/project/2011-
+residential-building-stock-assessment/ 
+[9] 
+Commercial building energy consumption survey, available online: 
+https://www.eia.gov/consumption/commercial/ 
+[10] California commercial end use survey, available online: https://www.energy.ca.gov/data-
+reports/surveys/california-commercial-end-use-survey 
+0
+
+
+===== PAGE 53 =====
+ 
+4-13 
+[11] Wilcox, S. and W. Marion.  2008. User's Manual for TMY3 Data Sets, NREL/TP-581-
+43156. April 2008. Golden, Colorado: National Renewable Energy Laboratory. 
+[12] National oceanic and atmospheric administration, NOAA.org. 
+[13] Load model data processing and parameter derivation tool version 6.0, available online: 
+https://www.epri.com/research/products/000000003002014658 
+[14] P. Mitra, V. Vittal, P. Pourbeik, A. Gaikwad, “Load sensitivity studies in power systems 
+with non-smooth load behavior,” IEEE Trans. on Power Systems, vol. 32, no. 1, pp 704 – 
+715, 2017  
+ 
+ 
+0
+
+
+===== PAGE 54 =====
+0
+
+
+===== PAGE 55 =====
+ 
+5-1 
+5  
+RECENT DEVELOPMENTS IN LOAD MODELING 
+Load modeling is an ongoing research area and different aspects of the composite load model is 
+being updated to make the model more closely mimic the physical behavior of loads  and to be 
+more numerically stable for large scale computation. This chapter documents some of the latest 
+developments in the load modeling research area that is focused towards developing the 
+composite load model.  
+The Motorc or Motor1ph Model 
+Since the motor D component is a performance-based model, this model lacks the ability to 
+capture certain aspects of the dynamic response of a single-phase HVAC unit. Some of the 
+concerns raised with the usage of the motor D model are as follows: 
+1. Due to the algebraic nature, the motor D model abruptly transitions from a running to a stall 
+condition, and from a stall to a run condition (for appropriate parameters). The abrupt 
+transition of the motor D model in simulation studies may cause numerical issues or result in 
+overly pessimistic or optimistic (depending on Vstall and Tstall) results. In reality however, 
+the transition from run to stall and vice versa, depends on the machine flux, inertia, and the 
+compressor load.  
+2. The motor D model presently does not capture the effect of reacceleration of HVAC units. 
+Again, this is because of the limitations of the algebraic representation used in this model. In 
+certain voltage stressed portions of the system, the inrush current drawn during motor 
+reacceleration after a fault can result in secondary voltage dip. This effect cannot be 
+adequately captured by the motor D model. 
+To address these issues, a different approach to modeling single phase HVAC units has been 
+explored. This approach is known as the phasor-based modeling of a single-phase induction 
+motor [2]. In this approach a phasor-based model, that explicitly represents the flux dynamics, 
+motor inertia, and the load torque is created. A beta version of the model, known as motorc is 
+available in GE PSLF™. This model is expected to be named motor1ph in future versions to 
+avoid any confusion with the motor C component of the composite load model. 
+The next few sections, provides a background of the phasor modeling approach, and highlights 
+the differences and similarities between the phasor model (motor1ph) and the performance 
+model (Motor D or ld1pac).  
+Phasor modeling of single-phase induction motor 
+A detailed description of the motor1ph (or motorc) model, and the validation of this model based 
+on laboratory measurements can be found in [2], [3]. This section provides an overview of the 
+concept of phasor modeling pertaining to modeling of single-phase induction motor for positive 
+sequence load flow studies. The concepts of phasor modeling of single-phase induction motor 
+have been treated qualitatively in this section. The readers are encouraged to refer to [4] for a 
+comprehensive quantitative treatment of this topic. 
+0
+
+
+===== PAGE 56 =====
+ 
+5-2 
+A simple way to understand phasor modeling is by drawing parallels with positive sequence 
+modeling for three phase loads. For 3-phase machine modeling, the components in the abc frame 
+of reference are converted into the synchronously rotating frame of reference called the dq 
+frame, using the Parks transformations [5]. When the d-axis and the q-axis are chosen 
+appropriately, the d or the q component (depending on how the axes are choses) forms an 
+envelope of three phase waveform and are the positive sequence components. This is shown in 
+Figure 5-1.  
+ 
+Figure 5-1 
+abc-dq transformation with d-axis and q-axis components on the abc waveform 
+For single-phase systems, the Parks transformation is not applicable. Therefore, a phasor-based 
+approach is chosen to capture the impact of single-phase machines in positive sequence studies. 
+For a sinusoidal wave given by Asin(ωt+ϕ), a phasor is defined as A∠ϕ rotating at an angular 
+speed of ω. This is shown in Figure 5-2. For any given waveform, the phasors at the component 
+frequencies can be computed using the Fourier transform. For digital systems, this is achieved by 
+using the discrete Fourier transformation. A more detailed analysis of phasors can be found in 
+[2]. 
+To create a phasor model of a single-phase induction motor, the rotor and stator quantities are 
+converted from the rotor and stator frames, respectively to a single stationary frame. Since the 
+new reference frame is stationary, the transformed quantities will still be stationary. This step is 
+shown in Figure 5-3. After converting the rotor and stator quantities into the stationary rotating 
+frame, the differential equations of flux and machine mechanics in the sinusoidal frame are 
+converted into the phasor domain. The detailed equations of the single-phase induction motor, 
+and the phasor domain equations can be found in [3]. The phasor domain quantities form the 
+envelope of the sinusoidal waveform as shown in Figure 5-4. Finally, once the phasor model is 
+created it is assumed that given X MW of single-phase induction motor on a load bus, the X MW 
+is distributed evenly on the 3 phases (X/3 MW per phase). This final assumption makes sure that 
+0
+
+
+===== PAGE 57 =====
+ 
+5-3 
+the phasor quantities of the single-phase induction motor model are now equivalent to the 
+positive sequence dq models of other 3-phase machines in the system.  
+ 
+Figure 5-2 
+Phasor of a sinusoidal signal  
+ 
+ 
+Figure 5-3 
+Conversion from rotor and stator frames to single stationary frame  
+ 
+ 
+Figure 5-4 
+Actual sinusoid and phasor envelope  
+Comparison of the performance model with the flux-based phasor model of a 
+single-phase induction motor 
+The motor D component of the composite load model is also available as a standalone model 
+known as ld1pac in GE PSLF™. For the remainder of this discussion the performance model of 
+the single-phase induction motor will be referred to as ld1pac. To compare the performance of 
+the flux model motor1ph with the performance model ld1pac a test system as shown in Figure 
+5-5 is used. Different controlled waveforms were played in at the generator shown in Figure 5-5 
+and the differences and similarities in the transient behavior were noted. 
+0
+
+
+===== PAGE 58 =====
+ 
+5-4 
+ 
+Figure 5-5 
+Test system for comparing the performance of ld1pac and motor1ph 
+Figure 5-6 shows the responses of the ld1pac and the motor1ph models for a 0.5 pu, 4 cycles sag 
+the machine terminal. The Vstall and Tstall for ld1pac was set to 0.45 pu and 0.033s 
+respectively. With these settings the ld1pac model is not expected to stall and should be in the 
+running characteristics for the simulation. From Figure 5-6, it can be seen that the motor1ph 
+model captures the impact of deceleration and acceleration on the active and reactive power 
+consumption, while the ld1pac model does not capture this. The downward spikes in the blue 
+curves for active and reactive power after the sag is impressed, accounts for the regenerative 
+effect of the induction motor. The upward spikes in the blue curves for active and reactive power 
+after the sag is removed, accounts for the reacceleration inrush of the induction machine. 
+Although the transient responses of the two models differ, the steady state responses of both 
+models were found to respond reasonably well. 
+Figure 5-7 shows the responses of the ld1pac and the motor1ph model for a 0.45 pu, 4 cycles sag 
+at the terminals of the machine. As mentioned before the Vstall and Tstall for ld1pac was set to 
+0.45 pu and 0.033s, and the hence the ld1pac model goes into the stall state. For this simulation, 
+frst was set to 1, such that all of the ld1pac restarts when the voltage recovers. A few interesting 
+observations can be made from Figure 5-7. Some important observations are as follows: 
+1. The motor1ph model captures the regeneration transient at the inception of the sag, which the 
+ld1pac does not capture. This again can be attributed to the modeling of the device flux 
+inside the motor1ph model.  
+2. During the steady state running and the stalled condition, the ld1pac and the motor1ph 
+models consume reasonably same amount of MW and Mvars. It should be noted that the 
+models were approximately tuned to match each other in terms of steady state consumption. 
+The motor1ph model can be tuned further to get a better match between the MW and Mvar 
+consumption with ld1pac during running and stalled condition. Another important point to be 
+noted here is that the inertia constant for the motor1ph model was set to 0.022. This value of 
+inertia constant was chosen from [2]. The inertia constant of the motor1ph model has a strong 
+influence on whether the model will go into a stall condition.  
+3. As the voltage recovers above the Vrst and Trst threshold, 100% of the ld1pac model goes 
+back to the run state. However, the motor1ph model does not restart. After consultation with 
+GE-PSLF™, it was understood that the motor1ph model is coded such that it does not restart 
+0
+
+
+===== PAGE 59 =====
+ 
+5-5 
+once the motor speed winds down to zero. The non-restarting behavior of this is not a 
+physical limitation of the model, but an artifact of implementation in the software. 
+ 
+Figure 5-6 
+ld1pac and motor1ph response for a 0.5 pu 4 cyc sag 
+0
+
+
+===== PAGE 60 =====
+ 
+5-6 
+ 
+Figure 5-7 
+ld1pac and motor1ph response for a 0.45 pu 4 cyc sag with frst in ld1pac set to 1 
+The responses of the ld1pac and the motor1ph model were also compared to the actual lab 
+measurements of an HVAC unit with a 4 ton scroll compressor. To compare the responses, the 
+test system shown in Figure 5-5 was modified slightly to match the lab setup. The modified one-
+line diagram is shown in Figure 5-8. With this set up, the ld1pac and the motor1ph models were 
+setup and initialized such that the steady state power consumption matches approximately with 
+the actual HVAC unit consumption. The same waveform that was used in the programmable 
+power supply for the actual HVAC unit testing, was played in GE-PSLF™ using the waveform 
+play-in model. The responses of the ld1pac and motor1ph models along with the actual test 
+measurements were then plotted for comparison. It should be noted that for this comparison, the 
+GE-PSLF™ models were not tuned to match the output obtained from the lab tests exactly. 
+Rather, the goal of this exercise was to check whether the models could capture the different 
+transients in an actual single-phase HVAC response.  
+Figure 5-9 shows the transient responses of the 4-ton HVAC unit, the ld1pac model, and the 
+motor1ph model for a 0.5 pu, 4 cycles sag. The transient response region marked with red dotted 
+ellipse has been elaborated in Figure 5-10 for a detailed discussion. In Figure 5-10, the 
+regenerative effect, and the reacceleration inrush are marked with green and orange dotted boxes 
+respectively. It can be seen that the motor1ph model (blue curve) captures the transient 
+regeneration and reacceleration effects like the actual HVAC unit response. However, the ld1pac 
+model (red curve) does not capture these transients in its response. Another important 
+observation here is that the kvar response of the HVAC model does not match with the motor1ph 
+0
+
+
+===== PAGE 61 =====
+ 
+5-7 
+response during the reacceleration of the motor. This can be seen in the orange dotted box in the 
+bottom plot of Figure 5-10. The motor1ph response indicates that the kvars drawn are inductive 
+whereas the actual HVAC unit draws capacitive kvars. This is because the HVAC unit used for 
+the lab testing had a separate starting capacitor that is connected using a speed voltage relay, and 
+helps to produce a high locked rotor torque. The presence of the large starting capacitor results in 
+the capacitive inrush current. The motor1ph model does not include a starting capacitor and 
+hence the inrush current drawn is inductive. 
+ 
+Figure 5-8 
+Modified one-line diagram replicating the test setup. 
+ 
+Figure 5-9 
+Comparison of the ld1pac and motor1ph model with lab test measurements of a 4 ton scroll 
+compressor based HVAC unit, for a 0.5 pu, 4 cycles sag. 
+0
+
+
+===== PAGE 62 =====
+ 
+5-8 
+ 
+Figure 5-10 
+Detailed portion of the plot in Figure 5-9 
+Modeling improvements and future research 
+As shown here, the motor1ph model is a significant improvement in capturing some of the 
+transient behaviors, that could not be captured by the ld1pac model. A comparison with an actual 
+HVAC unit test also confirmed this. However, before drawing any sweeping conclusions about 
+the effectiveness of the model, it should be recognized that for planning studies the goal is to 
+develop a model that can capture the aggregated behavior of large number of loads. With this 
+consideration the following concerns need to be addressed before the motor1ph model can be 
+used for mainstream planning studies: 
+1. Restarting capability: Presently, the motor1ph model is implemented such that the model 
+does not restart, once the speed of the motor is zero or close to zero. This implementation 
+prevents the model from being used to represent HVAC units or a fraction of HVAC units 
+that can restart. As shown in the previous chapter, most scroll compressors have the ability to 
+restart from a locked rotor condition. Additionally, the motor1ph model does not have a 
+representation of the starting capacitor. Without modeling a starting capacitor, the starting 
+torque developed in the model may not be sufficient to overcome the load torque (if load 
+torque is constant) preventing the motor from starting up. The restarting of the motor1p 
+model may also be modeled by manipulating the load torque during start up conditions. 
+These options will need to be evaluated such that it is possible to capture separate fractions of 
+0
+
+
+===== PAGE 63 =====
+ 
+5-9 
+motors having and lacking the ability to restart. Furthermore, these responses will need to be 
+validated against the aggregated responses of a distributed group of HVAC units. 
+2. Modeling inrush: As shown in this chapter, the main advantage of the motor1ph model is its 
+ability to model transient inrush behavior, and its transition between run and stall conditions 
+based on the physics of the underlying motor. The ability to model inrush is important for 
+capturing the transient voltage dips observed in voltage stressed portions of the system 
+resulting from motor reacceleration. However, it should be recognized that the motor1ph 
+model was developed based on lab measurements of a single HVAC unit. Therefore, 
+modeling a large portion of the load at a bus using the motor1ph model may result in 
+significantly higher than expected inrush current being drawn at those buses. This is because 
+as the model represents synchronized reacceleration of all HVACs at a bus, which does not 
+or rarely happen. Considering this, the issue of inrush modeling needs to be researched from 
+the perspective of aggregated response of HVAC before using the motor1ph model for 
+simulation studies.  
+Enhancement to the Stall Behavior of the Motor D Model 
+The composite load model (CMLD) uses a performance model for representing single phase 
+induction motors driving reciprocating and scroll compressors in residential air-conditioning and 
+refrigeration systems. These motors are prone to stall and have shown to have significant impact 
+on voltage recovery following transmission faults. The performance model makes a switch from 
+motor “run” to “stall” state based on a single definite-time threshold represented with “Vstall” 
+and “Tstall” parameters in the model. This representation may be adequate for estimating motor 
+stalling during a transmission fault. However,  
+a. 
+Testing performed by EPRI and BPA as well as recent analytical work found that motor 
+stalling follows an inverse-time characteristic, and  
+b. Studies performed by EPRI and NERC found that modeling the time-dependence of 
+stalling is important for capturing motor stalling in weak transmission systems.  
+To address these issues and inverse-time “Vstall-Tstall” curve for use in simulation studies to 
+gain a better representation of HVAC stalling during voltage sags was proposed in 2019.  
+Proposal 
+Based on the air-conditioner testing data from EPRI and BPA, in 2019, the NERC LMTF 
+recommended the inclusion of a “Vstall-Tstall” characteristic for stall transition in the motor D 
+model in addition to the existing logic. The characteristic is listed in Table 5-1 and shown in 
+Figure 5-11. This implementation at present will be hard coded within the composite load model 
+and will be activated when the user supplies a negative value for tstall in the dynamic data file. 
+ 
+ 
+0
+
+
+===== PAGE 64 =====
+ 
+5-10 
+Table 5-1 
+Proposed values of Vstall and Tstall for inverse time stall characteristic representation 
+Tstall (cycles) 
+Vstall (pu voltage) 
+2 
+0.45 
+3 
+0.49 
+6 
+0.51 
+9 
+0.53 
+12 
+0.55 
+15 
+0.565 
+No stall (9999) 
+V>0.565 
+ 
+ 
+Figure 5-11 
+Inverse time Vstall-Tstall characteristic 
+Background for this enhancement 
+Over the past few years, BPA and EPRI have conducted a series of tests on single-phase 
+residential HVAC systems driven by scroll or reciprocating compressors in the past few years. 
+The goal of these tests was primarily to determine the relationship between the level and duration 
+of a voltage sag (Vstall and Tstall) that would cause a residential HVAC compressor motor to 
+stall. To perform these tests, a set of programmed voltage sags were applied for fixed durations 
+at the terminals of the HVAC units to determine the type of sag that would result in the stalling 
+of the HVAC unit. Figure 5-12 shows a sample voltage sag that was used for these tests. Note 
+that the waveform is shown in Figure 5-12 is an example and the voltage sag level and duration 
+were varied during the tests.  Figure 5-13 shows the Vstall and Tstall characteristics recorded by 
+BPA during the tests conducted in the BPA testing facilities [6].  
+0
+
+
+===== PAGE 65 =====
+ 
+5-11 
+ 
+Figure 5-12 
+Sample voltage dip impressed at the terminal of the machine 
+ 
+Figure 5-13 
+Vstall vs. Tstall characteristics for single phase residential scroll/reciprocating compressor 
+equipped HVAC system tested by the BPA [1] 
+Based on results shown in Figure 5-13, GE PSLF ™ has a time dependent stall characteristic 
+implemented in the single-phase HVAC model ld1pac [7]. The Vstall vs. Tstall characteristic 
+hard coded in PSLF is as shown in Figure 5-14. 
+0
+
+
+===== PAGE 66 =====
+ 
+5-12 
+ 
+Figure 5-14 
+Vstall vs. Tstall characteristics hard-coded in the GE PSLF™ ld1pac model [2] 
+EPRI conducted a series of HVAC tests in 2010 for the Arizona Public Service and SRP, and 
+some more tests between 2016-2018 [8], [9]. These tests were repeated at different ambient 
+temperatures to identify the impact of the ambient temperature variation on the stalling of HVAC 
+compressors. Figure 5-15 – Figure 5-17 shows the Vstall vs. Tstall characteristics recorded 
+during these. The bold black lines in these plots show the average Vstall vs. Tstall characteristic 
+of all the tested HVAC units at the respective ambient temperatures. Note that, the legend 
+notation “Armstrong4TR22R” indicates that the tested unit is a 4-ton Armstrong unit with R22 
+refrigerant and a reciprocating compressor. 
+0
+
+
+===== PAGE 67 =====
+ 
+5-13 
+ 
+Figure 5-15 
+Vstall vs. Tstall characteristics of different HVAC units tested by EPRI at 85 deg F 
+0
+5
+10
+15
+Tstall (cycles)
+0.3
+0.35
+0.4
+0.45
+0.5
+0.55
+0.6
+0.65
+0.7
+Vstall (pu)
+85 deg F
+Armstrong4TR22R
+Lennox4TR22S
+Trane4TR22S
+Goodman3.5TR22S
+Lennox3TR22S
+Goodman5TR22S
+Carrier3.5TR410S
+Carrier4TR410S
+Coleman3.5T410S
+Coleman2.5T410S
+Trane2TR22R
+Trane2TR410S
+York4TR410S
+Average
+0
+
+
+===== PAGE 68 =====
+ 
+5-14 
+ 
+Figure 5-16 
+Vstall vs. Tstall characteristics of different HVAC units tested by EPRI at 100 deg F 
+0
+5
+10
+15
+Tstall (cycles)
+0.3
+0.35
+0.4
+0.45
+0.5
+0.55
+0.6
+0.65
+0.7
+Vstall (pu)
+100 deg F
+Armstrong4TR22R
+Lennox4TR22S
+Trane4TR22S
+Goodman3.5TR22S
+Lennox3TR22S
+Goodman5TR22S
+Carrier3.5TR410S
+Carrier4TR410S
+Coleman3.5T410S
+Coleman2.5T410S
+Trane2TR22R
+Trane2TR410S
+York4TR410S
+Average
+0
+
+
+===== PAGE 69 =====
+ 
+5-15 
+ 
+Figure 5-17 
+Vstall vs. Tstall characteristics of different HVAC units tested by EPRI at 110 deg F 
+To better visualize the different recorded Vstall vs. Tstall characteristics, the average 
+characteristics (bold black curve) in Figure 5-15 - Figure 5-17 and the characteristics in Figure 
+5-14 are plotted together in Figure 5-18. The data points corresponding to Figure 5-18 are 
+summarized in Table 5-2. The numerical values provided in Table 5-2 can be used as a guide for 
+finalizing the time dependent stall behavior, which shall complement the existing logic for stall 
+implementation in the motor D model. 
+0
+5
+10
+15
+Tstall (cycles)
+0.3
+0.35
+0.4
+0.45
+0.5
+0.55
+0.6
+0.65
+0.7
+Vstall (pu)
+110 deg F
+Armstrong4TR22R
+Lennox4TR22S
+Trane4TR22S
+Goodman3.5TR22S
+Lennox3TR22S
+Goodman5TR22S
+Carrier3.5TR410S
+Carrier4TR410S
+Coleman3.5T410S
+Coleman2.5T410S
+Trane2TR22R
+Trane2TR410S
+York4TR410S
+Average
+0
+
+
+===== PAGE 70 =====
+ 
+5-16 
+ 
+Figure 5-18 
+Combined plot for Vstall vs. Tstall characteristics 
+ 
+Table 5-2 
+Vstall vs. Tstall (average characteristics) 
+Tstall (cyc) 
+EPRI (85 deg F) 
+EPRI (100 deg F) 
+EPRI (115 deg F) 
+PSLF 
+Vstall 
+2 
+0.45 
+0.45 
+0.45 
+NA 
+3 
+0.48 
+0.49 
+0.50 
+0.46 
+6 
+0.49 
+0.51 
+0.52 
+0.53 
+9 
+0.52 
+0.53 
+0.56 
+0.55 
+12 
+0.53 
+0.55 
+0.57 
+0.565 
+15 
+NA 
+NA 
+NA 
+0.57 
+New Variable Speed Drive Model 
+In 2017, six variable frequency drives of different ratings across two manufacturers were tested 
+in the lab at EPRI [10]. The aim of the tests was to characterize and observe behavioral trends of 
+the drives, with default out of the box settings, to voltage sags of varying depth and duration. The 
+assumption was that the use of these default out of the box settings would be the norm for a 
+majority of drive interfaced loads connected on the power system. 
+An inspection of the measurement data revealed that the power electronic component shown in 
+Figure 3-11 may not be able to adequately capture the response of variable speed drives, which 
+have a significant difference in dynamic response as compared to common household electronic 
+loads. To address this, the measurement data from the lab tests were used to develop a new 
+0
+5
+10
+15
+Tstall (cycles)
+0.3
+0.35
+0.4
+0.45
+0.5
+0.55
+0.6
+0.65
+0.7
+Vstall (pu)
+85 def F
+100 deg F
+110 deg F
+PSLF
+0
+
+
+===== PAGE 71 =====
+ 
+5-17 
+positive sequence model meant to represent the aggregated response of variable speed drives 
+connected downstream of a distribution substation. In 2018, based upon discussions at the 
+WECC model validation working group (MVWG) a model structure was finalized.  
+Modeling approach 
+The block diagram for the proposed model is shown in Figure 5-19. The model utilizes 2 states 
+associated with 2 washout blocks to capture the response of VFDs as observed from the 
+laboratory test measurements. The washout blocks, with the limiters, are used to accurately 
+capture the effect of: 
+1. reverse biasing of drive diodes during a terminal voltage sag, and  
+2. the inrush drawn by the VFD during the terminal voltage recovery/increase. 
+During a voltage sag, the diodes at the front end of the drive get reverse biased causing the 
+current drawn by the drive to drop until the internal capacitor discharges into the end load and 
+the diode becomes forward biased again (if it does). This results in the active and reactive power 
+to drop first and then slowly rise back (like a washout action). When the voltage recovers after 
+the sag the partially discharged capacitor now draws an inrush causing the active and reactive 
+power to rise first and then slowly go down to the steady state value (again like a washout 
+action). Upon voltage recovery, the magnitude of inrush current drawn by the model is limited 
+by the limiters. 
+ 
+Figure 5-19 
+Block diagram of modeling approach 
+The parameter and variable list for this modeling approach is tabulated in Table 5-3. Internal to 
+the model, the actual values of active and reactive power limits are calculated as 
+𝑃𝑃max _𝑖𝑖𝑖𝑖𝑖𝑖𝑖𝑖𝑖𝑖𝑖𝑖𝑖𝑖𝑖𝑖= 𝑃𝑃𝑚𝑚𝑚𝑚𝑚𝑚∗𝑃𝑃0 ∗𝑀𝑀𝑀𝑀𝑀𝑀 
+𝑄𝑄max _𝑖𝑖𝑖𝑖𝑖𝑖𝑖𝑖𝑖𝑖𝑖𝑖𝑖𝑖𝑖𝑖= 𝑄𝑄𝑚𝑚𝑚𝑚𝑚𝑚∗𝑄𝑄0 ∗𝑀𝑀𝑀𝑀𝑀𝑀 
+(Eq. 5) 
+0
+
+
+===== PAGE 72 =====
+ 
+5-18 
+It is important to mention that as of preparation of this document, this model is yet to be included 
+in any commercial power system simulator. Certain aspects of the model are expected to change 
+during the course of implementation and benchmarking of the model.  
+Table 5-3 
+Parameter and variable list 
+Name 
+Description 
+Sample Value 
+𝑉𝑉𝑡𝑡 
+Terminal voltage (pu) 
+Input 
+𝐾𝐾1 
+Washout gains for active power 
+0.8 
+𝜏𝜏1 
+Time constants for active power (s) 
+0.2 
+𝐾𝐾2 
+Washout gains for reactive power 
+0.03 
+𝜏𝜏2 
+Time constant for reactive power (s) 
+0.05 
+𝑀𝑀𝑀𝑀𝑀𝑀 
+Multiplier value from partial trip 
+characteristic 
+Obtained from partial trip block (see 
+Figure 5-22) 
+𝑃𝑃𝑚𝑚𝑚𝑚𝑚𝑚 
+Maximum value of active power (pu) 
+1.1 
+𝑄𝑄𝑚𝑚𝑚𝑚𝑚𝑚 
+Maximum value of reactive power 
+(pu) 
+1.1 
+𝑃𝑃0 
+Steady state load active power (pu) 
+Evaluated during initialization 
+𝑄𝑄0 
+Steady state load reactive power 
+(pu) 
+Evaluated during initialization 
+Representative results 
+Lab tests were performed on drives from two manufacturers with the ratings of: 
+1. Manufacturer 1: 30 HP – 480V line – line.  
+2. Manufacturer 2: 30 HP – 480V line – line. 
+3. Manufacturer 2: 30 HP – 240V line – line. 
+4. Manufacturer 2: 60 HP – 480V line – line. 
+5. Manufacturer 2: 125 HP – 480V line – line. 
+6. Manufacturer 2: 100 HP – 480V line – line. 
+The different voltage sags that were used to test the drives are defined in Table 5-4. 
+Table 5-4 
+Lab tests run on the drives 
+Depth 
+Duration 
+0.95pu 
+120 cycles 
+0.9pu 
+120 cycles 
+0.85pu 
+120 cycles 
+0.8pu 
+120 cycles 
+0.75pu 
+120 cycles 
+0.7pu 
+8 cycles 
+⁞ 
+⁞ 
+0.5pu 
+8 cycles 
+0.5pu 
+120 cycles or until trip 
+⁞ 
+⁞ 
+0.2pu 
+8 cycles 
+0.2pu 
+120 cycles or until trip 
+0
+
+
+===== PAGE 73 =====
+ 
+5-19 
+From the tests conducted, a profile of the trip characteristic was constructed as shown in Figure 
+5-20. 
+ 
+Figure 5-20 
+Profile of trip characteristic 
+The characteristics can also be constructed as shown in Figure 5-21 for specific sag durations. 
+The values on y axis of this figure are calculated as the ratio of sum of the ratings of the drives 
+that were able to ride through the sag to the sum of ratings of all drives used in the tests. 
+0
+
+
+===== PAGE 74 =====
+ 
+5-20 
+ 
+Figure 5-21 
+Trip characteristics for specific sag durations 
+The total horsepower rating of all drives tested is 375 HP ((30*3) + 60 + 125 + 100). Assuming a 
+generic 8 cycle fault clearing time, Table 5-5 can be constructed. 
+Table 5-5 
+Derivation of per unit ride through parameter values 
+Sag level (pu) 
+Drive tripped (HP) 
+Per unit of ride 
+through 
+Vsag > 0.75pu 
+0 
+375/375 = 1.00pu 
+0.65 < Vsag < 0.75 
+30 
+340/375 = 0.91pu 
+Vsag < 0.65 
+30 + 100 = 130 
+245/375 = 0.65pu 
+Based on these observed trip characteristics, the partial trip characteristic was setup as shown in 
+Figure 5-22 with parameter values as tabulated in Table 5-6. The structure of this partial trip 
+characteristic is the same as the one included in the recently approved aggregated distributed 
+energy resource der_a model [11]. A detailed version of the aggregated VFD model can be 
+found in [12]. 
+0
+
+
+===== PAGE 75 =====
+ 
+5-21 
+ 
+Figure 5-22 
+Partial trip characteristic 
+ 
+Table 5-6 
+Parameter description for partial trip characteristic 
+Name 
+Description 
+Sample Value 
+𝑣𝑣𝑙𝑙0 
+Low voltage threshold 0 (pu) 
+0.55 
+𝑡𝑡𝑣𝑣𝑙𝑙0 
+Timer associated with 𝑣𝑣𝑙𝑙0 (s) 
+1.05 
+𝑣𝑣𝑙𝑙1 
+Low voltage threshold 1 (pu) 
+0.75 
+𝑡𝑡𝑡𝑡𝑙𝑙1 
+Timer associated with 𝑣𝑣𝑙𝑙1 (s) 
+0.13 
+𝑉𝑉𝑟𝑟𝑟𝑟𝑟𝑟𝑟𝑟𝑟𝑟 
+Fraction of drives remaining online 
+0.65 
+To compare the performance of the model with the test results, the model was constructed as 
+standalone equations in Python. Some of the comparative results of the models and the test data 
+are shown in Figure 5-23 – Figure 5-26. The legend entry PSLF refers to the response of the 
+power electronic component in the composite load model. 
+ 
+0
+
+
+===== PAGE 76 =====
+ 
+5-22 
+ 
+Figure 5-23 
+Comparison of active power for a 120 cycle 0.9pu voltage sag 
+ 
+Figure 5-24 
+Comparison of reactive power for a 120 cycle 0.9pu voltage sag 
+0
+
+
+===== PAGE 77 =====
+ 
+5-23 
+ 
+Figure 5-25 
+Comparison of active power for an 8 cycle 0.4pu voltage sag 
+ 
+Figure 5-26 
+Comparison of reactive power for an 8 cycle 0.4pu voltage sag 
+References 
+[1] 
+Load characteristics LD1PAC, Powerworld documentation, available online: 
+https://www.powerworld.com/WebHelp/Content/TransientModels_PDF/Load/Load_Char
+acteristic/Load%20Characteristic%20LD1PAC.pdf 
+[2] 
+B. Lesieutre, D. Kosterev, J. Undrill, “Phasor modeling approach for single phase A/C 
+motors,” Proc. of 2008 IEEE PES General Meeting, 20-24 July 2008.  
+[3] 
+Load modeling transmission research, prepared for CIEE by LBNL, available online: 
+https://web.eecs.umich.edu/~hiskens/publications/LM_Final_Report.pdf 
+0
+
+
+===== PAGE 78 =====
+ 
+5-24 
+[4] 
+A. M. Stankovich, B. Lesieutre, T. Aydin, “Modeling and analysis of single-phase 
+induction machines with dynamic phasors,” IEEE Transactions on Power System, vol. 14, 
+no. 1, pp. 9-14, 1999. 
+[5] 
+P. Kundur, Power system stability and control, McGraw Hill publications.  
+[6] 
+End Use Testing at BPA, NERC-DOE FIDVR Workshop, available online: http://eta-
+publications.lbl.gov/sites/default/files/4d-kosterev-end-use-testing-at-bpa.pdf 
+[7] 
+GE PSLF ™ User manual 
+[8] 
+Technical Update on Load Modeling: EPRI, Palo Alto, CA: 2017. 3002010754. 
+[9] 
+Technical Update on Load Modeling: EPRI, Palo Alto, CA: 2018. 3002013562. 
+[10] Technical Update on Load Modeling: EPRI, Palo Alto, CA: 2017. 3002010754. 
+[11] The New Aggregated Distributed Energy Resources (der_a) Model for Transmission 
+Planning Studies: EPRI, Palo Alto, CA: 2018, 3002013498. 
+[12] P. Mitra, D. Ramasubramanian, A. Gaikwad, J. Johns, “Modeling the aggregated response 
+of variable frequency drives (VFDs) for power system dynamic studies,” IEEE Trans. On 
+Power System, vol. 35, no. 4, pp 2631 – 2641, July 2020.  
+ 
+ 
+0
+
+
+===== PAGE 79 =====
+ 
+A-1 
+A  
+COMPOSITE LOD MODEL COMPONENTS 
+Dynamic model of 3 phase induction motors (Motor A, Motor B and Motor C) 
+The block diagram of the 3-phase induction motor modeled in PSLF™ is shown in Figure A-1. 
+The block diagram of the 3-phase induction motor modeled in PSS®E is shown in Figure A-2. 
+The models in PSLF™ and PSS®E are slightly different, in that, PSS®E uses a leakage 
+impedance, whereas the PSLF™ models makes an approximation and does not require this 
+quantity. Presently, PSS®E does not require the leakage reactance Xl as an input from the user 
+and assumes Xl as 0.8 Lp. Powerworld has the option of handling both these models in its 
+Powerworld Simulator.  
+ 
+Figure A-1 
+Block diagram of PSLF motorw model used to model motor A, B and C in the composite load 
+model (Source: GE PSLF™ User Manual) 
+ 
+0
+
+
+===== PAGE 80 =====
+ 
+A-2 
+ 
+Figure A-2 
+Block diagram of PSS®E induction motor model used to model motor A, B and C in the composite 
+load model (Source: Siemens PTI PSS®E Program Application Guide Volume II) 
+The equations for the 5th order model based on Figure A-1 is as follows: 
+𝑑𝑑𝑑𝑑𝑑𝑑 ′ 
+ 𝑑𝑑𝑑𝑑 = −
+1
+ 𝑇𝑇𝑇𝑇0 [𝐸𝐸𝐸𝐸 ′ + (𝐿𝐿𝐿𝐿 − 𝐿𝐿𝐿𝐿)𝑖𝑖𝑖𝑖] −𝜔𝜔0 ∙ 𝑠𝑠 ∙ 𝐸𝐸𝐸𝐸′ 
+(Eq. A-1) 
+𝑑𝑑𝑑𝑑𝑑𝑑 ′
+𝑑𝑑𝑑𝑑
+= −
+1
+ 𝑇𝑇𝑇𝑇0 [𝐸𝐸𝐸𝐸 ′ −(𝐿𝐿𝐿𝐿 − 𝐿𝐿𝐿𝐿)𝑖𝑖𝑖𝑖] + 𝜔𝜔0 ∙ 𝑠𝑠 ∙ 𝐸𝐸𝐸𝐸 ′ 
+(Eq. A-2) 
+𝑑𝑑𝑑𝑑𝑑𝑑 ′′ 
+𝑑𝑑𝑑𝑑
+= ቀ
+1
+𝑇𝑇𝑇𝑇𝑇𝑇0 −
+1
+𝑇𝑇𝑇𝑇0 ቁ𝐸𝐸𝐸𝐸 ′ −ቀ
+𝐿𝐿𝐿𝐿−𝐿𝐿𝐿𝐿 
+𝑇𝑇𝑇𝑇0 −
+𝐿𝐿𝐿𝐿−𝐿𝐿𝐿𝐿𝐿𝐿
+𝑇𝑇𝑇𝑇𝑇𝑇0 ቁ𝑖𝑖𝑖𝑖 +  𝜔𝜔0 ∙ (1 −𝑇𝑇𝑇𝑇0) ∙ 𝐸𝐸𝐸𝐸 ′ −
+ 
+1
+𝑇𝑇𝑇𝑇𝑇𝑇0 𝐸𝐸𝐸𝐸 ′′ − 𝜔𝜔0 ∙ 𝑠𝑠 ∙ 𝐸𝐸𝐸𝐸”  
+(Eq. A-3) 
+0
+
+
+===== PAGE 81 =====
+ 
+A-3 
+𝑑𝑑𝑑𝑑𝑑𝑑 ′′ 
+𝑑𝑑𝑑𝑑
+= ൬
+1
+𝑇𝑇𝑇𝑇𝑇𝑇0 −
+1
+𝑇𝑇𝑇𝑇0 ൰𝐸𝐸𝐸𝐸 ′ + ൬𝐿𝐿𝐿𝐿−𝐿𝐿𝐿𝐿 
+𝑇𝑇𝑇𝑇0 
+−𝐿𝐿𝐿𝐿−𝐿𝐿𝐿𝐿𝐿𝐿
+𝑇𝑇𝑇𝑇𝑇𝑇0 ൰ 𝑖𝑖𝑖𝑖 +  𝜔𝜔0 ∙ (1 −𝑇𝑇𝑇𝑇0) 
+∙ 𝐸𝐸𝐸𝐸 ′ − 
+1
+𝑇𝑇𝑇𝑇𝑇𝑇0 𝐸𝐸𝐸𝐸 ′′ +  𝜔𝜔0 ∙ 𝑠𝑠 ∙ 𝐸𝐸𝐸𝐸” 
+(Eq. A-4) 
+𝑑𝑑𝑑𝑑
+𝑑𝑑𝑑𝑑= −𝐸𝐸𝐸𝐸 ′′𝑖𝑖𝑖𝑖+ 𝐸𝐸𝐸𝐸 ′′𝑖𝑖𝑖𝑖− 𝑇𝑇𝑇𝑇0𝜔𝜔0𝐸𝐸𝐸𝐸𝐸𝐸𝐸𝐸  
+2𝐻𝐻
+ 
+(Eq. A-5) 
+𝑖𝑖𝑖𝑖= 𝑅𝑅𝑅𝑅(𝑉𝑉𝑉𝑉−𝐸𝐸𝐸𝐸 ′′) + 𝐿𝐿𝐿𝐿𝐿𝐿(𝑉𝑉𝑉𝑉−𝐸𝐸𝐸𝐸 ′′) 
+𝑅𝑅𝑅𝑅2 + 𝐿𝐿𝐿𝐿𝐿𝐿2
+ 
+(Eq. A-6) 
+𝑖𝑖𝑖𝑖= 𝑅𝑅𝑅𝑅(𝑉𝑉𝑉𝑉−𝐸𝐸𝐸𝐸 ′′) −𝐿𝐿𝐿𝐿𝐿𝐿(𝑉𝑉𝑉𝑉−𝐸𝐸𝐸𝐸 ′′) 
+𝑅𝑅𝑅𝑅2 + 𝐿𝐿𝐿𝐿𝐿𝐿2
+ 
+(Eq. A-7) 
+𝑝𝑝3∅= 𝑅𝑅𝑅𝑅(𝑉𝑉𝑉𝑉 2 + 𝑉𝑉𝑉𝑉 2 −𝑉𝑉𝑉𝑉𝑉𝑉𝑉𝑉 ′′ −𝑉𝑉𝑉𝑉𝑉𝑉𝑉𝑉 ′′) −𝐿𝐿𝐿𝐿𝐿𝐿(𝑉𝑉𝑉𝑉𝑉𝑉𝑉𝑉 ′′ −𝑉𝑉𝑉𝑉𝑉𝑉𝑉𝑉 ′′)] 
+𝑅𝑅𝑅𝑅2  + 𝐿𝐿𝐿𝐿𝐿𝐿2
+ 
+(Eq. A-8) 
+𝑞𝑞3∅= 𝐿𝐿𝐿𝐿𝐿𝐿(𝑉𝑉𝑉𝑉 2 + 𝑉𝑉𝑉𝑉 2 −𝑉𝑉𝑉𝑉𝑉𝑉𝑉𝑉 ′′ −𝑉𝑉𝑉𝑉𝑉𝑉𝑉𝑉 ′′) −𝑅𝑅𝑅𝑅(𝑉𝑉𝑉𝑉𝑉𝑉𝑉𝑉 ′′ −𝑉𝑉𝑉𝑉𝑉𝑉𝑉𝑉 ′′) )] 
+𝑅𝑅𝑅𝑅2 + 𝐿𝐿𝐿𝐿𝐿𝐿2
+ 
+(Eq. A-9) 
+Dynamic model for Motor D 
+The performance-based HVAC model motor D has three distinct running states. 
+i. 
+Region 1: Terminal voltage (Vt)> Compressor break down voltage (Vbrk). 
+ii. 
+Region 2: Stall Voltage (Vstall) <Terminal voltage (Vt) ≤Compressor break down 
+voltage (Vbrk). 
+iii. 
+Region 3: Terminal voltage (Vt) ≤ Stall Voltage (Vstall) 
+Region 1 and region 2 are running states, while region 3 represents the stalled condition of the 
+AC model. The active and the reactive power consumed by the single-phase AC during the 
+different running states are as follows: 
+i. 
+Region 1 
+0
+1
+)
+(
+1
+P
+V
+V
+Kp
+P
+brk
+t
+Np
+run
++
+−
+=
+ 
+(Eq. A-10) 
+0
+1
+)
+(
+1
+Q
+V
+V
+Kq
+Q
+brk
+t
+Nq
+run
++
+−
+=
+ 
+(Eq. A-11) 
+ii. 
+Region 2 
+0
+2
+)
+(
+2
+P
+V
+V
+Kp
+P
+t
+brk
+Np
+run
++
+−
+=
+ 
+(Eq. A-12) 
+0
+2
+)
+(
+2
+Q
+V
+V
+Kq
+Q
+t
+brk
+Nq
+run
++
+−
+=
+   
+(Eq. A-13) 
+iii. 
+Region 3 
+stall
+t
+stall
+G
+V
+P
+2
+=
+ 
+(Eq. A-14) 
+stall
+t
+stall
+B
+V
+Q
+2
+=
+   
+(Eq. A-15) 
+0
+
+
+===== PAGE 82 =====
+ 
+A-4 
+Static Load Model 
+𝑃𝑃= 𝑃𝑃𝑜𝑜ቆ𝑃𝑃1𝑐𝑐൬
+𝑉𝑉
+𝑉𝑉𝑉𝑉𝑉𝑉𝑉𝑉൰
+𝑃𝑃1𝑒𝑒
++ 𝑃𝑃2𝑐𝑐൬
+𝑉𝑉
+𝑉𝑉𝑉𝑉𝑉𝑉𝑉𝑉൰
+𝑃𝑃2𝑒𝑒
++ 𝑃𝑃3ቇ(1 + 𝑃𝑃𝑃𝑃∗𝐷𝐷𝐷𝐷) 
+(Eq. A-16) 
+𝑄𝑄= 𝑄𝑄𝑜𝑜ቆ𝑄𝑄1𝑐𝑐൬
+𝑉𝑉
+𝑉𝑉𝑉𝑉𝑉𝑉𝑉𝑉൰
+𝑄𝑄1𝑒𝑒
++ 𝑄𝑄2𝑐𝑐൬
+𝑉𝑉
+𝑉𝑉𝑉𝑉𝑉𝑉𝑉𝑉൰
+𝑄𝑄2𝑒𝑒
++ 𝑄𝑄3ቇ(1 + 𝑄𝑄𝑄𝑄∗𝐷𝐷𝐷𝐷) 
+𝑃𝑃𝑜𝑜= 𝑃𝑃𝑃𝑃𝑃𝑃𝑃𝑃𝑃𝑃(1 −𝐹𝐹𝐹𝐹𝐹𝐹−𝐹𝐹𝐹𝐹𝐹𝐹−𝐹𝐹𝐹𝐹𝐹𝐹−𝐹𝐹𝐹𝐹𝐹𝐹−𝐹𝐹𝐹𝐹𝐹𝐹) 
+𝑄𝑄𝑜𝑜= 𝑃𝑃𝑜𝑜∗𝑎𝑎𝑎𝑎𝑎𝑎𝑎𝑎(𝑝𝑝𝑝𝑝𝑝𝑝𝑝𝑝𝑝𝑝 𝑓𝑓𝑓𝑓𝑓𝑓𝑓𝑓𝑓𝑓𝑓𝑓) 
+𝑃𝑃3 = 1 −𝑃𝑃1𝑐𝑐−𝑃𝑃2𝑐𝑐 
+𝑄𝑄3 = 1 −𝑄𝑄1𝑐𝑐−𝑄𝑄2𝑐𝑐 
+where, 
+P1c, Q1c 
+Fraction of constant current load with P1e =1 and Q1e =1 
+P2c, Q2c 
+Percentage of constant current impedance with P1e =2 and Q1e =2 
+P3, Q3 
+Percentage of constant power load 
+Pf, Qf 
+Fraction of static load that is frequency dependent  
+Df 
+Frequency dependency factor 
+ 
+ 
+0
+
+
+===== PAGE 83 =====
+ 
+B-1 
+B  
+RULES OF ASSOCIATION 
+Table B-1 
+LCET rules of association for downtown commercial building loads 
+End Use 
+Motor A 
+Motor B 
+Motor C 
+Motor D 
+pe 
+z 
+i 
+p 
+Computer Use 
+0 
+0 
+0 
+0 
+1 
+0 
+0 
+0 
+Cooking 
+0 
+0 
+0 
+0 
+0 
+1 
+0 
+0 
+Cooling 
+0.1325 
+0.4725 
+0.1375 
+0.035 
+0.2225 
+0 
+0 
+0 
+Heating 
+0 
+0 
+0 
+0 
+0 
+1 
+0 
+0 
+Lighting 
+0 
+0 
+0 
+0 
+0 
+0 
+1 
+0 
+Miscellaneous Use 
+0 
+0 
+0 
+0 
+0.5 
+0.5 
+0 
+0 
+Office Equipment 
+0 
+0 
+0 
+0 
+1 
+0 
+0 
+0 
+Refrigeration 
+0.72 
+0.09 
+0.09 
+0.1 
+0 
+0 
+0 
+0 
+Ventilation 
+0 
+0.57 
+0 
+0 
+0.43 
+0 
+0 
+0 
+Water Heating 
+0 
+0 
+0 
+0 
+0 
+1 
+0 
+0 
+ 
+Table B-2 
+LCET rules of association for all commercial loads except downtown building loads 
+End Use 
+Motor A 
+Motor B 
+Motor C 
+Motor D 
+pe 
+z 
+i 
+p 
+Computer Use 
+0 
+0 
+0 
+0 
+1 
+0 
+0 
+0 
+Cooking 
+0 
+0 
+0 
+0 
+0 
+1 
+0 
+0 
+Cooling 
+0.65 
+0.05 
+0.1 
+0 
+0.2 
+0 
+0 
+0 
+Heating 
+0 
+0 
+0 
+0 
+0 
+1 
+0 
+0 
+Lighting 
+0 
+0 
+0 
+0 
+0 
+0 
+1 
+0 
+Miscellaneous Use 
+0 
+0 
+0 
+0 
+0.5 
+0.5 
+0 
+0 
+Office Equipment 
+0 
+0 
+0 
+0 
+1 
+0 
+0 
+0 
+Refrigeration 
+0.8 
+0.1 
+0.1 
+0 
+0 
+0 
+0 
+0 
+Ventilation 
+0 
+0.7 
+0 
+0 
+0.3 
+0 
+0 
+0 
+Water Heating 
+0 
+0 
+0 
+0 
+0 
+1 
+0 
+0 
+ 
+ 
+ 
+0
+
+
+===== PAGE 84 =====
+ 
+B-2 
+Table B-3 
+LCET rules of association for residential loads 
+End use 
+Motor A 
+Motor B 
+Motor C 
+Motor D 
+pe 
+z 
+i 
+Clothes Dryer 
+0 
+0 
+0.4 
+0 
+0 
+0.6 
+0 
+Cooking 
+0 
+0 
+0 
+0 
+0 
+1 
+0 
+Cooling 
+0 
+0.1 
+0.1 
+0.8 
+0 
+0 
+0 
+Dishwasher 
+0 
+0.5 
+0 
+0 
+0 
+0.5 
+0 
+Freezer 
+0 
+0 
+0 
+1 
+0 
+0 
+0 
+Furnace Fans 
+0 
+1 
+0 
+0 
+0 
+0 
+0 
+Heating 
+0 
+0 
+0 
+0.1 
+0 
+0.9 
+0 
+Lighting 
+0 
+0 
+0 
+0 
+0 
+1 
+0 
+Other 
+0 
+0 
+0 
+0 
+0.5 
+0.5 
+0 
+Hot Tubs and Spas 
+0 
+0 
+1 
+0 
+0 
+0 
+0 
+Pool Pumps and Filters 
+0 
+0 
+1 
+0 
+0 
+0 
+0 
+Personal Computers 
+0 
+0 
+0 
+0 
+1 
+0 
+0 
+Refrigeration 
+0 
+0 
+0 
+1 
+0 
+0 
+0 
+Television 
+0 
+0 
+0 
+0 
+1 
+0 
+0 
+Water Heating 
+0 
+0 
+0 
+0 
+0 
+1 
+0 
+ 
+Table B-4 
+LMDT rules of association for al commercial loads except downtown office or lodging 
+End Use 
+Motor A 
+Motor B 
+Motor C 
+Motor D 
+pe 
+z 
+i 
+Heating 
+0 
+0 
+0 
+0 
+0 
+1 0 
+Cooling 
+0.65 
+0.05 
+0.1 
+0 
+0.2 
+0 0 
+Vent 
+0 
+0.7 
+0 
+0 
+0.3 
+0 0 
+WaterHeat 
+0 
+0 
+0 
+0 
+0 
+1 0 
+Cooking 
+0 
+0 
+0 
+0 
+0 
+1 0 
+Refrig 
+0.8 
+0.1 
+0.1 
+0 
+0 
+0 0 
+ExtLight 
+0 
+0 
+0 
+0 
+0 
+0 1 
+IntLight 
+0 
+0 
+0 
+0 
+0 
+0 1 
+OfficeEquip 
+0 
+0 
+0 
+0 
+1 
+0 0 
+Misc 
+0 
+0 
+0 
+0 
+0 
+1 0 
+Process 
+0 
+0.3 
+0 
+0 
+0.3 
+0.4 0 
+Motors 
+0 
+1 
+0 
+0 
+0 
+0 0 
+AirComp 
+1 
+0 
+0 
+0 
+0 
+0 0 
+ 
+ 
+ 
+ 
+0
+
+
+===== PAGE 85 =====
+ 
+B-3 
+Table B-5 
+LMDT rules of association for commercial loads in WECC 
+End Use 
+Motor A 
+Motor B 
+Motor C 
+Motor D 
+pe 
+z 
+i 
+Heating 
+0.3 
+ 
+ 
+ 
+ 
+0.7 
+ 
+Cooling 
+0.65 
+0.05 
+0.1 
+ 
+0.2 
+ 
+ 
+Vent 
+ 
+0.7 
+ 
+ 
+0.3 
+ 
+ 
+WaterHeat 
+ 
+ 
+ 
+ 
+1 
+ 
+Cooking 
+ 
+0 
+ 
+ 
+0 
+1 
+ 
+Refrig 
+0.8 
+0.1 
+0.1 
+ 
+ 
+ 
+ 
+ExtLight 
+ 
+ 
+ 
+ 
+ 
+ 
+1 
+IntLight 
+ 
+ 
+ 
+ 
+ 
+ 
+1 
+OfficeEquip 
+ 
+ 
+ 
+1 
+ 
+ 
+Misc 
+ 
+ 
+ 
+ 
+1 
+ 
+ 
+Process 
+ 
+0.3 
+0.2 
+ 
+0.5 
+ 
+ 
+Motors 
+ 
+0.5 
+0.5 
+ 
+ 
+ 
+ 
+AirComp 
+1 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Table B-6 
+LMDT rules of association for residential feeders in WECC 
+End Use 
+Motor A 
+Motor B 
+Motor C 
+Motor D 
+Motor A 
+Z 
+I 
+Heating 
+  
+  
+  
+0.3 
+  
+0.7 
+  
+Cooling 
+  
+0.1 
+  
+0.85 
+0.05 
+  
+  
+Vent 
+  
+1 
+  
+  
+  
+  
+  
+WaterHeat 
+  
+  
+  
+  
+  
+1 
+  
+Cooking 
+  
+0.15 
+  
+  
+  
+0.85 
+  
+Refrig 
+  
+  
+  
+1 
+  
+  
+  
+ExtLight 
+  
+  
+  
+  
+  
+1 
+  
+IntLight 
+  
+  
+  
+  
+  
+1 
+  
+Electronics 
+  
+  
+  
+  
+1 
+  
+  
+Appliances 
+  
+  
+0.2 
+  
+0.1 
+0.7 
+  
+Misc 
+  
+  
+0.3 
+  
+0.2 
+0.5 
+  
+Vehicle 
+  
+  
+  
+  
+1 
+  
+  
+ 
+0
+
+
+===== PAGE 86 =====
+0
+
+
+===== PAGE 87 =====
+0
+
+
+===== PAGE 88 =====
+ 
+Electric Power Research Institute 
+3420 Hillview Avenue, Palo Alto, California 94304-1338 • PO Box 10412, Palo Alto, California 94303-0813 • USA 
+800.313.3774 • 650.855.2121 • askepri@epri.com • www.epri.com 
+ 
+The Electric Power Research Institute, Inc. 
+(EPRI, www.epri.com) conducts research and 
+development relating to the generation, delivery and 
+use of electricity for the benefit of the public. An 
+independent, nonprofit organization, EPRI brings 
+together its scientists and engineers as well as 
+experts from academia and industry to help address 
+challenges 
+in 
+electricity, 
+including 
+reliability, 
+efficiency, affordability, health, safety and the 
+environment. EPRI also provides technology, policy 
+and economic analyses to drive long-range 
+research and development planning, and supports 
+research in emerging technologies. EPRI members 
+represent 90% of the electricity generated and 
+delivered in the United States with international 
+participation extending to nearly 40 countries. 
+EPRI’s principal offices and laboratories are located 
+in Palo Alto, Calif.; Charlotte, N.C.; Knoxville, Tenn.; 
+Dallas, Texas; Lenox, Mass.; and Washington, D.C. 
+Together…Shaping the Future of Electricity 
+© 2020 Electric Power Research Institute (EPRI), Inc. All rights reserved. 
+Electric Power Research Institute, EPRI, and TOGETHER…SHAPING THE 
+FUTURE OF ELECTRICITY are registered service marks of the Electric 
+Power Research Institute, Inc. 
+3002019209 
+ 
+0

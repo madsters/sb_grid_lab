@@ -1,0 +1,47 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{siunitx}
+\setlength{\parskip}{4pt}
+\setlength{\parindent}{0pt}
+
+\title{\vspace{-2em}Higher Inertia Motors Exist in the NEM:\\
+\large a Bound and What Measurements Imply}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-3em}
+
+\paragraph{The quantity.}
+The aggregate inertia constant of a composite-load-model (CLM) bus is linear in
+the model's own parameters,
+\begin{equation}
+  H_{\mathrm{load}} \;=\; \sum_{i\in\{A,B,C\}} \frac{F_{m_i}}{\mathrm{LF}_i}\,H_i,
+  \label{eq:hload}
+\end{equation}
+with $F_{m_i}$ the load fraction on motor class $i$, $\mathrm{LF}_i$ its loading
+factor, $H_i$ its inertia constant. Only motors A, B, C carry inertia; static
+(ZIP), electronic and Motor~D components contribute none.
+
+\paragraph{The bound, inverted.}
+Let $F_m=\sum_i F_{m_i}\le 1$ and $H_{\max}=\max_i H_i$. With a common loading
+factor ($\mathrm{LF}=0.75$ in AEMO's set), \eqref{eq:hload} is bounded by its
+largest term, $H_{\mathrm{load}}\le (F_m/\mathrm{LF})\,H_{\max}$, so a measured
+load inertia demands an individual motor inertia of at least
+\begin{equation}
+  H_{\max} \;\ge\; \frac{\mathrm{LF}}{F_m}\;H_{\mathrm{load}}^{\mathrm{meas}}.
+  \label{eq:inverse}
+\end{equation}
+The measured NEM/GB demand-side inertia,
+$H_{\mathrm{load}}^{\mathrm{meas}}\approx\SIrange{1.4}{1.75}{\second}$, dwarfs the
+$\approx\SI{0.17}{\second}$ ($\beta\approx\SI{4}{\percent}$) that \eqref{eq:hload}
+returns on AEMO's set. The shortfall is in $H$ --- even at the limit $F_m\!\to\!1$, \eqref{eq:inverse} needs
+$H_{\max}\gtrsim\SI{1.1}{\second}$, already above every value AEMO assigns or
+recommends ($H_B=\SI{0.5}{\second}$, recommended ${\le}\,\SI{0.8}{\second}$).
+
+\paragraph{What the gap points to.}
+The composite load model parameters do not reflect load inertia observed in the NEM.
+The gap points to the existence of higher inertia motors in the NEM than those represented in AEMO's set.
+\end{document}

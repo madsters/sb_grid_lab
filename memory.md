@@ -13,6 +13,10 @@ and shared infrastructure. Convention established 2026-07-14.
   current `cmld_3m` gaps (see below).
 - **cmld_inertia_sensitivity** — `studies/cmld_inertia_sensitivity.md` — established the
   realistic operating corners + matched-MW / flat-baseline conventions the other studies reuse.
+- **effective_inertia** — `studies/effective_inertia/` (`plan.md` + `memory.md`) — tests whether
+  the draft paper's `H_load` closed form scales with per-motor H and fractions, and calibrates the
+  stored-vs-delivered response factor. Realises the paper-facing item below. Reference materials in
+  `source_docs/`. Scaffolding only so far.
 
 ## Working rules & conventions
 - **Hand-authored `.slx` models:** parameter edits are allowed, **structure changes are banned**, and
@@ -44,12 +48,34 @@ closed-form `H_load` ultimately want this.
 ## Research directions (paper-facing)
 
 ### Does the effective-inertia formulation scale with per-motor H and fractions?
-Vary the **individual motor inertia contributions (H_A / H_B / H_C)** and their **load
-fractions**, and check that the **effective-inertia (`H_eff` / `H_load`) formulation from the
-draft paper scales correctly** as the motor mix becomes heterogeneous. Specifically: confirm
-the MVA-weighted `H_eq = Σ(S_i·H_i)/ΣS_i` and the window-dependent `H_eff` back-computed from
-RoCoF (reducing_cmld plan §5.6) track the measured effective system inertia when the per-motor
-H and fractions are no longer uniform. The reducing_cmld rig currently fixes H common across
-A/B/C (so `H_eq` is trivially the common H, and L1 tests only the torque/electrical
-abstraction) — this item deliberately breaks that uniformity to stress-test the formula.
-Ties directly to the PowerTech `H_load` contribution.
+**Now scaffolded** as `studies/effective_inertia/` — brief in its `plan.md`, working state in its
+`memory.md`, reference materials pulled into its `source_docs/` (draft paper + case-study note +
+parsed EPRI/WECC/arXiv/AEMO/Reactive sources).
+
+Vary the **individual motor inertia constants (H_A / H_B / H_C)** and their **motor load
+fractions (F_mi)**, and check the draft paper's closed-form load-inertia contribution scales
+correctly as the motor mix becomes heterogeneous. The formula under test (paper `main.tex`
+`eq:Hload`) is normalised by **total bus demand** `P_total`:
+`H_load = Σ_{i∈{A,B,C}} (F_mi/LF_i)·H_i`, with stored energy `E_k,load = H_load·P_total =
+Σ_i H_i·S_Bi`. Linear in both `F_mi` and `H_i`; static/electronic/Motor-D carry no inertia
+(they enter only via `P_total`).
+
+**Correction (was wrong in the earlier draft of this item):** `H_load` is NOT the reducing_cmld
+`H_eq = Σ(S_i·H_i)/ΣS_i`. `H_eq` is MVA-weighted over the **motor MVA only** (for collapsing
+A/B/C into one equivalent motor); `H_load` normalises by **total bus P**. They coincide only when
+the whole bus is motor load — do not conflate them.
+
+Two tests: **(T1)** confirm the rig's initialised motor MVA reproduces `E_k,load`/`H_load` as the
+mix goes heterogeneous (open-loop, no dynamics); **(T2)** back-compute the delivered effective
+inertia `H_eff` from RoCoF (reducing_cmld plan §5.6, window-dependent) and calibrate the
+**response factor `r = H_eff/H_load`**. The paper (§Discussion "From Stored Energy to Delivered
+Response") notes `H_load` is a stored-energy **upper bound** — motors couple to frequency only via
+the slip–torque characteristic, so deliver less/slower than synchronous inertia — and flags `r` as
+future work; T2 is that work. Empirical anchors: ~1.4 s measured NEM demand-side inertia
+(Reactive Technologies) vs the ~0.17 s the formula returns on AEMO's set (inertia_ceiling_note).
+
+reducing_cmld fixes H common across A/B/C (so `H_eq` is trivially the common H, and L1 tests only
+the torque/electrical abstraction) — this item deliberately breaks that uniformity. **Open
+dependency:** confirm `cmld_3m` exposes independent `H_A/H_B/H_C` + fractions as `model_vars`
+before any run (may hit the structure-change ban — ask first). Ties directly to the PowerTech
+`H_load` contribution.
