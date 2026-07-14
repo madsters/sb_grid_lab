@@ -1,0 +1,10 @@
+parameter,value,unit,note
+phi,0.8,-,motor fraction of total load
+H,2.5,s,motor inertia constant (common A/B/C)
+Rr_scale,0.5,-,rotor-R multiplier on AEMO baseline
+LFm,0.7033,-,"load factor, secant-pinned to 1 pu draw"
+CMLD_ElecP,293.1,MW,electronic (constant-P) block
+P0_static,187.9,MW,static ZIP block active
+Q0_static,37.6,MVAr,static ZIP block reactive
+Pnm_total,481.0,MW,total non-motor load (1-phi)*P_W
+CapC,0.037092,F,shunt cap (internal 11 kV bus)

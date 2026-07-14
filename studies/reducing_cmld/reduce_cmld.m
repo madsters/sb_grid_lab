@@ -41,7 +41,7 @@ ip.addParameter('H',1.5);                  % motor inertia design point (plan §
 ip.addParameter('Rr',0.5);                 % rotor-R scale design point
 ip.addParameter('phi',0.8);                % motor penetration design point
 ip.addParameter('StaticModel','true_static'); % baseline static: constant-Z, freq-independent (14-gen)
-ip.addParameter('VTol',0.004);             % static Vterm-match tolerance (pu) for the CapC calibration
+ip.addParameter('VTol',0.004);             % DEPRECATED: static CapC now P-matches to P_W (uses MatchTol), not Vterm
 ip.parse(varargin{:}); o = ip.Results;
 assert(o.H <= 2.5, 'motor H capped at 2.5 (realistic ceiling); got %g', o.H);
 
@@ -118,18 +118,20 @@ if o.MatchP
     end
 end
 
-% ----- PHASE 0b: pin the (constant-Z) static to 1 pu via its shunt cap -------
-% true_static is constant-Z (draws P ~ V^2), so it draws 1 pu only at V ~ 1 pu.
-% At weak corners it sags, so we tune its shunt cap CapC (secant) to hold
-% Vterm = 1.0 -- then the constant-Z load draws its 1 pu setpoint. Same reactive-
-% support mechanism the CMLD has (its CapC); mirrors the sensitivity study's
-% capMult centering. scap: "corner" -> calibrated CapC.
+% ----- PHASE 0b: pin the (constant-Z) static to the SAME P_W as the CMLD ------
+% true_static is constant-Z (draws P ~ V^2) so its draw depends on Vterm, which
+% sags at weak corners. We tune its shunt cap CapC (secant) so its settled
+% P_load == P_W -- the SAME active-power operating point the full CMLD is pinned
+% to (PHASE 0). Matching P (not just Vterm=1.0, which left the static ~1.6% low)
+% puts both premise traces on identical pre-disturbance draws (plan §5.2 gate),
+% so the matched-MW disturbance hits identical baselines. Same reactive-support
+% mechanism the CMLD has (its CapC). scap: "corner" -> calibrated CapC.
 scap = containers.Map();
 if o.Static
     for ci = 1:numel(cnames)
         cn = cnames{ci}; M = corners.(cn)(1); SCR = corners.(cn)(2);
         ps0 = mkparams('static', fullfile(mdir,[o.StaticModel '.slx']), M,SCR,0.25,o);
-        scap(cn) = calibrate_cap(ps0, 1.0, o.VTol, o.MatchIters);
+        scap(cn) = calibrate_cap(ps0, Ptarget, o.MatchTol, o.MatchIters);
     end
 end
 
@@ -285,28 +287,33 @@ function P = probe_P(p, mv)
 [P, ~] = probe_PV(p, mv);
 end
 
-function C = calibrate_cap(pbase, Vtarget, tol, maxit)
-% Tune the (constant-Z) static's shunt cap CapC so its settled Vterm == Vtarget
-% (=1.0 pu) -> the constant-Z load then draws its 1 pu setpoint. Vterm rises
-% monotonically with CapC (more shunt reactive) below resonance, so secant
-% converges fast. Seeds are sized for the 220 kV bus (~1e-4 F range) -- NB the
-% CMLD's CapC=0.037 is for its internal 11 kV bus; that value is ~400x too large
-% here and shorts the 220 kV node, so do NOT seed from it (verified 2026-07-13).
-C1 = 2e-5;  [~,V1] = probe_PV(pbase, struct('CapC',C1));
-C2 = 1e-4;  [~,V2] = probe_PV(pbase, struct('CapC',C2));
-fprintf('  [calCap C=%.5f] Vterm=%.4f\n  [calCap C=%.5f] Vterm=%.4f\n', C1,V1,C2,V2);
+function C = calibrate_cap(pbase, Ptarget, tol, maxit)
+% Tune the (constant-Z) static's shunt cap CapC so its settled P_load == Ptarget
+% (= P_W, the SAME 1 pu draw the full CMLD is pinned to). The constant-Z load
+% draws P ~ V^2 and CapC raises Vterm (more shunt reactive below resonance), so
+% P rises monotonically with CapC and the secant converges fast. Matching P (not
+% Vterm=1.0, which left the static ~1.6% low at the weak corner) puts the static
+% on the CMLD's exact pre-disturbance active-power operating point (plan §5.2).
+% Seeds are sized for the 220 kV bus (~1e-4 F range) -- NB the CMLD's CapC=0.037
+% is for its internal 11 kV bus; that value is ~400x too large here and shorts
+% the 220 kV node, so do NOT seed from it (verified 2026-07-13).
+C1 = 2e-5;  [P1,V1] = probe_PV(pbase, struct('CapC',C1));
+C2 = 1e-4;  [P2,V2] = probe_PV(pbase, struct('CapC',C2));
+fprintf('  [calCap C=%.5f] P=%.1f MW Vterm=%.4f\n  [calCap C=%.5f] P=%.1f MW Vterm=%.4f\n', ...
+        C1,P1/1e6,V1, C2,P2/1e6,V2);
 C = C2;
 for it = 1:maxit
-    if abs(V2 - Vtarget) < tol, C = C2; return; end
-    slope = (V2-V1)/(C2-C1);                       % dV/dCapC (>0)
+    if abs((P2-Ptarget)/Ptarget) < tol, C = C2; return; end
+    slope = (P2-P1)/(C2-C1);                       % dP/dCapC (>0)
     if slope == 0, break; end
-    C = max(C2 + (Vtarget-V2)/slope, 0);           % secant step, cap >= 0
-    [~,V] = probe_PV(pbase, struct('CapC',C));
-    fprintf('  [calCap C=%.5f] Vterm=%.4f  err=%+.4f\n', C, V, V-Vtarget);
-    C1=C2; V1=V2; C2=C; V2=V;                       % advance the secant window
+    C = max(C2 + (Ptarget-P2)/slope, 0);           % secant step, cap >= 0
+    [P,V] = probe_PV(pbase, struct('CapC',C));
+    fprintf('  [calCap C=%.5f] P=%.1f MW Vterm=%.4f  err=%+.2f%%\n', C, P/1e6, V, 100*(P-Ptarget)/Ptarget);
+    C1=C2; P1=P2; C2=C; P2=P;                       % advance the secant window
 end
-if abs(V2-Vtarget) >= tol
-    warning('reduce_cmld:calCap','static V-match not reached (%.4f pu after %d its)', V2, it);
+if abs((P2-Ptarget)/Ptarget) >= tol
+    warning('reduce_cmld:calCap','static P-match not reached (%.1f MW, %+.2f%% after %d its)', ...
+            P2/1e6, 100*(P2-Ptarget)/Ptarget, it);
 end
 end
 

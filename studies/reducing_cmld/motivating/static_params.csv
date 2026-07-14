@@ -1,0 +1,6 @@
+parameter,value,unit,note
+load_law,constant-Z,-,"P~V^2, Q~V^2; FREQUENCY-INDEPENDENT (14-gen type)"
+P_nominal,2405,MW,internal Z sized to draw P_W at 220 kV (model-owned)
+Q_nominal,240,MVAr,internal Z reactive (model-owned)
+CapC,5e-05,F,"shunt cap, secant-tuned so settled draw = P_W (2404 MW)"
+dynamic_states,0,-,"no inertia, no load relief -- the contrast"

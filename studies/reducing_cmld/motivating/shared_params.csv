@@ -1,0 +1,16 @@
+group,parameter,value,unit,note
+grid,SCR,5,-,short-circuit ratio (stress corner)
+grid,M,3,s,swing inertia constant (stress corner)
+grid,k_droop_f,1/0.07,-,7% droop
+grid,kt_hp,0.3,-,reheat HP fraction
+grid,kt_lp,0.7,-,reheat LP fraction
+grid,t_rh,8,s,reheat time constant
+grid,f1,50,Hz,nominal frequency
+scale,P_W,2405,MW,nominal active load
+scale,Q_var,240,MVAr,nominal reactive load
+scale,BusKV,220,kV,transmission base voltage
+disturbance,type,load step,-,only event the fixture supports
+disturbance,dist_dP_frac,0.25,-,+0.25 = +601 MW load rise (matched MW)
+solver,SettleTime,15,s,pre-disturbance settle
+solver,StopTime,12,s,disturbance-run stop
+solver,MaxStep,0.0005,s,variable-step solver cap

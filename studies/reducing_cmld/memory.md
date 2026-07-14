@@ -37,14 +37,23 @@ equivalent motor reproduces the 3-motor CMLD — **PASS** (RoCoF 0.0%, nadir dip
 | `cmld_3m_elec`,`cmld_3m_stat` | L2 pair | compile-clean, **not yet run** |
 | `static` (dynamic) | old ref | superseded by `true_static` |
 
-## IMMEDIATE NEXT STEP (queued, ~15 min)
-Run the motivating comparison at H=2.5, then the figure:
-1. **Clear cache** (true_static changed): `rm reducing_cmld.db && rm -rf reducing_cmld_raw`
-2. `reduce_cmld('L1','Corner','stress','DP',0.25,'Pool',4,'Static',true,'H',2.5)`
-3. `motivating_figure(2.5)` → `results/fig/motivating_cmld_vs_static.png`
-**Motivating result must be shown FIRST** (justifies the study): CMLD vs true_static RoCoF/nadir
-difference. At H=1.5 vs the *dynamic* static it was ~13.8%/5.8%; expect larger at H=2.5 vs the
-freq-independent true_static.
+## IMMEDIATE NEXT STEP — ✅ DONE (2026-07-14)
+Motivating figure regenerated at H=2.5 vs `true_static` (fresh 1-pu baselines):
+`results/fig/motivating_cmld_vs_static.png`. **Full CMLD vs true_static, stress, +0.25 pu:
+RoCoF 21.0% shallower (−0.458 vs −0.580 Hz/s), nadir dip 10.2% smaller (0.400 vs 0.445 Hz)** —
+larger than the old 13.8%/5.8% (true_static is freq-INDEPENDENT + H=2.5), as expected. Static P
+now correctly flat; CMLD motors dip-and-recover (fast freq support). L1 re-run at H=2.5 confirms
+vt PASS / ct AMBER at ±0.25.
+
+**FIXED 2026-07-14: static CapC now P-matches to P_W (not Vterm=1.0).** `calibrate_cap` retargeted
+from Vterm=1.0 → P=P_W; the const-Z static previously landed at 2367 MW (Vterm=0.998, ~1.6% low),
+now draws **2404 MW vs CMLD 2405** (<0.1%, inside gate) at Vterm=1.006. Motivating overlay baselines
+now overlap. Advantages essentially unchanged (RoCoF 20.9%, dip 10.1%) since the disturbance was
+already matched-MW — the fix corrects the pre-disturbance baseline. `VTol` param now DEPRECATED.
+
+**Run timings** tracked in `run_timings.md`: cold-cache L1-stress-±0.25 = **~4.3 min** (not the
+handoff's 15 min). Nothing to commit yet (code changes uncommitted since last edit; figs/db/raw
+gitignored).
 
 ## Where we're going (after the figure)
 - L1 **nominal** corner + full disturbance set (±0.10/0.25/0.40) → validity envelope.
@@ -91,6 +100,7 @@ after the motivating figure lands.
 - **[run] Expand disturbance testing** — finer ΔP sweep, e.g. **5% → 30% in 5% steps** (currently
   only {10, 25, 40}%), to trace the reduction's validity vs disturbance size (motors approach
   pull-out near the top).
-- **[model] Build a genuine 'full' CMLD** — add **Motor D** (1-phase A/C with stall/restart), a
-  **proper voltage-tripping electronic load** (Fv/Vd1/Vd2), and/or **DER_A PV**. Closes the
-  `validating_cmld/validation_report.md` gaps G1/G2; today's `cmld_3m` is a 3-phase-motor subset.
+- **Cross-study / paper-facing items moved to repo-root `../../memory.md`** (2026-07-14):
+  (1) build a genuine 'full' CMLD (Motor D, voltage-tripping electronic load, DER_A — closes
+  validating_cmld gaps G1/G2); (2) test whether the draft-paper effective-inertia formulation
+  scales with per-motor H_A/H_B/H_C and fractions.
