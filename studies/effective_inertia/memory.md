@@ -54,10 +54,24 @@ UNBLOCKED, not parked. Progress this session:
 `.slx` won't invalidate cached DB rows — but the effective_inertia DB is fresh, so the first T2 run
 sims everything with the slip-logging model. Always start T2 on the fresh DB.
 
+## Slip wiring DONE + validated (2026-07-14)
+`cmld_3m.slx` now logs `speed_A/B/C` (To Workspace, Timeseries). Motor B/C tapped off existing
+`wsel_Motor B/C` `w` output; Motor A (grouped m-bus, no wsel) via Bus Selector on nested
+`Mechanical.Rotor speed (wm)`. All pu (A=0.983, B=C=0.991 pre-step), slips ordered A>B=C, motors
+decelerate post-step. Engine reads them via `r.extra` (regression-safe). E3 now runs.
+
+## ⚑ RUNTIME GOTCHA (2026-07-14): parpool sweep gets KILLED; run SERIAL
+`t2_driver(...,'Pool',4)` reached calibration fine (all LFm converged <0.5%: stress A0→0.339,
+FB30→0.568, JMAX→0.527; CapC→5e-5) but the job was **killed during the 4-worker parfor sweep**
+(all MATLAB procs gone, raw dir empty). Box is 32 GB but 4 stiff-CMLD workers + spawn overhead is
+too much. A serial run (`Pool',1`) mirrors the T1-Sim profile that completed cleanly in 20 min.
+**Decision: run T2 SERIAL for robustness** (`t2_driver('Corner','both','Robust',true,'Pool',1)`),
+~1.5 h, durable per-point DB writes (resumable via dedup if interrupted). See [[matlab-sim-gotchas]].
+
 ## Next step
-Wire slip (run `wire_slip.m`), validate one sim logs `speed_A/B/C` with s0 matching compose info.s0,
-run `check_regression` (prove engine change safe), then `t2_driver('Corner','both','Pool',4)`. Fill
-`results_effective_inertia.md` + `run_timings.md`. Static baseline = `reducing_cmld/models/true_static.slx`.
+Serial full T2 run in progress. On completion: `report_effective_inertia` (fills markdown tables +
+r-stability findings from t2_results.mat/t1_open_loop.mat) → integrate into
+`results_effective_inertia.md`; fill `run_timings.md`; commit. Figures land in `results/fig/`.
 See [[effective-inertia-from-rocof]].
 
 ## Reuse from reducing_cmld
