@@ -32,16 +32,33 @@ All code + docs authored without MATLAB (no runs, no fabricated results); every 
 **Model question RESOLVED:** `cmld_3m` binds independent `MotorA/B/C_Mech`/`_Nom` → heterogeneous H &
 fractions are parameter-only (no `.slx` edit). See `plan.md` "Model capability — RESOLVED".
 
-## ⚑ OPEN DECISION for Maddy (before the T2 run) — see `docs/observables.md §4`
-**E3 (KE-from-slip anchor) is BLOCKED as-authored:** `cmld_3m.slx` logs no per-motor slip. E3 is
-written + unit-tested but parked behind `t2_driver(...,'E3',true)`. Options: (1) run T2 now on **E1
-(headline) + E2 (damping-isolated)** — study is complete and delivers the `r = H_eff/H_load`
-calibration; (2) wire `slip_A/B/C` (a logging-signal add, Maddy's to do) first for the full
-`r`-decomposition. Static baseline = `reducing_cmld/models/true_static.slx` (by `model_path`).
+## E3 DECISION RESOLVED (2026-07-14, Maddy): wire slip + run everything (overnight)
+Maddy granted MATLAB (R2025b) + permission to edit the STUDY COPY of the model. So E3 is being
+UNBLOCKED, not parked. Progress this session:
+- Unit tests: **7/7 PASS** (fixed an E2 test-signal degeneracy: single-exponential omega makes the
+  inertia/damping regressors collinear → use a damped-oscillatory signal; added `aux.cond`
+  conditioning report to `H_eff_pomega`).
+- T1 arithmetic identities: **PASS** (H_load 0.148→1.19 s exactly as designed).
+- T1 settle (Sim): model loads + settles clean (baseline 49.996 Hz, drift ~5e-7). Uncalibrated draw
+  ~+19% / Vterm~1.097 pu — EXPECTED (LFm power-pin is in T2, not T1).
+- **Engine readback added** (`+sb_grid_sim/simulate.m`): reads any extra logged signal into
+  `r.extra.<name>` (backward-compatible; metrics/f/P/V/param_hash unchanged → golden regression
+  unaffected). `interface.m` documents optional `speed_A/B/C`.
+- **Slip wiring** (`scratchpad/wire_slip.m`): per-motor Bus Selector on the async-machine m-bus
+  signal `w` (rotor speed pu; wsel_Motor B/C already tap it) → To Workspace `speed_A/B/C`. Passive
+  tap, no dynamic change. E3 uses slip = 1 - speed.
+- `t2_driver`: E3 default ON (auto-skips if a trace lacks speed); table now carries
+  Heff_E3/r_E3/E2_cond; figures overlay E3.
 
-## Next step (when MATLAB is available)
-Run the `% RUN:` sequence in `results_effective_inertia.md §2`: unit tests → `t1_open_loop` →
-`t2_driver('Corner','both','Pool',4)`. Fill the result tables + `run_timings.md`. See [[effective-inertia-from-rocof]].
+⚠ GOTCHA: `param_hash` does NOT cover model-file CONTENT (only `model_path`+params). Editing the
+`.slx` won't invalidate cached DB rows — but the effective_inertia DB is fresh, so the first T2 run
+sims everything with the slip-logging model. Always start T2 on the fresh DB.
+
+## Next step
+Wire slip (run `wire_slip.m`), validate one sim logs `speed_A/B/C` with s0 matching compose info.s0,
+run `check_regression` (prove engine change safe), then `t2_driver('Corner','both','Pool',4)`. Fill
+`results_effective_inertia.md` + `run_timings.md`. Static baseline = `reducing_cmld/models/true_static.slx`.
+See [[effective-inertia-from-rocof]].
 
 ## Reuse from reducing_cmld
 Engine `+sb_grid_sim`, harness `+sb_grid_testbench` (SQLite dedup), RoCoF/`H_eff` machinery,

@@ -88,6 +88,14 @@ catch
     V = nan(size(t));
 end
 
+% --- optional extra logged signals (beyond the 3 required) -------------------
+% Backward-compatible: any ADDITIONAL logged variable in the SimulationOutput
+% (e.g. per-motor slip/speed a study wired into its model) is aligned onto the
+% freq time base and returned in r.extra. Models that log only the required three
+% get an empty struct. metrics / f / P / V and the param identity are unchanged,
+% so the metrics-only golden regression (tests/check_regression) is unaffected.
+extra = read_extra_signals(so, t, {'freq_hz','P_load','vrms_pu'});
+
 % --- metrics around the absolute disturbance time ----------------------------
 m = sb_grid_sim.metrics(t, f, P, V, td);
 
@@ -107,7 +115,36 @@ r = struct( ...
     'sim_version', sb_grid_sim.version(), ...
     't', t, 'f', f, 'P', P, 'V', V, ...
     'metrics',     m, ...
-    'meta',        meta);
+    'meta',        meta, ...
+    'extra',       extra);
+end
+
+% -------------------------------------------------------------------------
+function extra = read_extra_signals(so, t, required)
+%READ_EXTRA_SIGNALS  Align any non-required logged variables onto t -> struct.
+% Returns struct() if none. Handles timeseries and struct-with-time log formats.
+% Never errors: a study's optional signals must never break a run.
+extra = struct();
+try, names = so.who; catch, names = {}; end
+if isempty(names), return; end
+for i = 1:numel(names)
+    nm = names{i};
+    if any(strcmp(nm, required)), continue; end
+    try, s = so.get(nm); catch, continue; end
+    tt = []; dd = [];
+    if isa(s,'timeseries')
+        tt = s.Time; dd = s.Data;
+    elseif isstruct(s) && isfield(s,'time') && isfield(s,'signals') && isfield(s.signals,'values')
+        tt = s.time; dd = s.signals.values;
+    elseif isobject(s) && isprop(s,'Time') && isprop(s,'Data')
+        tt = s.Time; dd = s.Data;
+    end
+    if isempty(tt) || isempty(dd) || numel(tt) < 2, continue; end
+    try
+        extra.(matlab.lang.makeValidName(nm)) = interp1(tt, dd, t, 'linear', 'extrap');
+    catch
+    end
+end
 end
 
 % -------------------------------------------------------------------------

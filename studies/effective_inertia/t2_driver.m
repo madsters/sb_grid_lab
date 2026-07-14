@@ -39,7 +39,7 @@ ip = inputParser;
 ip.addParameter('Corner','both');
 ip.addParameter('Pool',4);
 ip.addParameter('Robust',true);
-ip.addParameter('E3',false);
+ip.addParameter('E3',true);      % KE-from-slip anchor; auto-skips if a trace lacks speed
 ip.addParameter('ST',40);
 ip.addParameter('RT',12);
 ip.addParameter('MatchTol',0.004);
@@ -77,19 +77,24 @@ useParallel = o.Pool>1 && license('test','Distrib_Computing_Toolbox');
 if useParallel && isempty(gcp('nocreate')), parpool('local',o.Pool); end
 
 % =========================================================================
-% PHASE 0: calibrate LFm (per mix,corner) and static CapC (per corner) to P_W.
+% PHASE 0: calibrate LFm (per corner,FRACTION) and static CapC (per corner) to P_W.
 % Serial secant; each step is one settle. % RUN: expect P_load -> P_W within tol.
+% OPTIMISATION: the settled operating point depends on the motor FRACTIONS (and the
+% corner), NOT on H (inertia is dynamics-only) -- so mixes sharing fractions share
+% one LFm. Keying by fraction collapses the 9-mix calibration to 3 per corner.
 % =========================================================================
-lf   = containers.Map();   % "corner|mix" -> LFm
-scap = containers.Map();   % "corner"     -> CapC
+lfkey = @(cn,F) sprintf('%s|%.6g_%.6g_%.6g', cn, F(1),F(2),F(3));
+lf   = containers.Map();   % "corner|fracA_fracB_fracC" -> LFm
+scap = containers.Map();   % "corner"                    -> CapC
 for ci = 1:numel(cnames)
     cn = cnames{ci}; M = S.corners.(cn)(1); SCR = S.corners.(cn)(2);
     fprintf('[matchP %s] target P_W = %.0f MW\n', cn, Pw/1e6);
     for k = 1:numel(S.mix)
-        mx = S.mix(k);
+        mx = S.mix(k);  key = lfkey(cn, mx.F);
+        if isKey(lf, key), continue; end            % same fractions -> same LFm
         pbase = mkparams(M,SCR,0.10, mdir, o);
-        % % RUN: calibrate_lf secant -> LFm; expect 2-4 EMT settles per mix, |err|<MatchTol
-        lf([cn '|' mx.id]) = calibrate_lf(pbase, ...
+        % % RUN: calibrate_lf secant -> LFm; expect 2-4 EMT settles, |err|<MatchTol
+        lf(key) = calibrate_lf(pbase, ...
             @(LFm) compose_heterogeneous(mx.H, mx.F, 'Pw',Pw,'LF',S.LF,'Rrscale',S.Rrscale,'LFm',LFm), ...
             Pw, mx.id, o.MatchTol, o.MatchIters);
     end
@@ -114,7 +119,7 @@ for ci = 1:numel(cnames)
             mx = S.mix(k);
             if ismember(dp, S.dp_robust) && ~ismember(mx.id, S.robust_ids), continue; end
             mv = compose_heterogeneous(mx.H, mx.F, 'Pw',Pw,'LF',S.LF,'Rrscale',S.Rrscale, ...
-                                       'LFm',lf([cn '|' mx.id]));
+                                       'LFm',lf(lfkey(cn,mx.F)));
             specs{end+1} = addpt('full_cmld', mdir, M,SCR,dp, mv); %#ok<AGROW>
         end
     end
@@ -136,8 +141,9 @@ end
 % =========================================================================
 % PHASE 2: analysis (serial). For each (mix,corner,dP): E1 (vs static) + E2 [+E3].
 % =========================================================================
-rows = {};  curves = struct('key',{},'corner',{},'id',{},'dp',{},'H_load',{}, ...
-                            'windows',{},'Heff_E1',{},'Heff_E2',{});
+rows = {};  warned_e3 = false;
+curves = struct('key',{},'corner',{},'id',{},'dp',{},'H_load',{}, ...
+                'windows',{},'Heff_E1',{},'Heff_E2',{},'Heff_E3',{});
 for ci = 1:numel(cnames)
     cn = cnames{ci}; M = S.corners.(cn)(1); SCR = S.corners.(cn)(2);
     dps = S.dp_primary;
@@ -152,12 +158,12 @@ for ci = 1:numel(cnames)
             mx = S.mix(k);
             if ismember(dp, S.dp_robust) && ~ismember(mx.id, S.robust_ids), continue; end
             [~, info] = compose_heterogeneous(mx.H, mx.F, 'Pw',Pw,'LF',S.LF, ...
-                            'Rrscale',S.Rrscale, 'LFm',lf([cn '|' mx.id]));
+                            'Rrscale',S.Rrscale, 'LFm',lf(lfkey(cn,mx.F)));
             Hload = info.H_load;
 
             pf = mkparams(M,SCR,dp, mdir, o);
             pf.model_vars = compose_heterogeneous(mx.H, mx.F, 'Pw',Pw,'LF',S.LF, ...
-                                'Rrscale',S.Rrscale, 'LFm',lf([cn '|' mx.id]));
+                                'Rrscale',S.Rrscale, 'LFm',lf(lfkey(cn,mx.F)));
             % % RUN: cache hit -> stored trace; NO re-sim
             rf   = sb_grid_testbench.run_point(pf,'DBFile',db,'RawDir',raw);
             cmld = load_trace(rf.trace_path);
@@ -167,29 +173,33 @@ for ci = 1:numel(cnames)
             [H1, a1] = eff_inertia.H_eff_rocof(cmld, stat, dP_W, Pw, S.windows);
             % --- E2 P-omega regression (damping-isolated) ------------------
             [H2, a2] = eff_inertia.H_eff_pomega(cmld, Pw, S.windows);
-            % --- E3 KE-from-slip anchor (parked; only aux.frac_released used) ---
-            a3 = struct('frac_released', nan(size(S.windows)));
-            if o.E3
+            % --- E3 KE-from-slip anchor (runs iff the trace carries per-motor speed) ---
+            H3 = nan(size(S.windows));  a3 = struct('headline',NaN, 'frac_released',nan(size(S.windows)));
+            if o.E3 && isfield(cmld,'speed')
                 [~, info3] = compose_heterogeneous(mx.H, mx.F, 'Pw',Pw,'LF',S.LF,'Rrscale',S.Rrscale);
-                [~, a3] = eff_inertia.H_eff_ke(cmld, info3.S_B, info3.H, Pw, S.windows);  % errors w/o slip
+                [H3, a3] = eff_inertia.H_eff_ke(cmld, info3.S_B, info3.H, Pw, S.windows);
+            elseif o.E3 && ~warned_e3
+                warning('t2_driver:noSlip', ...
+                    'E3 requested but traces carry no per-motor speed; skipping E3 (wire speed_A/B/C).');
+                warned_e3 = true;
             end
 
             iH = find(abs(S.windows-0.5)<1e-9,1);         % headline 500 ms index
-            r1 = a1.headline / Hload;  r2 = a2.headline / Hload;
-            rows(end+1,:) = {cn, mx.id, dp, Hload, a1.headline, a2.headline, ...
-                             r1, r2, a2.damping(iH), a1.E_load(iH)/1e9, ...
-                             a3.frac_released(iH)}; %#ok<AGROW>
+            r1 = a1.headline / Hload;  r2 = a2.headline / Hload;  r3 = a3.headline / Hload;
+            rows(end+1,:) = {cn, mx.id, dp, Hload, a1.headline, a2.headline, a3.headline, ...
+                             r1, r2, r3, a2.damping(iH), a2.cond(iH), ...
+                             a1.E_load(iH)/1e9, a3.frac_released(iH)}; %#ok<AGROW>
 
             curves(end+1) = struct('key',sprintf('%s|%s|%+.2f',cn,mx.id,dp), ...
                 'corner',cn, 'id',mx.id, 'dp',dp, 'H_load',Hload, ...
-                'windows',S.windows, 'Heff_E1',H1, 'Heff_E2',H2); %#ok<AGROW>
+                'windows',S.windows, 'Heff_E1',H1, 'Heff_E2',H2, 'Heff_E3',H3); %#ok<AGROW>
         end
     end
 end
 
 T = cell2table(rows, 'VariableNames', ...
-    {'corner','mix','dp','H_load_s','Heff_E1_500ms','Heff_E2_500ms', ...
-     'r_E1','r_E2','damping_W_pu','E_load_GWs','frac_released_E3'});
+    {'corner','mix','dp','H_load_s','Heff_E1_500ms','Heff_E2_500ms','Heff_E3_500ms', ...
+     'r_E1','r_E2','r_E3','damping_W_pu','E2_cond','E_load_GWs','frac_released_E3'});
 
 % =========================================================================
 % Outputs (succinct): CSV + .mat + two figures.
@@ -225,6 +235,10 @@ end
 function tr = load_trace(trace_path)
 S = load(trace_path); r = S.results;
 tr = struct('t',r.t(:), 'f',r.f(:), 'P',r.P(:), 'V',r.V(:), 'td',r.meta.dist_time_abs);
+% per-motor rotor speed (if the model logged it) -> speed matrix [Nt x 3] for E3
+if isfield(r,'extra') && all(isfield(r.extra, {'speed_A','speed_B','speed_C'}))
+    tr.speed = [r.extra.speed_A(:), r.extra.speed_B(:), r.extra.speed_C(:)];
+end
 end
 
 % =========================== P/V calibration ===============================
@@ -289,14 +303,20 @@ if isempty(sel), return; end
 f = figure('Visible','off','Color','w','Position',[100 100 820 560]);
 ax = axes(f); hold(ax,'on'); grid(ax,'on'); set(ax,'XScale','log');
 co = lines(numel(sel));
+hasE3 = false;
 for i = 1:numel(sel)
     c = sel(i);
     plot(ax, c.windows, c.Heff_E1, '-o', 'Color',co(i,:), 'LineWidth',1.3, ...
          'DisplayName',sprintf('%s (H_{load}=%.2f)', c.id, c.H_load));
     plot(ax, c.windows, c.Heff_E2, '--', 'Color',co(i,:), 'HandleVisibility','off');
+    if isfield(c,'Heff_E3') && any(isfinite(c.Heff_E3))
+        plot(ax, c.windows, c.Heff_E3, ':s', 'Color',co(i,:), 'HandleVisibility','off');
+        hasE3 = true;
+    end
 end
 xlabel(ax,'RoCoF window T (s)'); ylabel(ax,'H_{eff} (s)');
-title(ax, sprintf('Delivered effective inertia H_{eff}(T) -- %s corner (dP=+0.10)  [E1 solid, E2 dashed]', corner));
+leg = 'E1 solid, E2 dashed'; if hasE3, leg = [leg ', E3 dotted']; end
+title(ax, sprintf('Delivered effective inertia H_{eff}(T) -- %s corner (dP=+0.10)  [%s]', corner, leg));
 legend(ax,'Location','northwest','FontSize',8);
 exportgraphics(f, figfile, 'Resolution',150); close(f);
 end
