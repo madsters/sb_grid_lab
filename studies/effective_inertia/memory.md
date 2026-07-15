@@ -91,6 +91,19 @@ Artifacts: `results_effective_inertia.md`, `t2_results.csv`, 4 figs in `results/
 `run_timings.md`. Rerun serial (`Pool',1`); DB dedup resumable. See [[matlab-sim-gotchas]].
 ⚠ Engine edit (`+sb_grid_sim/simulate.m` reads `r.extra`) awaits Maddy's review.
 
+## ⚑ GRID CORNERS ARE HIGH-INERTIA (2026-07-15, review) — results contextualised, not invalidated
+Measured rig mapping: pure grid inertia `H_grid ≈ 2.5·M_g1 s ≈ 6,000·M_g1 MW·s` (20 ms, on 2405 MW
+base; 500 ms adds ~10,000 MW·s governor/relief). So the "stress" M=3 grid is **H=7.6 s (18,300 MW·s)**
+and "nominal" M=5.5 is **H=13.9 s** — both HEALTHY/high-inertia, NOT weak (weak = H≈2–3 s → M_g1≈1.0;
+real grids 2–10 s; Victoria 12.6–15.4 GW·s over 3–9 GW ≈ H 1.4–4 s). SCR=5 is genuinely weak (system
+strength); only the inertia label was wrong. Compare grids in H **seconds**, not absolute MW·s
+(system sizes differ). The load's H_eff-vs-H_load slope≈1+offset is grid-inertia-robust (isolated by
+differencing), but the OPERATIONAL significance is understated at M=3/5.5: the load's ~900–3,600 MW·s
+is only 3–14 % of this heavy grid, vs a much larger fraction at M_g1≈1. **Consider re-running the
+sweep at M_g1≈1 (weak) — but E1's differential is confounded when the grid is very weak + φ→1 (motors
+stall/draw more → negative H_eff), so keep realistic φ.** Full mapping + recommendation in
+`../reducing_cmld/memory.md` (⚑ GRID INERTIA section). See [[effective-inertia-from-rocof]].
+
 ## Reuse from reducing_cmld
 Engine `+sb_grid_sim`, harness `+sb_grid_testbench` (SQLite dedup), RoCoF/`H_eff` machinery,
 matched-MW + 1-pu operating-point conventions, pool ≤ 4, launch MATLAB from repo root.
