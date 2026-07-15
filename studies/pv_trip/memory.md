@@ -10,13 +10,16 @@ into a "PV survives vs trips" consequence. Framework = `+sb_grid_sim` + `+sb_gri
 (mirror `studies/reducing_cmld/`).
 
 ## Status
-**STUDY COMPLETE (2026-07-14, overnight).** Both phases run, figures produced, committed on `pv-trip`
-(a5fcf1d, 465c5e4, 8d941c4). **Headline (Phase 2, dP*=+0.30 pu): pv_static nadir 49.073 — PV trips
-1.13 s after the step, cascades toward the 49 Hz UFLS line; pv_cmld nadir 49.525 — PV rides through.**
-Same disturbance + identical PV, opposite protection outcome, from load model alone. Sweep: dP=0.28
-both ride, 0.30 SPLIT, 0.32 both trip. Figure → `phase2_pvtrip/pv_trip_phase2_dp0.30.png`.
-**Open for user (morning):** operating point is gross(electrical)=1 pu → net=0.75 pu, because net=1 pu
-is infeasible with the simple power-term PV (see below); decide accept / smaller P_pv / DER_A.
+**STUDY COMPLETE & MERGED TO `main` (2026-07-15, HEAD 5ff83cb, pushed to origin).** Four scenarios;
+every figure pairs frequency with load-active-power (demand + PV). Driver `pv_trip.m` phases
+**P1 | P2 | SA | UFLS**. The thesis — **load-model fidelity flips a discrete protection outcome (same
+event, same PV, opposite result)** — is demonstrated at TWO thresholds:
+- **49.5 Hz DER-trip line** (Phase 2, dP*=0.30): static dips <49.5 → PV trips → cascade to 49.073;
+  CMLD holds 49.525 → PV rides through.
+- **49.0 Hz UFLS line** (UFLS, dP*=0.34): BOTH PV fleets trip, but the static's cascade breaches 49.0
+  (48.984 → load-shedding fires) while the CMLD holds above it (49.106).
+Operating point RESOLVED: gross(electrical) pinned to 1 pu, net = 1−P_pv (net=1 pu is infeasible with
+the simple power-term PV — see the operating-point finding below).
 
 ---
 ### Phase 1 (done)
@@ -67,8 +70,8 @@ P_W (1 pu, the validated Phase-1 corner) via `net_target = P_W − P_pv`**; pre-
 SCR/Vterm at the validated corner. `P_pv=0` collapses to Phase 1 (verified: pv_cmld P_pv=0 dP=0.30 →
 nadir 49.5208 = Phase-1's 49.521). Trip verified: dP=0.60 P_pv=0.25 → trips 0.5s after step, nadir
 cascades 49.04→48.65; dP=0.30 → rides through (no trip, nadir 49.53).
-**MORNING DECISION for user:** accept gross=1 pu (net=0.75 pu, done tonight) / reduce P_pv for a feasible
-net≈1 pu / or build DER_A. The qualitative result (static trips, CMLD rides) holds either way.
+**RESOLVED:** using gross=1 pu (net = 1−P_pv). A feasible net=1 pu would need the electrical DER_A
+block (backlog). The qualitative result (static trips/breaches, CMLD rides/holds) holds regardless.
 
 **BACKLOG (not done):** full electrical **DER_A** PV block (Simscape current injection inside the
 feeder, real voltage coupling, inverter dynamics, graduated/partial tripping across a spread of trip
@@ -98,10 +101,24 @@ predicts a cascade into UFLS load-shedding that the CMLD says never happens. Fig
 (`pv_trip_sa_headline_pv50_dp0.30.png` freq+demand at 0.5 pu; `pv_sa_scaling_dp0.30.png` nadir vs
 penetration). `pv_sa.mat` gitignored.
 
-## STUDY DELIVERABLES (branch pv-trip, not pushed)
-Phase 1 (`phase1_threshold/`), Phase 2 (`phase2_pvtrip/`), SA (`phase_sa/`). Driver `pv_trip.m`
-(phases P1|P2|SA); figures `pv_figure.m` (P1), `pv_figure2.m` (P2/SA headline), `pv_figure_sa.m`
-(SA scaling). Models `models/pv_cmld.slx`, `models/pv_static.slx`.
+## UFLS SCENARIO (phase 'UFLS', 2026-07-15) — the SECOND threshold
+Larger disturbance so BOTH models cross 49.5 (both PV fleets trip); the question becomes the 49.0 Hz
+UFLS line. `phase_ufls()` sweeps the disturbance at fixed P_pv=0.25, reusing the Phase-1 gross=P_W
+calibration. **Found at dP=+0.34: static nadir 48.984 (BREACHES 49.0 → UFLS load-shedding), CMLD nadir
+49.106 (holds above).** Same event, both fleets trip, opposite load-shedding outcome from load model
+alone. Regime map at P_pv=0.25: dP≈0.30 static-trips/CMLD-rides (49.5 split); dP=0.32 both trip & both
+hold; **dP=0.34 UFLS split** (static breaches, CMLD holds); dP≳0.40 both breach (models agree =
+catastrophe either way). Figure → `phase_ufls/pv_trip_ufls_dp0.34_pv25.png`. `pv_ufls.mat` gitignored.
+`pv_figure2` was generalized here: marks BOTH trip instants, Panel-1 title auto-writes each model's
+outcome (rides / trips-holds / trips-breaches-UFLS), Panel-2 caption generic (correct when one OR both
+fleets trip).
+
+## STUDY DELIVERABLES (on `main`, HEAD 5ff83cb)
+Phase 1 `phase1_threshold/`, Phase 2 `phase2_pvtrip/`, SA `phase_sa/` (headline pv50 + dp0.30_pv0.40 +
+scaling), UFLS `phase_ufls/` (dp0.34). Driver `pv_trip.m` (phases P1|P2|SA|UFLS); figures
+`pv_figure.m` (P1), `pv_figure2.m` (P2/SA/UFLS freq+demand, optional filename `tag`), `pv_figure_sa.m`
+(SA nadir-vs-penetration scaling). Models `models/pv_cmld.slx`, `models/pv_static.slx`. Debug aids
+`pv_smoke.m`, `pv_diag.m`; setup `setup_pv_models.m`. Per-folder `.mat` gitignored (regenerable).
 
 ## Locked decisions
 - **Two phases:** Phase 1 = threshold-crossing with the EXISTING reducing_cmld models (no build, fast,
@@ -118,34 +135,33 @@ Phase 1 (`phase1_threshold/`), Phase 2 (`phase2_pvtrip/`), SA (`phase_sa/`). Dri
   latched no-reconnect, `f_trip=49.5`, `P_pv≈0.2–0.3 pu`. Identical PV in both models so the outcome is
   attributable solely to the load type. (Not a real electrical PV block — "simple PV".)
 
-## IMMEDIATE NEXT STEP
-**Phase 1** — write `pv_trip.m` + `pv_figure.m`: sweep ΔP∈{0.25,0.28,0.30,0.32,0.35} at the stress
-corner (H=2.5), `cmld_3m` vs `true_static` (both 1-pu, via `model_path` into reducing_cmld/models),
-using `sb_grid_sim.simulate` + `metrics`; find the ΔP where `nadir_static<49.5<nadir_cmld`; plot
-`freq(t)` both + the 49.5 line → `phase1_threshold/`. Copy the trace-selection/nadir logic from
-`studies/reducing_cmld/motivating/motivating_figure.m`.
+## NEXT STEPS (study done + merged; these are the open extensions)
+1. **Electrical DER_A PV** — replace the power-term PV with a Simscape current-injection block INSIDE
+   the CMLD feeder (voltage coupling, inverter dynamics). Would make a true net=1 pu feasible (feeder
+   carries net; PV serves the rest locally) and add the voltage-driven load response the simple term
+   omits. Ties to the "build a genuine full CMLD" item + validating_cmld G2.
+2. **Graduated / partial tripping** — trip a FRACTION of PV vs Hz below 49.5 (a spread of trip
+   settings) rather than all-or-nothing at one threshold — closer to a real DER fleet (AEMO ~40% trip).
+3. **Active UFLS shedding** at 49 Hz (shed load, not just a reference line) — then study the DER-trip
+   (49.5) vs UFLS (49.0) event ordering / path-dependence directly (repo-root `memory.md` item).
+4. **Parallelize sweeps** — `runfull` is serial (base-workspace assignin + per-call `load_system`);
+   a `parfor` over disturbance/penetration points (pool ≤4, RAM-bound box) gives ~3-4× for larger
+   grids. Marginal for the small sweeps here.
+5. **2-D regime map** dP × P_pv of the four outcomes (rides / DER-trip-split / UFLS-split / both-breach).
 
-Then **Phase 2** — build the PV-trip subsystem (see `models/SPEC.md`) into `pv_cmld.slx`/`pv_static.slx`
-via the Simulink MCP, validate + run at the knife-edge, produce the trip-vs-ride-through figure.
-
-## How to run / gotchas (inherited from reducing_cmld)
-- MATLAB: `/Applications/MATLAB_R2025b.app/bin/matlab -batch "cd('studies/pv_trip'); <fn>"` — always
-  launch from the repo root (a shell `cd` into the folder doubles the path).
+## How to run / gotchas
+- MATLAB via the **SHELL** (NOT the MCP eval — it hangs / needs the flaky desktop session):
+  `/Applications/MATLAB_R2025b.app/bin/matlab -batch "addpath('.../studies/pv_trip'); pv_trip('P2')"`
+  from the repo root. **The `-batch` arg MUST be SINGLE-LINE** — a multi-line zsh string breaks it
+  ("No MATLAB command specified"). Drivers self-locate via `mfilename`, so no `cd` is needed.
+  Bash-tool timeout is ≤10 min; long runs go `run_in_background`.
 - Toolboxes: Simulink, Simscape Electrical (SPS), Database, Parallel. **Pool ≤ 4** (RAM-bound box).
-- **GOTCHA:** editing a `.slx` does NOT invalidate the dedup cache (`param_hash` is params-only) — after
-  any model edit, clear `pv_trip.db` + `pv_trip_raw/` before re-running.
-- Cold-cache run ≈ 4 min per 8-point sweep (see `studies/reducing_cmld/run_timings.md`); warm plot-only
-  ≈ 10 s.
-- `run_point`/`sweep` use the DB; `sb_grid_sim.simulate` is pure (no DB) — use it for the Phase-1 sweep.
+- The Phase-1/2/SA/UFLS drivers use `sb_grid_sim.simulate` / `runfull` (PURE, no DB) — no dedup cache to
+  clear. (The `run_point`/`sweep` DB path is unused here.)
+- Cold run ≈ 30-60 s wall per full settle+disturbance point; warm plot-only from a saved `.mat` ≈ 10 s.
+- **R2025b `-batch` figures default to DARK** — figure fns force `theme(fig,'light')`.
 
 ## Git
-Branch **`pv-trip`** off `main` (which carries the reducing_cmld work through `58b6f3c`). This scaffold
-commit also carries the repo-root `memory.md` backlog edits (feeder reframe + DER-PV/UFLS item) made
-just before branching — they reach `main` when `pv-trip` merges.
-
-## Backlog / follow-ons
-- **Active UFLS shedding** at 49 Hz (load shed, not just a reference line) — repo-root `memory.md`.
-- **Real electrical PV / DER_A block** (voltage coupling, inverter dynamics, voltage tripping) — a
-  fidelity upgrade over the "simple PV" power-balance term; ties to the "build a genuine full CMLD"
-  item.
-- Sweep PV penetration `P_pv` and grid corner to map where the trip/no-trip boundary sits.
+**Merged to `main` (fast-forward, HEAD `5ff83cb`), pushed to origin.** `pv-trip` and `main` are level.
+Built on branch `pv-trip` off `main`@`58b6f3c` (reducing_cmld). Study `.slx` were built via the
+Simulink MCP `model_edit` (model-edit rule overridden for this study).

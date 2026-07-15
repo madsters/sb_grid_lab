@@ -13,15 +13,16 @@ and shared infrastructure. Convention established 2026-07-14.
   current `cmld_3m` gaps (see below).
 - **cmld_inertia_sensitivity** — `studies/cmld_inertia_sensitivity.md` — established the
   realistic operating corners + matched-MW / flat-baseline conventions the other studies reuse.
-- **pv_trip** — `studies/pv_trip/` (`plan.md` + `memory.md` + `models/SPEC.md`) — shows load-model
-  fidelity flipping a binary protection outcome: a disturbance where a static load ⇒ frequency < 49.5 Hz
-  ⇒ rooftop PV trips/cascades, while the CMLD rides through. On branch `pv-trip`. Phase 1 done
-  (knife-edge dP*=+0.30 pu: static 49.466 trips, CMLD 49.521 rides). Phase 2 PV-trip models
-  (`pv_cmld`/`pv_static`) built via the Simulink MCP + run. **PV = "simple" frequency-triggered
-  behind-the-meter net-load step** (latched, all-or-nothing at 49.5, at the load bus); net (load−PV)
-  pinned to 1 pu pre-disturbance. **Full electrical DER_A (Simscape current injection in the feeder,
-  voltage coupling, inverter dynamics, graduated/partial trip) NOT done — backlog** (see the DER item
-  below + validating_cmld G2).
+- **pv_trip** — `studies/pv_trip/` (`plan.md` + `memory.md` + `models/SPEC.md`) — **COMPLETE, merged to
+  `main` (HEAD 5ff83cb).** Load-model fidelity flips a discrete protection outcome (same event, same PV,
+  opposite result) at TWO thresholds: **49.5 Hz DER-trip** (dP=0.30: static trips & cascades, CMLD rides)
+  and **49.0 Hz UFLS** (dP=0.34: both PV fleets trip, static breaches 49.0 → load-shedding, CMLD holds).
+  Also an SA-scale sweep: the consequence scales with DER penetration (static plunges past 49 Hz beyond
+  ~0.3 pu, CMLD flat). Driver `pv_trip.m` phases P1|P2|SA|UFLS; models built via the Simulink MCP.
+  **PV = "simple" frequency-triggered behind-the-meter net-load step** (latched, all-or-nothing at 49.5,
+  at the load bus); gross(electrical) pinned to 1 pu (net=1 pu infeasible with the power-term PV).
+  **Backlog: electrical DER_A** (Simscape current injection in the feeder, voltage coupling, inverter
+  dynamics, graduated/partial trip) — see the DER item below + validating_cmld G2.
 - **effective_inertia** — `studies/effective_inertia/` (`plan.md` + `memory.md`) — tests whether
   the draft paper's `H_load` closed form scales with per-motor H and fractions, and calibrates the
   stored-vs-delivered response factor. Realises the paper-facing item below. Reference materials in
