@@ -16,6 +16,57 @@ under **heterogeneous per-motor H_A/H_B/H_C and fractions**, and calibrate the r
 The paper's §Discussion "From Stored Energy to Delivered Response" flags `r = H_eff/H_load` as
 future work — this study is that work.
 
+## ═══════ CURRENT STATE (2026-07-15) — READ THIS FIRST ═══════
+**Study core is COMPLETE and committed** (branch `effective-inertia-scaffold`); we are now in an
+**exploratory extension** phase probing a genuinely weak grid. History/detail in the dated sections
+below; this block is the live state.
+
+**What's settled (the paper-facing result — see `results_effective_inertia.md`):**
+- Reported measure = **E1 = 500 ms-RoCoF effective inertia** (load contribution, differenced vs a
+  zero-inertia static). E2/E3 are diagnostics.
+- **Measured `H_eff = ~1.0·H_load + offset`** (stress `1.04·H_load+0.23`, R²=0.996; nominal
+  `0.98·H_load+0.20`, R²=0.997). So the formula predicts the **sensitivity** to H_i/F_mi (slope≈1,
+  depends only on the weighted sum, not which motor) but **misses a ~0.2–0.25 s offset** = the load
+  fast-frequency-response. Formula ≠ measured effective inertia. **T1 is a circular init check, NOT
+  validation.**
+- Physics: induction motor = **synchronous inertia H behind a first-order lag τ(H)≈70–170 ms**; by
+  500 ms it delivers **>90% (92–98%)** of the KE an equal synchronous machine would (κ curve in
+  `results/fig/eff_inertia_coupling_timeconst.png`). Released fraction ≈ `2|Δf|/f₀` (the KE∝ω² factor,
+  same for any spinning mass). Earlier "0.4% delivered / 250× overestimate" framing was WRONG (wrong
+  denominator) — corrected.
+
+**⚑ Corner correction (big):** M_g1=3/5.5 ("stress"/"nominal") are **HIGH-inertia grids** (H=7.6/13.9 s
+at 20 ms). Mapping: `H_grid ≈ 2.5·M_g1 s ≈ 6000·M_g1 MW·s` (+~governor/relief at 500 ms). A genuine
+**weak grid = M_g1≈1 (H≈2.6 s)**. SCR=5 is still weak (strength). Compare grids in H **seconds**, not
+absolute MW·s. Full mapping + recommendation for the sibling study in `../reducing_cmld/memory.md`.
+
+**Exploratory work this session (weak corner, uncommitted results — figs/traces gitignored):**
+- Driver `weak_corner.m` + `weak_corner_plot.m` (committed). Runs {A0,HB25,JMAX}+static at M_g1=1,
+  3-panel (freq 49-51 / load P pu / accel P pu, shared power scale). Traces in `weak_raw/` (gitignored).
+- Ran ΔP = +0.10…+0.50. Figures `results/fig/weak_freq_dp{10..50}.png`. Findings: at the weak grid the
+  mix separation is clear (~15% RoCoF spread vs ~3.5% at M=3); **H_eff is remarkably ΔP-invariant**
+  (A0≈0.43, HB25≈0.94, JMAX≈1.70 s across the whole 0.10→0.50 range) — strong evidence it's genuine
+  inertia. At +0.50, nadir ~49.05 Hz (near the 49 Hz UFLS floor).
+- NOTE: weak-corner figs at dp10/dp20 are OLD single-panel format (traces not saved); dp30/40/50 are
+  the pu 3-panel. Backfill 10/20 by re-running `weak_corner(0.10)`/`(0.20)` if wanted.
+
+## NEXT STEPS (proposed — confirm on pickup)
+1. **Decide the weak corner's role in the paper:** either adopt M_g1≈1 as *the* headline corner (weak
+   grid is where demand-side inertia matters), or add it as a low-inertia contrast to the existing set.
+   Then re-run the FULL 9-mix sweep (`t2_driver`) at M_g1=1 for the `H_eff = slope·H_load + offset` fit
+   at a weak grid (expect similar slope≈1, possibly different offset).
+2. **Open framing question (unresolved):** is the reported "effective inertia" the whole 500 ms-RoCoF
+   response (rotor coupling + load relief), or just the rotor part (`H_eff − offset`)? Decides the
+   headline number. Left open deliberately.
+3. **Static-baseline choice:** offset is defined vs constant-Z `true_static`; a constant-P reference
+   would change what the offset includes. Decide the right comparison for the paper (one extra run).
+4. **Push ΔP further** (+0.60/0.70) at the weak corner to find the stall/instability boundary, if the
+   nadir/stability envelope matters.
+5. **⚠ Engine edit awaiting review:** `+sb_grid_sim/simulate.m` now reads extra logged signals into
+   `r.extra` (for E3 slip). Backward-compatible, regression-safe (metrics unchanged), but it's a
+   shared-framework change — eyeball before merging to main.
+6. Retire `t2_driver.m`'s stale r-columns? The table still carries r_E1/r_E3 which we de-emphasised.
+
 ## Status (2026-07-14) — FULLY AUTHORED offline (Phases 0–6), NOT yet run
 All code + docs authored without MATLAB (no runs, no fabricated results); every sim call marked
 `% RUN:`. Tree is runnable-so-far; committed phase by phase on branch `effective-inertia-scaffold`.
