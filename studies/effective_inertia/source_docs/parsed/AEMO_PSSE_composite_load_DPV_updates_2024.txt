@@ -1,0 +1,4401 @@
+
+
+===== PAGE 1 =====
+ 
+PSS®E composite 
+load and distributed 
+PV model updates 
+June 2024 
+CMLD and DER model updates 
+An addendum to the ‘PSSE models for load and 
+distributed PV in the NEM’ report released 25/11/2022 
+ 
+
+
+===== PAGE 2 =====
+ 
+AEMO acknowledges the Traditional Owners of country throughout Australia and recognises their continuing 
+connection to land, waters and culture. We pay respect to Elders past and present. 
+ 
+Important notice 
+Purpose  
+This report provides information on improvements and further validation of power system models for distributed PV and 
+composite load in PSS®E. It builds on AEMO’s previous report1 which outlined the development of the first release of these 
+models. 
+AEMO requires accurate power system models for distributed PV (DPV) and load to fulfil responsibilities under the National 
+Electricity Rules to ensure the power system is operated within the limits of the technical envelope (NER 4.3.1(f)), and to 
+have the necessary tools to maintain power system security (NER 4.3.1(a)).  AEMO has also provided the models to Network 
+Service Providers, to use at their discretion when developing limit advice. 
+This report is based on information available to AEMO up to June 2024 unless otherwise indicated.  
+Disclaimer 
+AEMO has made reasonable efforts to ensure the quality of the information in this report but cannot guarantee that 
+information, forecasts and assumptions are accurate, complete or appropriate for your circumstances. Any views expressed 
+in this report are those of AEMO unless otherwise stated, and may be based on information given to AEMO by other 
+persons. This report or the information in it may be subsequently updated or amended. This document does not constitute 
+legal, business engineering or technical advice, and should not be relied on as a substitute for obtaining detailed advice 
+about the National Electricity Law, the National Electricity Rules, or any other applicable laws, procedures or policies. 
+Accordingly, to the maximum extent permitted by law, AEMO and its officers, employees and consultants involved in the 
+preparation of this report: 
+• make no representation or warranty, express or implied, as to the currency, accuracy, reliability or completeness of the 
+information in this report; and 
+• are not liable (whether by reason of negligence or otherwise) for any statements or representations in this document, or 
+any omissions from it, or for any use or reliance on the information in it. 
+Copyright 
+© 2024 Australian Energy Market Operator Limited. The material in this publication may be used in accordance with the 
+copyright permissions on AEMO’s website. 
+ 
+1 AEMO (November 2022) PSS®E models for load and distributed PV in the NEM, https://aemo.com.au/-
+/media/files/initiatives/der/2022/psse-models-for-load-and-distributed-pv-in-the-nem.pdf?la=en  
+
+
+===== PAGE 3 =====
+Executive summary 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+3 
+ 
+Executive summary 
+In November 2022, AEMO released new models that aimed to better represent the complex behaviours of 
+composite load and distributed PV (DPV) in power system studies2.  The models are referred to as CMLD 
+(representing composite load) and DERAEMO1 (representing distributed PV). 
+Since the release of the version 1 models, there has been an increased focus on the transient behaviours of the 
+models, assessing their suitability for application in calculating transient stability limits.  This has led to a number of 
+model refinements, which are summarised in this report. 
+Three areas of update are recommended for the CMLD model parameters: 
+• Decrease Motor D composition parameters – Motor D is a specially developed performance model intended 
+to represent single-phase (1P) compressors of residential air-conditioning loads.  In the version 1 model, a 
+proportion of load associated with motor driven refrigerators and freezers was also included in the Motor D 
+component.  New laboratory testing results have indicated that fridges and freezers do not appear to 
+demonstrate the stalling behaviour evident from motor driven air conditioners, so the load associated with 
+these devices is better represented in the Motor A category.  This reduces the proportion of regional load in 
+the Motor D category from ~1 - 10% in the version 1 model, to 0.2 – 0.4% in the version 2 model (annual 
+average).  In peak summer periods (highest 1% of underlying demand), the Motor D composition is estimated 
+to reach a maximum of ~2.5 – 3.2% of load.   
+• Update Motor D performance parameters – The laboratory testing of Motor D loads provides an opportunity 
+to fine tune the performance of the Motor D model to better represent observed device behaviours.  EPRI has 
+also released updated recommended default parameters, which were adopted where better local data was not 
+available.   
+• Simplify CMLD composition parameters – The version 1 CMLD model utilised varying composition 
+parameters which adjusted the proportions of load in each category by season, date and time of day.  Model 
+testing has indicated that this degree of variability in load composition does not lead to important differences in 
+modelling outcomes, except for peak summer conditions where modelling indicates the VNI transient stability 
+export limit used for validation studies3 can be around 80 MW lower.  It is therefore proposed for version 2 to 
+apply just a single set of load composition parameters in all periods, based on the annual average. The 
+composition parameters for peak summer conditions have also been provided and the user may use their 
+discretion to apply these parameters instead if appropriate.   
+The impacts of the CMLD model were tested on certain VNI transient stability export limits3, to give a preliminary 
+indication of the influence of the models and these changes.  It was found that the version 2 CMLD parameters, 
+compared with the older ZIP model, does appear to have a meaningful impact on these VNI limits.  Further 
+analysis is required to fully investigate the impacts of these updated models on transmission network stability 
+ 
+2 AEMO (November 2022) PSS®E models for load and distributed PV in the NEM, https://aemo.com.au/-/media/files/initiatives/der/2022/psse-
+models-for-load-and-distributed-pv-in-the-nem.pdf?la=en  
+3 V::N_NIL_V and V::N_NIL_O, Victorian transient stability export limits on the VIC to NSW interconnectors for the two phase to ground fault 
+and trip of Hazelwood – South Morang 500kV line. 
+
+
+===== PAGE 4 =====
+Executive summary 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+4 
+ 
+limits.  This suggests transmission network service providers should investigate the impacts of these models on 
+their limit advice. 
+These updates were tested to confirm they do not significantly affect the representation of load and DPV shake-off 
+behaviours (disconnection of DPV and load in response to a fault), which were carefully calibrated in the version 1 
+parameter sets.  The tests indicate that the shake-off estimates from the model remain appropriate, and no re-
+calibration of the shake-off parameters is required at this time. 
+The transient behaviours of the CMLD and DERAEMO1 models were also compared with measured observations 
+of load behaviours in response to deep faults at certain locations in the Victorian network (at the limited locations 
+where high speed measurement is available at radial load locations).  It was found that the CMLD and DERAEMO1 
+models produce a considerable improvement in the representation of reactive power dynamics in the transient 
+period during and immediately following a fault, and somewhat of an improvement in the active power dynamics 
+(compared with the earlier ZIP load model). Further improvements in the calibration of load and DER models will 
+rely on increasing the availability of high speed measurements at radial load locations. This means that model 
+validation should be better supported in future by the rollout of phasor measurement units (PMUs) across the 
+NEM. 
+From application of the models to inertia studies, it has been identified that in response to a network fault, the 
+DERAEMO1 model active power recovers approximately 80 ms slower than the CMLD load model, which can lead 
+to a short duration deficit in active power that impacts system frequency in low inertia conditions. Bench testing 
+data and review of the model parameters suggest that the delayed recovery of the DERAEMO1 model is 
+reasonable, and reflective of real measurement and processing delays. 
+AEMO recommends that stakeholders adopt these updated version 2 parameters in any future studies that utilise 
+these models.  The CMLD and DERAEMO1 models provide important improvements in load and DPV 
+representation in power system studies compared with the earlier ZIP load models, but also have many remaining 
+limitations, and should be applied with discretion and only when appropriate.  AEMO will continue to work with 
+TNSPs on improvements to these models.   
+ 
+ 
+
+
+===== PAGE 5 =====
+ 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+5 
+ 
+Contents 
+Executive summary 
+3 
+1 
+Introduction 
+9 
+2 
+CMLD Parameter Updates 
+10 
+2.1 
+Summary of the CMLD model 
+10 
+2.2 
+Motor D investigation 
+11 
+2.3 
+Simplifying CMLD composition parameters 
+18 
+2.4 
+Implications of the proposed CMLD updates for stability limits 
+20 
+3 
+Model validation 
+22 
+3.1 
+Shake-off behaviours 
+22 
+3.2 
+Transient behaviours (SLIB validations) 
+23 
+4 
+Active power recovery rates 
+29 
+5 
+Next Steps 
+33 
+A1. 
+DERAEMO1 summary 
+34 
+A1.1 
+Under-voltage response 
+34 
+A1.2 
+Over-voltage response 
+36 
+A1.3 
+Reactive Power-Voltage response 
+37 
+A1.4 
+Under-frequency response 
+37 
+A1.5 
+Over-frequency response 
+38 
+A1.6 
+Response to Rate of Change of Frequency (RoCoF) 
+38 
+A2. 
+DERAEMO1 parameters 
+40 
+A2.1 
+Voltage control parameters 
+40 
+A2.2 
+Voltage tripping parameters 
+40 
+A2.3 
+Frequency control parameters 
+41 
+A2.4 
+Frequency tripping parameters 
+42 
+A2.5 
+RoCoF tripping parameters 
+44 
+A3. 
+CMLD summary 
+45 
+A3.1 
+CMLD overview 
+45 
+A3.2 
+Under-voltage response of CMLD 
+45 
+A3.3 
+Over-voltage response of CMLD 
+46 
+A3.4 
+Frequency response of CMLD 
+46 
+A4. 
+CMLD Parameters (version 2) 
+48 
+A4.1 
+CMLD composition parameters 
+48 
+A4.2 
+CMLD feeder parameters 
+49 
+A4.3 
+CMLD performance parameters 
+50 
+
+
+===== PAGE 6 =====
+ 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+6 
+ 
+A5. 
+CMLD version 1 and version 2 comparison 
+54 
+A6. 
+Transient behaviour validation testing 
+57 
+A6.1 
+25/07/2022 
+57 
+A6.2 
+18/01/2018 
+58 
+A6.3 
+31/01/2020 
+62 
+A6.4 
+8/03/2018 
+66 
+A6.5 
+18/02/2019 
+68 
+A7. 
+Motor D composition estimates 
+70 
+A7.1 
+Estimating the number of residential AC units operating 
+70 
+A7.2 
+Estimating power consumption per unit 
+70 
+ 
+Tables 
+Table 1 
+UoW findings for voltage sag tests 
+12 
+Table 2 
+Total Motor D proportions by region and season 
+15 
+Table 3 
+Summary of proposed Motor D performance parameter changes 
+16 
+Table 4 
+Version 1 CMLD composition parameters for general end-use-load 
+18 
+Table 5 
+Limits used for testing of the influence of CMLD model parameters 
+18 
+Table 6 
+Annual average composition fractions for general end-use loads 
+20 
+Table 7 
+Validation event summary – Minimum voltages recorded (pu) 
+23 
+Table 8 
+Legend for tables below 
+26 
+Table 9 
+Active power - Transient 
+27 
+Table 10 
+Reactive power - Transient 
+27 
+Table 11 
+Active power – Steady State 
+27 
+Table 12 
+Reactive power – Steady State 
+28 
+Table 13 
+Factors in DERAEMO1 which influence active power recovery post fault 
+30 
+Table 14 
+vrfrac block parameters – under-voltage behaviour 
+35 
+Table 15 
+vrfrac block parameters – over-voltage behaviour 
+36 
+Table 16 
+Under-frequency tripping stages 
+37 
+Table 17 
+Over-frequency tripping stages 
+38 
+Table 18 
+RoCoF trip stages 
+39 
+Table 19 
+Voltage Control Parameters in the DERAEMO1 model (identical for all regions) 
+40 
+Table 20 
+Voltage tripping parameters in the DERAEMO1 model (identical for all regions) 
+40 
+Table 21 
+Voltage tripping parameters in the DERAEMO1 model that vary between regions 
+40 
+Table 22 
+Frequency control parameters in the DERAEMO1 model (identical for all regions) 
+41 
+Table 23 
+Frequency control parameters in the DERAEMO1 model that vary between regions 
+41 
+
+
+===== PAGE 7 =====
+ 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+7 
+ 
+Table 24 
+Frequency tripping parameters in the DERAEMO1 model (identical for all regions) 
+42 
+Table 25 
+Frequency tripping parameters in the DERAEMO1 model that vary between regions 
+43 
+Table 26 
+Frequency tripping parameters in the DERAEMO1 model (identical for all regions) 
+44 
+Table 27 
+Frequency tripping parameters in the DERAEMO1 model that vary between regions 
+44 
+Table 28 
+Load composition parameters for Auxiliary and Large Industrial Loads 
+48 
+Table 29 
+Load composition parameters for general end-use-load – Annual average 
+48 
+Table 30 
+Load composition parameters for general end-use-load – Peak Summer 
+49 
+Table 31 
+Feeder configuration parameters (depending on load type) 
+49 
+Table 32 
+Common feeder parameters 
+49 
+Table 33 
+Power electronics performance parameters 
+50 
+Table 34 
+Static load performance parameters 
+50 
+Table 35 
+Motor A performance parameters 
+50 
+Table 36 
+Motor B performance parameters 
+51 
+Table 37 
+Motor C performance parameters 
+51 
+Table 38 
+Motor D performance parameters 
+52 
+ 
+Figures 
+Figure 1 
+The composite load model (CMLD) structure 
+10 
+Figure 2 
+Example air conditioner bench test: voltage sag (0.2pu for 120ms) 
+12 
+Figure 3 
+Active Power:  Comparison of aggregated ACs and aggregated fridge/freezers (0.4pu 
+for 80ms) 
+13 
+Figure 4 
+Reactive Power: Comparison of aggregated ACs and aggregated fridge/freezers (0.4pu 
+for 80ms) 
+14 
+Figure 5 
+Motor D model performance – comparison to measured behaviour (0.2pu for 120ms) 
+17 
+Figure 6 
+Comparison of limits with annual average load composition versus seasonal 
+composition 
+19 
+Figure 7 
+Voltage disturbances: Model performance for load/DPV shake-off – Version 2 
+parameters 
+22 
+Figure 8 
+Network locations with high speed monitoring of radial loads 
+24 
+Figure 9 
+Cranbourne network (CBTS) used for SLIB validation studies (18 January 2018) 
+25 
+Figure 10 
+18/01/2018 – Cranbourne (CBTS) – Typical example 
+26 
+Figure 11 
+Example of active power recovery rates post fault 
+30 
+Figure 12 
+DER model – Current/Output control 
+31 
+Figure 13 
+Example inverter bench test result – 0.2pu sag for 80ms 
+32 
+Figure 14 
+vrfrac block 
+35 
+Figure 15 
+CMLD version 1 vs CMLD version 2 during the modelled event on 8/3/18 
+54 
+Figure 16 
+CMLD version 1 vs CMLD version 2 during Hazelwood-South Morang 2PH-G fault 
+55 
+
+
+===== PAGE 8 =====
+ 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+8 
+ 
+Figure 17 
+CMLD version 1 vs CMLD version 2 during Hazelwood-South Morang1PH-G fault: 
+impact to Vic-NSW flows 
+56 
+Figure 18 
+Red Cliffs (RCTS) 
+58 
+Figure 19 
+Brooklyn (BLTS) 
+59 
+Figure 20 
+Cranbourne (CBTS) 
+60 
+Figure 21 
+Rowville (ROTS) / Springvale (SVTS) 
+61 
+Figure 22 
+Templestowe (TSTS) 
+62 
+Figure 23 
+Brooklyn (BLTS) 
+63 
+Figure 24 
+Cranbourne (CBTS) 
+64 
+Figure 25 
+Rowville (ROTS) / Springvale (SVTS) 
+65 
+Figure 26 
+Templestowe (TSTS) 
+66 
+Figure 27 
+Rowville (ROTS) / Springvale (SVTS) 
+67 
+Figure 28 
+Templestowe (TSTS) 
+68 
+Figure 29 
+Rowville (ROTS) / Springvale (SVTS) 
+69 
+ 
+
+
+===== PAGE 9 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+9 
+ 
+1 Introduction 
+AEMO and network service providers (NSPs) use power system models to assess power system performance 
+under different conditions. The results from these studies inform operational and planning decisions, allowing 
+AEMO to fulfill its responsibilities to maintain a secure power system. 
+In November 2022, AEMO released new models that aimed to better represent the complex behaviours of 
+composite load and distributed PV (DPV) in power system studies4.  The models are referred to as CMLD 
+(representing composite load) and DERAEMO1 (representing DPV). A summary of the functionality of the CMLD 
+and DERAEMO1 models is provided in Appendix A1 and Appendix A3 of this report. 
+In the development of the initial versions of these models, there was a significant focus on calibrating “shake-off” 
+behaviours (disconnection of load and DPV in response to a transmission network fault).  The version 1 models 
+provided a considerably improved representation of shake-off (compared with the earlier ZIP load model), and 
+have been made available to NSPs to capture these behaviours in their limits assessments and other studies 
+where appropriate.  Many areas for further improvement of the models were also identified. 
+Since the release of the version 1 models, there has been an increased focus on the transient behaviours of the 
+models, assessing their suitability for application in calculating transient stability limits.  This has led to a number of 
+model refinements, which are summarised in this report. 
+This report covers:  
+• Proposed refinements to the CMLD model parameters (Section 2), including: 
+– Updates to composition fractions 
+– Updates to “Motor D” model parameters based on laboratory testing results 
+– Reducing the complexity of the CMLD model 
+• Model validation (Section 3), including: 
+– Confirming that with these parameter updates the models remain appropriate for representing shake-off 
+behaviours 
+– Validation of transient behaviours against radial load measurements in Single Load Infinite Bus (SLIB) 
+studies 
+• Assessment of active power recovery rates, and implications for studies (Section 4) 
+This report is prepared for transparency with stakeholders on this ongoing work program, as these models may be 
+progressively applied by AEMO and TNSPs for assessment of power system limits and application in other 
+operational and planning processes. Many further areas of improvement remain, and ongoing work will continue to 
+be communicated to stakeholders as it progresses. 
+ 
+ 
+ 
+4 AEMO (November 2022) PSS®E models for load and distributed PV in the NEM, https://aemo.com.au/-/media/files/initiatives/der/2022/psse-
+models-for-load-and-distributed-pv-in-the-nem.pdf?la=en  
+
+
+===== PAGE 10 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+10 
+ 
+2 CMLD Parameter Updates 
+2.1 Summary of the CMLD model 
+The composite load model applied in these studies is shown in Figure 1. It consists of six load components at the 
+end of a feeder equivalent circuit, which is represented by a series impedance and shunt compensation. It is 
+intended to emulate various load components' aggregate behaviour. It includes 3 three-phase (3P) induction 
+motor models (Motor A, B and C), a single-phase (1P) capacitor-start motor performance model (Motor D), static 
+load components (constant current and constant impedance), and a power electronic load model (constant active 
+and reactive power). 
+Figure 1 
+The composite load model (CMLD) structure 
+ 
+Further background on the model and development of suitable parameters for each component is provided in 
+AEMO’s original report5.  The full set of recommended parameters for the CMLD model is summarised in 
+Appendix A4.   
+2.1.1 Motor D 
+Motor D is a specially developed performance model intended to represent single-phase (1P) compressors of 
+residential air-conditioning loads. A constant torque load characteristic and minimal inertia make these motors 
+prone to stall. This motor type is also common in 1P residential and light commercial refrigerator compressor 
+motors in Australia. The typical rating is between 2 to 4 kW. 
+The Motor D model is of particular importance in the USA, where a large proportion of load (up to 40%) can be 
+supplied by Motor D type loads at certain times, and this can lead to observations of Fault Induced Delayed 
+ 
+5 AEMO (November 2022) PSS®E models for load and distributed PV in the NEM, https://aemo.com.au/-/media/files/initiatives/der/2022/psse-
+models-for-load-and-distributed-pv-in-the-nem.pdf?la=en  
+
+
+===== PAGE 11 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+11 
+ 
+Voltage Recovery (FIDVR), which refers to delay in the recovery of voltage to its nominal value following the 
+normal clearing of a fault6. 
+In the initial development of the CMLD parameters, AEMO was aware that the proportion of load supplied by 
+Motor D type loads is much lower in Australia due to a higher prevalence of inverter-driven residential air 
+conditioning units.  AEMO commissioned several studies to estimate the proportion of load supplied by Motor D in 
+Australia7, and also to conduct some stall test measurements for refrigerators8 (which form a substantial 
+proportion of the Motor D load in Australia). These investigations suggested that refrigerator and air conditioning 
+load combined (which was originally categorised as Motor D in Version 1 of the CMLD parameters) typically 
+supplies 1-10% of regional load (depending on the region and time period, see Table 4).   
+Even at these low levels, subsequent studies indicated that the Motor D component was having a significant 
+influence on power system stability limits in the NEM (refer to Section 2.4).  This initiated further investigation to 
+confirm if these effects were valid and appropriate, as summarised below. 
+2.2 Motor D investigation 
+2.2.1 Bench Testing 
+AEMO commissioned University of Wollongong (UoW) to perform a series of voltage sag tests on a variety of 
+Motor D type loads, and test their responses9.  The UoW test facilities provided much higher resolution 
+measurements than those originally conducted for AEMO by EES10. The testing methodology in the EES study was 
+largely targeted at finding the point at which the unit disconnects or stalls, and involved extended duration voltage 
+sags (in the order of tens of seconds). The UoW testing provides a better indication of Motor D device behaviours 
+in response to short duration deep voltage sags, more representative of network conditions experienced in 
+response to credible power system faults. 
+UoW procured 6 air conditioners (ACs) and 7 fridges/freezers, including sourcing a selection of older models from 
+second hand markets to be more representative of the likely load composition at present.  
+Figure 2 shows an example of a 120 ms duration 0.2 p.u. voltage sag test on an air-conditioner that exhibits 
+stalling behaviour.  When the voltage sag occurs, there is insufficient power available to keep the motor operating.  
+The device stalls, increasing the current supplied significantly. When the voltage sag is removed, the current on 
+the stalled device remains high. This results in the active and reactive power drawn by the air conditioner 
+increasing significantly for approximately 6 seconds, at which point the unit disconnects on thermal protection. 
+ 
+6 IEEE (August 2019) Fault Induced Delayed Voltage Recovery (FIDVR): Modelling and Guidelines, at 
+https://ieeexplore.ieee.org/document/8973440 
+7 Energy Efficient Strategies (31 July 2020) Single Phase Induction Motor Loads on the NEM from Refrigeration and Air Conditioners, 
+https://aemo.com.au/-/media/files/initiatives/der/2020/2020-08-05-ees-ac-load-composition.pdf?la=en  
+8 Energy Efficient Strategies (26 June 2020) Results of low voltage stall measurements on single phase induction motors and inverter systems, 
+https://aemo.com.au/-/media/files/initiatives/der/2020/2020-08-05-ees-results-of-stall-measurements-on-motor-d-and-inverter-
+systems.pdf?la=en  
+9 University of Wollongong (June 2024) Composite Load Model Motor D Testing, at https://aemo.com.au/initiatives/major-programs/nem-
+distributed-energy-resources-der-program/operations/power-system-model-development 
+10 Energy Efficient Strategies (26 June 2020) Results of low voltage stall measurements on single phase induction motors and inverter systems, 
+https://aemo.com.au/-/media/files/initiatives/der/2020/2020-08-05-ees-results-of-stall-measurements-on-motor-d-and-inverter-
+systems.pdf?la=en  
+
+
+===== PAGE 12 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+12 
+ 
+Figure 2 
+Example air conditioner bench test: voltage sag (0.2pu for 120ms) 
+ 
+ 
+ 
+ 
+Top 2 panels: response over a 20 second period. Bottom 2 panels: response over a 2 second period. 
+ 
+Table 1 summarises observations for all the devices tested.  The results indicate that the air conditioners generally 
+behave in a similar manner to those tested in the USA, demonstrating stalling behaviour for voltage sags below 
+~0.5pu. However, the refrigerators and freezers tested appear to be less prone to stalling behaviour.  
+Table 1 
+UoW findings for voltage sag tests11 
+Load type 
+Test under which device begins to stall 
+Test under which device begins to 
+disconnect 
+AC 1  
+0.5 pu for 80 ms 
+0.2 pu for 400 ms 
+AC 2  
+0.6 pu for 80 ms 
+0.2 pu for 400 ms 
+AC 3  
+0.6 pu for 80 ms 
+0.5 pu for 80 ms 
+AC 4  
+0.6 pu for 80 ms  
+0.6 pu for 80 ms 
+AC 5  
+0.6 pu for 120ms 
+0.5 pu for 80 ms 
+AC 6  
+0.5 pu for 80 ms 
+0.3 pu for 120 ms 
+Fridge 1 (newer fridge) 
+0.2 pu for 120ms 
+0.2 pu for 400 ms 
+Fridge 2 (old fridge) 
+0.2 pu for 120 ms 
+0.2 pu for 120 ms 
+Fridge 3 (newer fridge)  
+0.2 pu for 400 ms 
+0.2 pu for 400 ms 
+Fridge 4 (old fridge)  
+No stall 
+No disconnect 
+Fridge 5 (old fridge)  
+0.2 pu for 400 ms 
+0.2 pu for 400 ms 
+Freezer 1 (old freezer) 
+0.2 pu for 400 ms 
+0.2 pu for 400 ms 
+Freezer 2 (new freezer) 
+0.4 pu for 80 ms 
+0.4 pu for 120 ms 
+This suggests that refrigerators and freezers should not be included in the Motor D category in the model.  Based 
+on these new test results, AEMO proposes that the load associated with these devices should be included in the 
+ 
+11 University of Wollongong (June 2024) Composite Load Model Motor D Testing, at https://aemo.com.au/initiatives/major-programs/nem-
+distributed-energy-resources-der-program/operations/power-system-model-development 
+
+
+===== PAGE 13 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+13 
+ 
+Motor A category instead (intended to represent refrigeration systems, albeit three phase systems). In the test 
+results, these fridges and freezers demonstrate a significant in-rush current (and subsequently increased active 
+and reactive power) for a short duration immediately following the fault as the motor returns to nominal speed. 
+This behaviour is best represented by the Motor A component of the CMLD model, as Motor A exhibits the highest 
+in-rush current. 
+The aggregated AC and fridge/freezer responses for a 0.4 pu voltage sag, 80 ms duration, are shown in Figure 3 
+and Figure 4.  
+Figure 3 
+Active Power:  Comparison of aggregated ACs and aggregated fridge/freezers (0.4pu for 80ms) 
+ 
+
+
+===== PAGE 14 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+14 
+ 
+Figure 4 
+Reactive Power: Comparison of aggregated ACs and aggregated fridge/freezers (0.4pu for 80ms) 
+ 
+ 
+ 
+2.2.2 Motor D Composition Factors 
+AEMO re-calculated the CMLD composition parameters to move load associated with fridges and freezers from 
+Motor D to Motor A.  Since the release of the version 1 models, some new datasets have also become available 
+and these were taken into account in this review of the CMLD composition parameters.  This included: 
+Proposed update 1:  Move refrigerators and freezers from Motor D to Motor A 
+Based on new laboratory testing results, it is proposed that load associated with refrigerators and freezers 
+should be moved from Motor D to Motor A, since these types of devices do not appear to demonstrate 
+stalling behaviour consistent with the Motor D model. 
+The re-calibration of the composition parameters to reflect this change is outlined in Section 2.2.2. 
+Proposed update 2:  Fine-tune Motor D parameters to better represent tested devices 
+Based on these new laboratory testing results, AEMO has fine-tuned the Motor D parameters to better 
+represent the observed device behaviours. The proposed new parameters are summarised in Section 2.2.3 
+
+
+===== PAGE 15 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+15 
+ 
+• The 2021 Residential Baseline Study for Australia and New Zealand12 (released in November 2022).  This study 
+provides a detailed breakdown of residential load into various appliance types. This gives a significant update 
+since the earlier dataset (released in 2015) used for the version 1 models. 
+• CSIRO datasets to estimate the correlation between AC load and temperature/season13. 
+• Information from the original EES report14 (developed for AEMO and used for the version 1 models) was also 
+used to estimate the proportion of ACs that are single-phase induction motor driven. 
+For each NEM region, the proportion of load associated with single-phase induction motor AC loads was 
+calculated for each season15.  Motor D load in a “peak” load summer interval was also estimated, since there can 
+be a large difference in the total AC load between peak summer load days compared to typical summer days.  The 
+total load for each type of interval was calculated by multiplying the estimated number of Motor D appliance units 
+operating by the estimated power consumption per unit (with both factors varying by season). 
+Table 2 shows the estimated proportions of load in the Motor D category.  These are significantly reduced from 
+the previous Motor D composition estimates of 1-10% (used in the version 1 model, see Table 4).  Section 2.3 
+discusses further how these estimated Motor D proportions have been integrated into the version 2 parameter 
+sets. 
+Table 2 
+Total Motor D proportions by region and season 
+ Interval 
+VIC 
+QLD 
+NSW 
+SA 
+Peak Summer (highest 1% underlying demand) 
+2.9% 
+2.5% 
+3.0% 
+3.2% 
+Typical Summer 
+0.5% 
+0.6% 
+0.5% 
+1.1% 
+Shoulder 
+0.1% 
+0.1% 
+0.1% 
+0.1% 
+Winter 
+0.0% 
+0.1% 
+0.0% 
+0.4% 
+ 
+2.2.3 Motor D performance parameter updates 
+Since the version 1 release of the CMLD model in November 2022, EPRI (leading a significant international work 
+program on load/DER models) has made some updates to their recommended default Motor D parameters. This, 
+along with the UoW bench test data, presents an opportunity to refine the Motor D model performance 
+parameters. AEMO’s updated parameters adopt EPRI’s default Motor D parameters, with some further 
+adjustments to better represent the observed behaviour in the UoW bench-test data.  
+Table 3 below summarises the recommended changes to the Motor D performance parameters, based on these 
+new information sources. The grey rows outline where AEMO has adopted the updated recommended parameters 
+ 
+12 Australian Government (11 November 2022) 2021 Residential Baseline Study for Australia and New Zealand for 2000 to 2040, 
+https://www.energyrating.gov.au/industry-information/publications/report-2021-residential-baseline-study-australia-and-new-zealand-2000-
+2040  
+13 M..Goldsworthy, CSIRO, (24 August 2017). “Towards a Residential Air-Conditioner Usage Model for Australia”, https://www.mdpi.com/1996-
+1073/10/9/1256  
+14 Energy Efficient Strategies (31 July 2020) Single Phase Induction Motor Loads on the NEM from Refrigeration and Air Conditioners, 
+https://aemo.com.au/-/media/files/initiatives/der/2020/2020-08-05-ees-ac-load-composition.pdf?la=en  
+15 Summer (Dec – Feb), Winter (Jul – Aug) & Shoulder (Mar-May and Sept - Nov) 
+
+
+===== PAGE 16 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+16 
+ 
+provided by EPRI. The purple rows outline where further adjustments were made so that the Motor D response 
+better aligns with the observed bench test data.  
+Table 3 
+Summary of proposed Motor D performance parameter changes16 
+Motor D 
+performance 
+parameters 
+Description 
+AEMO version 1 
+(based on EES 
+testing17 in 2020) 
+EPRI latest18 
+AEMO version 2 
+proposed 
+Tf 
+frequency time constant for contactors 
+(s)  
+0.1 
+0.05 
+0.05 
+compPF 
+power factor at 1 pu voltage 
+0.71 
+0.98 
+1.00 
+Vstall  
+stall voltage (pu) 
+0.49 
+0.45 
+0.6 
+Rstall  
+stall resistance (pu of motor base) 
+0.143 
+0.1 
+0.17 
+Xstall  
+stall reactance (pu of motor base) 
+0.143 
+0.1 
+0.07 
+Frst 
+fraction capable of restart after stall 
+0.1 
+0.2 
+0.55 
+Vrst 
+voltage for restart after stall (pu) 
+0.95 
+0.95 
+0.9 
+Tth 
+heating time constant (s) 
+15 
+10 
+16 
+Th1t 
+temperature where tripping begins (pu) 
+1.98 
+0.7 
+0.7 
+Th2t 
+temperature where completely tripped 
+(pu) 
+4.59 
+1.9 
+1.9 
+Fuvr 
+Fraction with undervoltage relays 
+0.325 
+0.1 
+0.119 
+Uvtr1 
+1st undervoltage pick-up (pu) 
+0.55 
+0.6 
+0.6 
+Ttr1 
+1st undervoltage trip delay (s) 
+0.06 
+0.02 
+0.02 
+Uvtr2 
+2nd undervoltage pick-up (pu) 
+0.1 
+0 
+0 
+ 
+Figure 5 shows the UoW bench testing results, averaged (per unit) across the six AC units tested (in blue). These 
+results were used to further adjust the updated EPRI default parameters which led to the development of the novel 
+version 2 parameters in Table 3. The AC units were each subjected to a 0.2 pu voltage sag for a duration of 
+120 ms, and the active/reactive power responses of each unit recorded (shown in aggregate in blue in Figure 5). 
+For comparison, Figure 5 also shows the Motor D model performance in response to an identical voltage sag, with 
+the CMLD Motor D component modelled as a single load infinite bus (SLIB) in PSS®E.  Figure 5 compares the 
+Motor D response with the EPRI recommended default parameters (in red), and AEMO’s recommended 
+parameters (in green).  The AEMO recommended parameters have been tuned to better match the observed 
+UoW bench testing results, adjusting compPF, Vstall, Rstall, Xstall, Frst, Vrst, Tth (as defined in Table 3 above), 
+ 
+16 A more detailed outline of the impact of these parameters on model response can be found in this report published by the Western 
+Electricity Coordinating Council (WECC): WECC Composite Load Model Specification (April 2021), 
+https://www.wecc.org/Reliability/WECC%20Comp%20Load%20Model%20Specification_final.pdf 
+17 Energy Efficient Strategies (26 June 2020) Results of low voltage stall measurements on single phase induction motors and inverter systems, 
+https://aemo.com.au/-/media/files/initiatives/der/2020/2020-08-05-ees-results-of-stall-measurements-on-motor-d-and-inverter-
+systems.pdf?la=en  
+18 EPRI (23 September 2020), Technical Reference on the Composite Load Model, 
+https://www.epri.com/research/products/000000003002019209  
+19 During parameter tuning to align with the UoW bench test data, the Fuvr parameter was temporarily set to 0, as no undervoltage relay 
+behaviour was exhibited in the air-conditioner test results. 
+
+
+===== PAGE 17 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+17 
+ 
+and otherwise adopting the recommended EPRI default parameters. The AEMO recommended parameters also 
+demonstrate a good match with a less severe voltage sag of 0.4 pu for 80 ms.  
+Figure 5 
+Motor D model performance – comparison to measured behaviour (0.2pu for 120ms) 
+ 
+
+
+===== PAGE 18 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+18 
+ 
+2.3 Simplifying CMLD composition parameters 
+The version 1 CMLD model had load composition parameters for general end-use load that vary by time of day, 
+season and region.  Table 4 summarises the ranges of these parameters, as applied in version 1.  As part of this 
+update, AEMO has sought to simplify the application of the model, moving towards a smaller set of representative 
+composition parameters. 
+Table 4 
+Version 1 CMLD composition parameters for general end-use-load 
+ 
+NSW 
+VIC 
+QLD 
+SA 
+TAS 
+Motor A 
+7.1% - 12.4% 
+6.3% - 10.6% 
+7.9% - 11.0% 
+4.1% - 7.6% 
+8.5% - 11.9% 
+Motor B 
+14.5% - 18.1% 
+15.8% - 20.6% 
+20.6% - 25.3% 
+13.4% - 18.2% 
+22.0% - 25.7% 
+Motor C 
+11.8% - 14.2% 
+10.8% - 14.1% 
+12.4% - 15.8% 
+11.2% - 15.3% 
+20.1% - 24.1% 
+Motor D 
+2.7% - 6.2% 
+3.9% - 9.1% 
+2.3% - 4.9% 
+3.9% - 10.1% 
+1.2% - 2.5% 
+Power 
+Electronic 
+30.0% - 36.4% 
+30.7% - 37.5% 
+29.0% - 37.3% 
+33.1% - 44.0% 
+24.4% - 25.7% 
+Constant 
+Current 
+3.5% - 6.2% 
+3.5% - 6.6% 
+3.4% - 5.7% 
+2.8% - 6.1% 
+4.5% - 5.6% 
+Constant 
+Impedance 
+14.6% - 23.3% 
+12.1% - 18.8% 
+8.1% - 15.6% 
+11.1% - 21.2% 
+8.0% - 15.8% 
+To test the potential for simplifying the load composition parameters, the variability of the composition parameters 
+was analysed.  It was determined that the most significant variability was between seasons, with time of day, and 
+day versus night differences being much less significant than the estimated seasonal variations. 
+Sets of seasonal composition parameters were developed by averaging the time varying composition dataset 
+within each seasonal period20.  Due to the significant contribution of Motor D load in the highest peak demand 
+periods, a summer peak composition set was also estimated (based on the highest 1% of underlying load periods 
+in each region). 
+2.3.1 Testing the influence of seasonal composition parameters 
+The influence of the variation between the different seasonal composition parameters was tested based on 
+impacts on the VNI export limits summarised in Table 5. These limits manage exports over the VIC-NSW 
+interconnector (VNI), to avoid instability in the case of a two phase to ground fault and trip of the Hazelwood – 
+South Morang 500kV line. The CMLD model was applied to studies to investigate impacts on these limits with 
+various assumptions.   
+Table 5 
+Limits used for testing of the influence of CMLD model parameters 
+Constraint 
+Equation 
+Description 
+V::N_NIL_V 
+Victorian transient stability export limit on the VIC to NSW interconnectors for the two phase to ground fault and trip of 
+Hazelwood – South Morang 500kV line where instability occurs due to VIC generators accelerating away from the 
+generators of all the other regions. 
+V::N_NIL_O 
+Victorian transient stability export limit on the VIC to NSW interconnectors for the two phase to ground fault and trip of 
+Hazelwood – South Morang 500kV line where instability occurs due to generators in regions other than Victoria 
+accelerating or decelerating away from the generators of all the other regions. 
+ 
+20 Summer (Dec – Feb), Winter (Jul – Aug) & Shoulder (Mar-May and Sept - Nov) 
+
+
+===== PAGE 19 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+19 
+ 
+The studies involved: 
+• Extracting a large number of different snapshots of the power system from recent historical periods in different 
+types of operating conditions 
+• In each snapshot, simulating the two phase to ground fault and trip of Hazelwood – South Morang 500kV line. 
+• In each snapshot, incrementally increasing exports on VNI until instability is observed. The limit in each 
+snapshot period is the last stable level of VNI flows modelled. 
+These studies would then typically be used to determine a limit equation by developing a suitable regression 
+against relevant system parameters. 
+The results of these tests are shown in Figure 6.  The updated version 2 Motor D performance parameters have 
+been applied for these tests (as summarised in Section 2.2.3) as well as the DERAEMO1 model to represent DPV 
+generation. These studies suggest that all the different seasonal composition fractions produce very similar limit 
+outcomes to the annual average composition fractions, besides the peak summer composition fractions where the 
+limit is ~80 MW lower.  This suggests that a single set of composition parameters could be applied and adequately 
+represent the load composition variability. AEMO intends to use the annual average of composition fractions 
+across all study cases. For peak summer conditions (defined as the highest 1% of underlying demand periods), 
+the user may use their discretion to apply these composition fractions (provided in Appendix A4.1.2) instead if 
+appropriate. 
+Figure 6 
+ Comparison of limits with annual average load composition versus seasonal composition 
+ 
+ 
+
+
+===== PAGE 20 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+20 
+ 
+ 
+ 
+The final revised load fractions (recommended for application in version 2 of the CMLD model) are presented in 
+Table 6. This composition estimate includes the reallocation of refrigeration load from Motor D to Motor A, as 
+described in Section 2.2.2.  
+Table 6 
+Annual average composition fractions for general end-use loads 
+ 
+Motor A 
+Motor B 
+Motor C 
+Motor D 
+Power 
+Electronic 
+Constant 
+Current 
+Constant 
+Impedance 
+Load 
+Relief* 
+VIC 
+15.3% 
+18.7% 
+12.4% 
+0.2% 
+35.0% 
+4.6% 
+13.9% 
+0.60% 
+NSW 
+15.2% 
+16.6% 
+12.9% 
+0.2% 
+33.7% 
+4.5% 
+16.9% 
+0.56% 
+QLD 
+13.3% 
+23.7% 
+13.9% 
+0.2% 
+34.7% 
+4.1% 
+10.0% 
+0.73% 
+SA 
+12.5% 
+16.5% 
+12.8% 
+0.4% 
+40.1% 
+3.8% 
+13.9% 
+0.56% 
+* Load relief estimates are provided as an indicative estimate.  This is not a parameter in the model, but rather a bottom-up calculation based on the 
+amount of load relief inherently provided by each CMLD load component. Load relief was calculated in a SLIB environment. The frequency of the infinite 
+machine was ramped down and the change in load from each motor type was recorded and then used to calculate the load relief per motor type. Based 
+on the composition fractions the load relief for each region was calculated. Refer to AEMO (June 2023) Review of NEM Load Relief, available at:  
+https://aemo.com.au/-/media/files/initiatives/der/2023/2023-05-31-load-relief-fact-sheet-update.pdf?la=en  
+ 
+ 
+2.4 Implications of the proposed CMLD updates for stability limits 
+2.4.1 CMLD model 
+The impacts of the CMLD model were tested on certain VNI transient stability export limits (see Table 5), to give a 
+preliminary indication of the influence of the models and these changes.  It was found that the overall impact of the 
+version 2 CMLD parameters, compared with the older ZIP model, does have a meaningful impact on these VNI 
+limits.  The version 2 CMLD parameters also impacts the limit differently to the CMLD version 1 parameters. This 
+is related to both the smaller estimated fraction of Motor D in the updated composition fractions, resulting in less 
+Proposed update 3:  Simplification of composition parameters 
+The CMLD composition parameters can be simplified to a single set, based on the annual average 
+composition. 
+
+
+===== PAGE 21 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+21 
+ 
+motor stalling, as well as the updated Motor D performance parameters (which reduce the impact of Motor D 
+stalling).  This suggests transmission network service providers should investigate the impacts of the version 2 
+CMLD model on their limit advice. 
+2.4.2 DERAEMO1 model 
+It was found the VNI transient stability export limits used for these validation studies (see Table 5) were relatively 
+unaffected by the dynamics of the DERAEMO1 model.  However, it is important that if the CMLD model is applied 
+in studies, it is correctly used with the DERAEMO1 model if distributed PV generation is present; the models have 
+been designed and validated to be used together.  For example, if the DERAEMO1 model is not applied and 
+CMLD is only used to represent net (operational) demand instead of the full amount of underlying demand that is 
+actually present (offset by generation from DERAEMO1), it will likely understate the impact of the CMLD model on 
+the case. 
+It’s likely that other limits will be more affected by the dynamic behaviour of the DERAEMO1 model itself, however 
+this has not been explored for the purpose of this report.  
+There are no proposed changes to the DERAEMO1 model behaviour for this release (see Appendix A2). The 
+DERAEMO1 parameters used in VNI export transient stability limit studies outlined in this report have been 
+included in Appendix A2. These are the same parameters that have been published with this release of the model. 
+As the DERAEMO1 parameters evolve over time these updates will be released through AMP. 
+ 
+ 
+
+
+===== PAGE 22 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+22 
+ 
+3 Model validation 
+3.1 Shake-off behaviours 
+In the original model validation report21, 12 voltage disturbances were used to tune the original CMLD and DER 
+model parameters to represent observed DPV and load shake-off behaviours.  The version 2 model parameters 
+were applied to confirm that these new parameters do not significantly affect the representation of shake-off, as 
+shown in Figure 7.  Shake-off was found to be minimally affected by the update to the version 2 parameters, 
+indicating that no recalibration of these parameters is required at this time. 
+In Figure 7, blue bars indicate the load change predicted by the CMLD model, yellow bars indicate the DPV 
+change predicted by the DPV model, and the red bars indicate the total net contingency size predicted by both 
+models combined. For night events where there is no DPV generation, the yellow and red bars are zero. The 
+target values were estimated based on actual data collected during each event and are indicated with dots, with 
+error bars indicating the uncertainty in the actuals estimates. 
+Figure 7 
+Voltage disturbances: Model performance for load/DPV shake-off – Version 2 parameters 
+ 
+ 
+21 AEMO (November 2022) PSS®E models for load and distributed PV in the NEM, https://aemo.com.au/-/media/files/initiatives/der/2022/psse-
+models-for-load-and-distributed-pv-in-the-nem.pdf?la=en  
+
+
+===== PAGE 23 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+23 
+ 
+ 
+ 
+3.2 Transient behaviours (SLIB validations) 
+3.2.1 High speed measurements at radial load locations 
+To assess the transient behaviours of the CMLD and DERAEMO1 models, AEMO identified locations in the 
+network where there are high speed (~20ms resolution) measurements available at locations with radial loads (not 
+meshed network). The deepest fault events recorded at these locations in recent history were identified.  Deep 
+faults at radial load locations provide the best indication of active and reactive power responses of the load itself, 
+without the complicating influences of other nearby generators and network components in a meshed network.  At 
+present, there are minimal locations in the NEM with high speed monitoring at radial loads, and all the locations 
+available at present are in the Victorian network only. This represents a significant limitation on the ability to 
+validate and improve load models, and should be addressed in future with an expansion of high speed monitoring 
+capability at a broad selection of radial load sites across all NEM regions. 
+A summary of the relevant radial load locations and identified events is shown in Table 7.  Figure 8 shows a map 
+of the relevant network locations. It is noted that none of these events represent a voltage sag deep enough to 
+lead to Motor D stalling behaviour (which bench testing summarised in Section 2.2.1 indicates occurs for voltage 
+sags below ~0.5pu).  This means they have limited ability to validate the Motor D stalling behaviour representation 
+discussed earlier in this report.  However, these studies provide a useful validation of the transient behaviour of 
+the CMLD model components in response to milder faults. 
+Table 7 
+Validation event summary – Minimum voltages recorded (pu) 
+Event date 
+Brooklyn (BLTS) 
+Cranbourne (CBTS) 
+Red Cliffs (RCTS) 
+Rowville (ROTS) / 
+Springvale (SVTS) 
+Templestowe 
+(TSTS) 
+25/07/2022 
+NA 
+NA 
+0.63 pu 
+NA 
+NA 
+18/01/2018 
+0.82 pu 
+0.64 pu 
+NA 
+0.68 pu 
+0.70 pu 
+31/01/2020 
+0.74 pu 
+0.76 pu 
+NA 
+0.76 pu 
+0.77 pu 
+8/03/2018 
+NA 
+NA 
+NA 
+0.75 pu 
+0.77 pu 
+18/02/2019 
+NA 
+NA 
+NA 
+0.84 pu 
+NA 
+Validation of shake-off behaviours 
+The version 2 updates have minimal impact on the CMLD and DERAEMO1 model load and DPV shake-off 
+behaviours.   
+
+
+===== PAGE 24 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+24 
+ 
+Figure 8 
+Network locations with high speed monitoring of radial loads 
+ 
+Location: Victoria 
+ 
+Location: Melbourne CBD 
+Yellow: 500 kV network 
+Orange: 330 kV network 
+Blue: 220 kV network 
+ 
+3.2.2 Single Load Infinite Bus (SLIB) playback studies 
+Single Load Infinite Bus (SLIB) playback validations were conducted to assess the transient behaviours of the 
+CMLD and DERAEMO1 models. 
+For each of the disturbances listed in Table 7, representative network cases were created (accessing the pre-
+disturbance snapshot and isolating the buses of interest). An example is shown in Figure 9 for Cranbourne 
+(CBTS), as applied in the 18/01/2018 disturbance.  For each case, the recorded voltage and frequency at the 
+relevant location was played back into a SLIB equivalent representation of the CMLD and DERAEMO1 models, 
+and the active/reactive power responses of the models compared with observations.  
+ 
+
+
+===== PAGE 25 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+25 
+ 
+Figure 9 
+Cranbourne network (CBTS) used for SLIB validation studies (18 January 2018) 
+ 
+3.2.3 SLIB validation results 
+Figure 10 shows a typical example of the SLIB validation results.  The measured voltage and frequency (which 
+were played back into the CMLD and DERAEMO1 models) are shown in the top two panels.  The middle two 
+panels show the active and reactive power responses, comparing the measurements (black) with the CMLD+DPV 
+model responses (blue) and the response of the original exponential (ZIP) load model (red), focusing on the first 
+two seconds of transient response.  The bottom two panels show the longer term response over the first sixty 
+seconds post disturbance for both active and reactive power.  General observations from all the SLIB studies 
+include: 
+• Reactive power:  The CMLD+DPV model provides a significant improvement in the representation of reactive 
+power.  The immediate transient response during and post-fault is much better represented (compared with 
+the ZIP model).  The CMLD+DPV model also provides a better representation of the steady state response 
+(over the subsequent sixty seconds) compared with the ZIP model. 
+• Active power:  The CMLD+DPV model provides a somewhat improved active power trajectory, better 
+representing the rate of active power rise post fault, and steady state settling level of active power, compared 
+with the ZIP model.  Both models tend to underestimate the post fault clearance overshoot. 
+These observations were generally consistent across the SLIB cases studied; further detailed results are provided 
+in Appendix A5. 
+
+
+===== PAGE 26 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+26 
+ 
+Figure 10 
+18/01/2018 – Cranbourne (CBTS) – Typical example 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Table 9, Table 10, Table 11 and Table 12 provide a summary of the SLIB case findings.  Results are categorised 
+by whether they are better, as good, or worse than the previous exponential (ZIP) model, as well as by whether 
+they provide a good, fair or poor match to the observed high speed monitoring (HSM) data, using the indicators as 
+shown in the legend in Table 8. The transient behaviour was assessed based on the general shape of response 
+during the contingency and the rate of recovery immediately (first 2 s) following the contingency compared to the 
+HSM data. The steady state behaviour was assessed based on the settled value (10-60 s following the 
+contingency) compared to the HSM data. 
+Table 8 
+Legend for tables below 
+✓ 
+Better than Exponential model 
+- 
+At least as good as exponential model 
+ 
+Worse than exponential model 
+ 
+CMLD+DERAEMO1 is a good match to HSM 
+ 
+CMLD+DERAEMO1 is a fair match to HSM 
+ 
+CMLD+DERAEMO1 is a poor match to HSM 
+ 
+
+
+===== PAGE 27 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+27 
+ 
+As shown in Table 9 and Table 10, the CMLD+DERAEMO1 model provides a better representation of active and 
+reactive power in the transient timeframe than the ZIP model in all cases, and provides at least a fair 
+representation of the HSM measurements in all cases.  In some cases, the representation of the measured 
+transient reactive power response is very good, and much improved compared with the ZIP model. 
+Table 9 
+Active power - Transient 
+Event date 
+Brooklyn (BLTS) 
+Cranbourne 
+(CBTS) 
+Red Cliffs (RCTS) 
+Rowville (ROTS) / 
+Springvale (SVTS) 
+Templestowe 
+(TSTS) 
+25/07/2022 (night) 
+NA 
+NA 
+- 
+NA 
+NA 
+18/01/2018 (day) 
+✓ 
+✓ 
+NA 
+✓ 
+- 
+31/01/2020 (day) 
+✓ 
+✓ 
+NA 
+✓ 
+✓ 
+8/03/2018 (night) 
+NA 
+NA 
+NA 
+✓ 
+✓ 
+18/02/2019 (night) 
+NA 
+NA 
+NA 
+✓ 
+NA 
+ 
+Table 10 
+Reactive power - Transient 
+Event date 
+Brooklyn (BLTS) 
+Cranbourne 
+(CBTS) 
+Red Cliffs (RCTS) 
+Rowville (ROTS) / 
+Springvale (SVTS) 
+Templestowe 
+(TSTS) 
+25/07/2022 (night) 
+NA 
+NA 
+✓ 
+NA 
+NA 
+18/01/2018 (day) 
+✓ 
+✓ 
+NA 
+✓ 
+✓ 
+31/01/2020 (day) 
+✓ 
+✓ 
+NA 
+✓ 
+✓ 
+8/03/2018 (night) 
+NA 
+NA 
+NA 
+✓ 
+✓ 
+18/02/2019 (night) 
+NA 
+NA 
+NA 
+✓ 
+NA 
+ 
+As shown in Table 11 and Table 12, in most cases the steady state active and reactive power is better represented 
+by the CMLD+DERAEMO1 models compared with the ZIP model, and in some cases provides a very good match 
+to the high speed monitoring data.  In a few select cases, the CMLD+DERAEMO1 model is poorer than ZIP at 
+representing the steady state observations. 
+Table 11 
+Active power – Steady State 
+Event date 
+Brooklyn (BLTS) 
+Cranbourne 
+(CBTS) 
+Red Cliffs (RCTS) 
+Rowville (ROTS) / 
+Springvale (SVTS) 
+Templestowe 
+(TSTS) 
+25/07/2022 (night) 
+NA 
+NA 
+✓ 
+NA 
+NA 
+18/01/2018 (day) 
+ 
+✓ 
+NA 
+✓ 
+✓ 
+31/01/2020 (day) 
+✓ 
+ 
+NA 
+ 
+- 
+8/03/2018 (night) 
+NA 
+NA 
+NA 
+✓ 
+✓ 
+18/02/2019 (night) 
+NA 
+NA 
+NA 
+- 
+NA 
+ 
+
+
+===== PAGE 28 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+28 
+ 
+Table 12 
+Reactive power – Steady State 
+Event date 
+Brooklyn (BLTS) 
+Cranbourne 
+(CBTS) 
+Red Cliffs (RCTS) 
+Rowville (ROTS) / 
+Springvale (SVTS) 
+Templestowe 
+(TSTS) 
+25/07/2022 (night) 
+NA 
+NA 
+ 
+NA 
+NA 
+18/01/2018 (day) 
+- 
+✓ 
+NA 
+✓ 
+✓ 
+31/01/2020 (day) 
+- 
+ 
+NA 
+ 
+- 
+8/03/2018 (night) 
+NA 
+NA 
+NA 
+ 
+ 
+18/02/2019 (night) 
+NA 
+NA 
+NA 
+- 
+NA 
+ 
+ 
+ 
+ 
+ 
+SLIB testing findings 
+Based on these SLIB validation tests, the CMLD+DERAEMO1 models appear to generally provide a better 
+representation of transient behaviours (compared with the previous ZIP model), especially for transient 
+reactive power.   
+
+
+===== PAGE 29 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+29 
+ 
+4 Active power recovery rates 
+Further testing of the models revealed that small differences in the rate of active power recovery between the 
+CMLD and DERAEMO1 models can lead to important differences in system rate of change of frequency (RoCoF) 
+and frequency outcomes.  This has been influential when the models were applied to calculation of inertia 
+requirements22. 
+Following a deep voltage disturbance, the DERAEMO1 model active power recovers more slowly than the CMLD 
+load model, as shown in Figure 11. The CMLD model is highly voltage dependent, and the active power response 
+snaps back quickly to close to pre disturbance levels (with some accompanying dynamic behaviour) following a 
+deep voltage sag.  In contrast, the DERAEMO1 model active power recovery exhibits some delay, with active 
+power showing a slower, ramped recovery post fault. This can create a short duration deficit in active power, 
+which can exacerbate an under-frequency disturbance.  This can be particularly important when power system 
+inertia is low and the frequency response of the power system is more sensitive (which can be more likely in 
+periods with large amounts of distributed PV operating, and therefore fewer synchronous units operating). 
+Review of the relevant parameters indicates that the recovery delays in the DERAEMO1 model appear suitable; 
+they are representative of real measurement and processing delays and the ramp is consistent with similar 
+inverter-based generation models. 
+ 
+22 AEMO (December 2023) 2023 Inertia Report, Appendix A1, https://aemo.com.au/-/media/files/electricity/nem/security_and_reliability/system-
+strength-requirements/2023-inertia-report.pdf?la=en&hash=AF08771E3E52A9BF22D210F8C2CB203A . The assessment of frequency 
+outcomes in this report considered the combined response of the CMLD and DER models, generator dynamic models and FFR settings of 
+existing, committed, and anticipated batteries. 
+
+
+===== PAGE 30 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+30 
+ 
+Figure 11 
+Example of active power recovery rates post fault 
+ 
+Figure 12 shows the current/output control block diagram as implemented in the DERAEMO1 model (sourced 
+from the DER_A model developed by WECC23). There are a number of factors in the model which contribute to the 
+delay in active power recovery, as listed in Table 13.  The values in the DERAEMO1 model have been sourced 
+from the NERC Reliability Guideline24 and the inverter bench testing results. 
+Table 13 
+Factors in DERAEMO1 which influence active power recovery post fault 
+Parameter 
+Description 
+DERAEMO1 value 
+Source 
+Tv 
+Time constant on the output of the multiplier 
+(tripping logic) block (s) 
+0.02 
+NERC Reliability Guideline  
+Rrpwr 
+Ramp rate for real power increase following a fault  
+10 
+Inverter bench test results 
+Trv 
+Voltage measurement transducer time constant (s) 
+0.02 
+NERC Reliability Guideline 
+Tp 
+Power measurement transducer time constant (s) 
+0.02 
+NERC Reliability Guideline 
+- 
+Voltage source at the output of the current control 
+- 
+- 
+ 
+ 
+23 Proposal for DER_A model (19 June 2019) WECC REMTF, Pouyan Pourbeik, https://www.wecc.org/Reliability/DER_A_Final_061919.pdf  
+24 Reliability Guideline – Parameterization of the DER_A Model (September 2019) NERC, 
+https://www.nerc.com/comm/RSTC_Reliability_Guidelines/Reliability_Guideline_DER_A_Parameterization.pdf  
+
+
+===== PAGE 31 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+31 
+ 
+Figure 12 
+DER model – Current/Output control 
+ 
+4.1.1 Bench testing of inverters 
+UNSW Sydney has conducted bench testing of numerous household distributed PV inverters25. These test 
+observations have been used to inform parameters and behaviours for the DERAEMO1 model. The test results 
+were interrogated to determine the speed of active power recovery post-disturbance. 
+Figure 13 shows an example test result for an inverter subjected to a 0.2pu voltage sag for 80ms. The inverter 
+demonstrates an 80ms delay for the active power (Pg) to recover to the pre-disturbance level from when the 
+voltage sag begins to be removed. In general, of the 46 inverters tested, most inverters showed a recovery delay 
+in the range of 2 - 150ms, with an average recovery delay of 90ms. This is consistent with the recovery delay 
+exhibited by the DERAEMO1 model (~100 ms). 
+ 
+25 Addressing Barriers to Efficient Renewable Integration, at https://research.unsw.edu.au/projects/addressing-barriers-efficient-renewable-
+integration, and http://pvinverters.ee.unsw.edu.au/ 
+
+
+===== PAGE 32 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+32 
+ 
+Figure 13 
+Example inverter bench test result – 0.2pu sag for 80ms26 
+ 
+ 
+ 
+ 
+ 
+26 Inverter 31, operating at full power. 
+Active power rate of recovery 
+The rate of active power recovery of the DERAEMO1 model appears reasonable, given available evidence. 
+
+
+===== PAGE 33 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+33 
+ 
+5 Next Steps 
+This report summarises some recommended improvements to the parameters in the CMLD model. AEMO 
+recommends that stakeholders adopt these updated parameters in any future studies if utilising these models.  
+The CMLD and DERAEMO1 models provide important improvements in load and DPV representation in power 
+system studies compared with the earlier ZIP load models, but also have many remaining limitations, and should 
+be applied with discretion and only when appropriate. Stakeholders retain responsibility for the validity of their 
+studies, and should use appropriate discretion and due diligence when deciding whether to apply these models to 
+their studies. 
+AEMO will continue to work with TNSPs on improvements to these models.  Ongoing areas of work include: 
+• Integrating the DERAEMO1 and CMLD models into AMP (AEMO Modelling Platform) for streamlined and 
+robust application of the models in future studies. 
+• Continue to support adoption of these models at AEMO and TNSPs, with continuous assessment and validation 
+to ensure models are fit for purpose for the wide range of possible applications. 
+• Adjustments to the DERAEMO1 model to capture improving AS4777:2020 compliance27. 
+• Additional bench testing of various loads (by University of Wollongong) to continue to inform load behaviour 
+and further improvements to the CMLD model. 
+• Additional bench testing of DPV and distributed battery energy storage (BESS) inverters, to continue to inform 
+DER behaviours and further improvements to the DERAEMO1 model. 
+• Testing to understand behaviour of EV chargers and inform development of suitable models to represent these 
+in power system studies. 
+ 
+ 
+ 
+ 
+27 AEMO (December 2023) Compliance of Distributed Energy Resources with Technical Settings: Update, https://aemo.com.au/-
+/media/files/initiatives/der/2023/oem_compliance_report_2023.pdf?la=en&hash=E6BEA93263DE58C64FCC957405808CA6  
+
+
+===== PAGE 34 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+34 
+ 
+A1. DERAEMO1 summary 
+This Appendix provides a summary of the functionality of the DERAEMO1 model, intended to represent distributed 
+PV in the NEM. The model is highly sensitive to voltage, and also has some frequency dependency. The most 
+significant behaviours are outlined in the sections below. Appendix A2 outlines the parameter values used in this 
+report. 
+A1.1 Under-voltage response 
+The under-voltage tripping behaviour is one of the most important aspects of the DPV model, and has been 
+carefully tuned to match observations from inverter bench testing, and numerous field disturbances. 
+The voltage response of the model is primarily defined by the ‘vrfrac’ block, illustrated in Figure 14. This block 
+represents both “momentary cessation” behaviour (where a proportion of inverters will temporarily reduce active 
+power injection during a voltage excursion), and voltage tripping behaviour (a proportion of inverters will trip in 
+response to a voltage excursion, and will not reconnect for the duration of the simulation).  The vrfrac block 
+operates as follows: 
+• The output of this block is a multiplier on the active power output of the model. 
+• As the bus voltage falls below vl1 (0.9pu), the active power output of the model reduces linearly (reaching zero 
+at vl0 (~0.6pu)).  This represents momentary cessation.  If the bus voltage recovers within less than the time 
+tvl1 (~0.03s), then the power output of the model will recover to pre-event levels. 
+• If the bus voltage remains below vl1 (0.9pu) for longer than the time tvl1 (~0.03s), the model will only partially 
+recover, with active power following the red line when voltage recovers to pre-event levels.  This represents 
+tripping of a proportion of inverters.  They will not reconnect for the duration of the simulation. 
+• If the bus voltage remains below vl0 (~0.6pu) for more than the time delay tvl0 (~2s), the entire DPV model will 
+trip and remain at zero for the duration of the simulation, representing tripping of all inverters at the bus. 
+The proportion of inverters that do not trip is determined by the parameter ‘vrfrac’ (~0.7) (fraction of devices that 
+recover following a fault), defined in Equation 1. 
+
+
+===== PAGE 35 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+35 
+ 
+Figure 14 
+vrfrac block 
+ 
+Equation 1: 
+𝐵= 𝑉𝑟𝑓𝑟𝑎𝑐 𝑥 𝐴= 𝑉𝑟𝑓𝑟𝑎𝑐(𝑣𝑙1 −𝑉𝑚𝑖𝑛
+𝑣𝑙1 −𝑣𝑙0 ) = 𝑉𝑟𝑓𝑟𝑎𝑐 (𝑣ℎ1 −𝑉𝑚𝑎𝑥
+𝑣ℎ1 −𝑣ℎ0 ) 
+Inverters installed prior to October 2016 were installed under the 2005 Australian Standard (AS4777.3:2005).  
+Inverters installed after that date were installed under the 2015 standard (AS/NZS4777.2:2015).  Each inverter 
+type has different behaviours based on the requirements of those standards, and based on observed behaviour 
+from inverters of that vintage during field disturbances.  The model parameters are a weighted average of the two, 
+depending on the proportion of each inverter type installed at the date of the relevant study. Table 14 lists the 
+parameters estimated for inverters under each standard, and provides the weighted average estimated for the 
+present day mix in the NEM. 
+Table 14 
+vrfrac block parameters – under-voltage behaviour 
+Parameter 
+Description 
+2005 standard 
+2015 standard 
+Present Day Mix 
+Comments 
+vl1 
+1st LV Setpoint 
+0.9 pu 
+0.9 pu 
+0.9 pu 
+Based on inverter bench testing. Inverters of 
+both types begin to disconnect at 0.9pu. 
+vl0 
+2nd LV Setpoint 
+0.75 pu 
+0.5 pu 
+0.5 to 0.7 pu 
+Estimates from Australian Standards 
+provided a starting point: 
+AS4777.3-2005 requires that if voltage falls 
+below 200V (0.86pu), inverter disconnects 
+within 2s.  
+AS/NZS 4777.2:2015 requires that if voltage 
+falls below 180V (0.78pu) for more than 1s, 
+then inverter disconnects in a maximum of 
+2s. 
+vl0 was then tuned, keeping vl1 at 0.9pu, to 
+adjust the vl1-vl0 gradient to match overall 
+PV tripping observed in field disturbances. 
+tvl1 
+1st LV trip delay 
+0.027 s 
+0.037 s 
+0.03 to 0.04 s 
+Based on inverter bench testing (average 
+disconnection time for under-voltage step 
+230V to 50V for 100ms) 
+tvl0 
+2nd LV trip delay 
+1.58 s 
+1.77 s 
+1.68 to 1.74 s 
+Based on inverter bench testing (average 
+disconnection time for under-voltage ramp 
+230V to 160V for 10s, measuring delay from 
+when voltage falls below thresholds defined 
+in standards) 
+vrfrac 
+Fraction of devices 
+that recover 
+following a voltage 
+event 
+0.625 
+0.713 
+0.67 to 0.70 
+Based on inverter bench testing (120ms 
+voltage sags to varying levels between 0.9pu 
+and 0.2pu) to determine fraction that recover, 
+and fine-tuned against field disturbances in 
+conjunction with vl0. 
+ 
+
+
+===== PAGE 36 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+36 
+ 
+A1.2 Over-voltage response 
+The over-voltage response of the DPV model mirrors the under-voltage behaviour of the vrfrac block.  For over-
+voltage excursions, the behaviour of the DPV model can be described as follows: 
+• As the bus voltage rises above vh1 (1.13pu), the active power output of the model reduces linearly (reaching 
+zero at vh0, 1.18pu).  This represents momentary cessation.  If the bus voltage recovers below vh1 within less 
+than the time delay tvh1 (~2s), then the power output of the model will recover to pre-event levels. 
+• If the bus voltage remains above vh1 (1.13pu) for longer than the time delay tvh1 (~2s), the model will only 
+partially recover, with active power following the red line when voltage recovers to pre-event levels.  This 
+represents tripping of a proportion of inverters.  They will not reconnect for the duration of the simulation. 
+• If the bus voltage remains above vh0 (~1.18pu) for more than the time delay tvh0 (~0.4s), the entire DPV model 
+will trip and remain at zero for the duration of the simulation, representing tripping of all inverters at the bus. 
+The parameters for over-voltage behaviour are summarised in Table 15.  The vrfrac parameter (fraction of devices 
+that do not trip and recover) is identical for under-voltage and over-voltage (~0.7). 
+Table 15 
+vrfrac block parameters – over-voltage behaviour 
+Parameter 
+Description 
+2005 
+standard 
+2015 
+standard 
+Present Day 
+Mix 
+Comments 
+vh1 
+1st HV 
+Setpoint 
+1.13 pu 
+1.13 pu 
+1.13 pu 
+AS/NZS 4777.2:2015 requires that if voltage exceeds 260V 
+(1.13pu) for more than 1s, then disconnect inverters in a 
+maximum of 2s.  
+AS4777.3-2005 requires that if voltage exceeds 270V (1.17pu), 
+disconnect inverters within 2s.  
+The value from the 2015 standard was applied, since this 
+represents the earliest over-voltage where a model response 
+should begin. 
+vh0 
+2nd HV 
+Setpoint 
+1.18 pu 
+1.18 pu 
+1.18 pu 
+AS/NZS 4777.2:2015 requires that if voltage exceeds 265V 
+(1.15pu) disconnect inverters within 0.2s. This provided a 
+starting point. 
+Vh0 was fine tuned in validation studies, to decrease the vh1- 
+vh0 gradient to make the over-voltage trip settings less 
+sensitive (representing a proportion of inverters under the 2005 
+standard that may not feature this fast trip setting).  
+tvh1 
+1st HV trip 
+delay   
+1.94 s 
+1.87 s 
+1.89 to 1.91 s 
+Based on inverter bench testing (average disconnection time 
+for over-voltage step 230V to 260V) 
+tvh0 
+2nd HV trip 
+delay 
+0.88 s 
+0.16 s 
+0.3 to 0.5 s 
+Based on inverter bench testing (average disconnection time 
+for over-voltage step 230V to 270V)  
+Due to limited field observations, the over-voltage behaviour of the model is based heavily on specifications in the 
+Australian Standards (the model represents the behaviour required in the 2015 standard, with the thresholds and 
+timers made somewhat higher and longer to represent the somewhat more relaxed trip settings in the 2005 
+standard).  The under-voltage behaviour of the model is based more strongly on field observations and bench 
+testing observations. 
+
+
+===== PAGE 37 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+37 
+ 
+A1.3 Reactive Power-Voltage response 
+The DERAEMO1 model has the potential to represent Volt-Var responses.  This power quality mode has been 
+required for new connections by most distribution network service providers in recent years, and is mandatory in 
+the latest AS/NZS4777.2:2020.  However, this response is not enabled in the DERAEMO1 model in this version. 
+This is for the following reasons: 
+1. Inverter bench testing has shown that the Volt-Var response of inverters, once activated, takes seconds to 
+respond. There is little evidence to indicate inverters will provide voltage support during a fault (which 
+may only last ~100ms).  
+2. Reactive power injection/consumption in the distribution network is unlikely to result in changes to 
+voltages/reactive power in the transmission network.  The DERAEMO1 model is connected at higher 
+voltage buses, to represent the aggregate behaviour of distributed PV connected downstream, as 
+observed in the transmission network. 
+3. Field measurements indicate low compliance in delivery of Volt-Var response (70-80% of inverters are not 
+delivering this response)28 
+This can be reconsidered in future model versions, particularly if inverter compliance in delivery of this power 
+quality mode improves, and further evidence becomes available on how Volt-Var response impacts disturbance 
+behaviour improves.  The reduction in active power injection when inverters are preferencing delivery of reactive 
+power under this power quality mode could be an important feature, to accurately represent behaviour visible in 
+the transmission network. 
+A1.4 Under-frequency response 
+The DERAEMO1 model includes thirteen under-frequency trip stages. A proportion of the model will trip as 
+frequency falls below 49Hz (with varying time delays as frequency falls further) and will not recover for the 
+duration of the simulation. The most influential under-frequency tripping stages (above 48Hz) are listed in Table 
+16.  These are based on the proportion of older inverters (installed under the 2005 standard) which are known to 
+have trip settings at these levels based on manufacturer surveys.  The same trip settings are also applied to the 
+fleet of newer inverters (installed under the 2015 standard) but with trip percentages halved.  This has been tuned 
+to match field observations, and represents the somewhat improved frequency behaviour of newer inverters, but 
+with poor compliance with the 2015 standard. See Appendix A2.4 for the complete set of under-frequency tripping 
+parameters. 
+Table 16 
+Under-frequency tripping stages 
+ 
+Percentage that disconnects (fracl_fl) 
+Trip Stage 
+Frequency Trip Setting (Hz) (fl) 
+Trip Delay (s) (tfl) 
+2005 standard* 
+2015 standard* 
+Present day mix 
+Trip 1 
+49.6 
+1.9 
+2% 
+1% 
+1 to 1.5% 
+Trip 2 
+49.01 
+0.18 
+0.7 to 4% 
+0.4 to 2% 
+0.5 to 3% 
+ 
+28 AEMO (April 2023) Compliance of Distributed Energy Resources with Technical Settings, https://aemo.com.au/-
+/media/files/initiatives/der/2023/compliance-of-der-with-technical-settings.pdf?la=en&hash=FC30DF5A3B9EF853093709012242D897  
+
+
+===== PAGE 38 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+38 
+ 
+ 
+Percentage that disconnects (fracl_fl) 
+Trip 3 
+49 
+0.06 
+9 to 16% 
+5 to 8% 
+6 to 12% 
+Trip 4 
+49 
+1.96 
+2.5 to 8% 
+1.3 to 4% 
+2 to 5% 
+Trip 5 
+49 
+2 
+0 to 0.3% 
+0 to 0.2% 
+0 to 0.2% 
+Trip 6 
+48.52 
+2 
+0.5 to 1.3% 
+0.3 to 0.7% 
+0 to 1% 
+* Varies region to region depending on proportion of relevant manufacturer products installed under the 2005 standard in each region 
+The DERAEMO1 model does not have any other response to under-frequency.  
+A1.5 Over-frequency response 
+The DERAEMO1 model includes thirteen over-frequency trip stages. The most influential under-frequency tripping 
+stages (those below 52Hz) are listed in Table 17.  These were determined similarly to under-frequency trip 
+settings. See Appendix A2.4 for the complete set of over-frequency tripping parameters. 
+Table 17 
+Over-frequency tripping stages 
+ 
+Percentage that disconnects  (frac_fh) 
+Trip Stage 
+Frequency Trip Setting (Hz) (fh) 
+Trip Delay (s) (tfh) 
+2005 standard 
+2015 standard 
+Present day mix 
+Trip 1 
+50.5 
+1.9 
+7% 
+3.5% 
+4 to 5% 
+Trip 2 
+50.8 
+1.9 
+5% 
+1% 
+2 to 3% 
+Trip 3 
+51 
+0.06 
+3 to 9% 
+4 to 7% 
+4 to 8% 
+Trip 4 
+51 
+1.96 
+0.7 to 6% 
+1 to 4% 
+1 to 5% 
+Trip 5 
+51 
+2 
+0 to 0.2% 
+0 to 0.2% 
+0 to 0.2% 
+Trip 6 
+51.6 
+2 
+0.5 to 1.3% 
+0.3 to 0.7% 
+0 to 1% 
+Trip 7 
+51.9 
+1.8 
+1 to 8% 
+0.5 to 4% 
+1 to 5% 
+The DERAEMO1 model also includes an over-frequency droop response, as required in the 2015 standard.  As 
+frequency exceeds 50.25Hz, the model active power will reduce linearly (reaching zero at 52 Hz).  The active 
+power will not recover from the lowest level reached for the duration of the simulation, representing the 60s delay 
+required in the standard.  The amount of response is scaled by the proportion of inverters in the simulation 
+installed under the 2015 standard (since this response was not required from older inverters), and is also scaled 
+down representing poor compliance with the 2015 standard (calibrated based on observations in a number of field 
+disturbances). 
+For severe over-frequency disturbances, the over-frequency tripping and over-frequency droop curtailment 
+response have been observed to be approximately similar in magnitude, contributing relatively equally to the 
+reduction in active power from the model. 
+A1.6 Response to Rate of Change of Frequency (RoCoF) 
+The DERAEMO model also represents a proportion of inverters tripping if certain RoCoF thresholds are exceeded, 
+as listed in Table 18.  These are based on observations from inverter bench testing. These trip settings apply to 
+both increasing and decreasing RoCoF. 
+
+
+===== PAGE 39 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+39 
+ 
+Table 18 
+RoCoF trip stages 
+ 
+ 
+ 
+Percentage that disconnects (frac_RoCoF) 
+Trip Stage  
+RoCoF Trip Setting (RoCoF) 
+Trip Delay 
+(s) (tRoCoF) 
+2005 
+standard 
+2015 standard 
+Present day mix 
+Trip 1 
+0.4 Hz/s (0.008 pu/s) 
+1.41 s 
+3.5 to 4% 
+3.5 to 4% 
+3.5 to 4% 
+Trip 2 
+1 Hz/s (0.02 pu/s) 
+0.83 s 
+4 to 10% 
+4 to 10% 
+4 to 10% 
+ 
+ 
+ 
+
+
+===== PAGE 40 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+40 
+ 
+A2. DERAEMO1 parameters 
+The section summarises the DERAEMO1 parameters used in VNI export transient stability limit (see Table 5) 
+studies outlined in this report. As the DERAEMO1 parameters evolve over time, updates to these parameters will 
+be released through the AEMO Modelling Platform (AMP). 
+A2.1 Voltage control parameters 
+Some of the voltage control parameters that are redundant in the DERAEMO1 model implementation have 
+changed in this release and have now been set to zero. These changes have no impact on model behaviour, so 
+the response of the DERAEMO1 model will be identical to the previous version of the DERAEMO1 model. 
+Table 19 
+Voltage Control Parameters in the DERAEMO1 model (identical for all regions) 
+Parameter 
+Name 
+Description 
+Value 
+M 
+PfFlag 
+reactive power control mode: 
+• 1 : constant power factor mode 
+• 0 : constant Q control mode 
+1 
+J 
+Trv 
+(s) voltage measurement transducer time constant 
+0.02 
+J+2 
+dbd1 
+(pu) lower voltage deadband (<= 0) 
+0 
+J+3 
+dbd2 
+(pu) upper voltage deadband (> 0) 
+0 
+J+5 
+Vref 
+(pu) user specified voltage set-point 
+1 
+J+7 
+Tiq 
+(s) Q-control time constant 
+0.02 
+J+31 
+Kqv1 
+(pu) proportional voltage control gain for reactive power reduction 
+0 
+J+32 
+Kqv2 
+(pu) proportional voltage control gain for reactive power increase 
+0 
+J+39 
+Iqh1 
+(pu) upper limit on reactive current injection Iqinj 
+0 
+J+40 
+Iql1 
+(pu) lower limit on reactive current injection Iqinj 
+0 
+A2.2 Voltage tripping parameters 
+Table 20 
+Voltage tripping parameters in the DERAEMO1 model (identical for all regions) 
+Parameter 
+Name 
+Description 
+Value 
+M+4 
+VtripFlag 
+flag to enable/disable voltage trip logic: 
+• 1 : enable 
+• 0 : disable 
+1 
+J+23 
+vl1 
+(pu) second breakpoint for low voltage cut-out (vl1 >vl0) 
+0.90 
+Table 21 
+Voltage tripping parameters in the DERAEMO1 model that vary between regions 
+Parameter 
+Name 
+Description 
+Value 
+NSW 
+VIC 
+QLD 
+SA 
+TAS 
+J+22 
+vl0 
+(pu) first breakpoint for low voltage cut-
+out 
+0.548 
+0.556 
+0.568 
+0.570 
+0.589 
+
+
+===== PAGE 41 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+41 
+ 
+Parameter 
+Name 
+Description 
+Value 
+NSW 
+VIC 
+QLD 
+SA 
+TAS 
+J+24 
+vh0 
+(pu) first breakpoint for high voltage cut-
+out 
+1.180 
+1.180 
+1.180 
+1.180 
+1.180 
+J+25 
+vh1 
+(pu) second breakpoint for high voltage 
+cut-out (vh1< vh0) 
+1.130 
+1.130 
+1.131 
+1.130 
+1.130 
+J+26 
+tvl0 
+(s) low voltage cut-out timer 
+corresponding to voltage vl0 
+1.731 
+1.725 
+1.716 
+1.714 
+1.700 
+J+27 
+tvl1 
+(s) low voltage cut-out timer 
+corresponding to voltage vl1 
+0.035 
+0.035 
+0.035 
+0.034 
+0.034 
+J+28 
+tvh0 
+(s) high voltage cut-out timer 
+corresponding to voltage vh0 
+0.297 
+0.321 
+0.356 
+0.361 
+0.416 
+J+29 
+tvh1 
+(s) high voltage cut-out timer 
+corresponding to voltage vh1 
+1.887 
+1.889 
+1.893 
+1.893 
+1.899 
+J+30 
+vrfrac 
+fraction of devices that recovers after 
+voltage comes back within vl1 < V < vh1 
+(0 <= Vrfrac <= 1) 
+0.696 
+0.693 
+0.692 
+0.688 
+0.682 
+A2.3 Frequency control parameters 
+Table 22 
+Frequency control parameters in the DERAEMO1 model (identical for all regions) 
+Parameter 
+Name 
+Description 
+Value 
+M+1 
+FreqFlag 
+flag to enable/disable frequency droop control: 
+• 1 : frequency control enabled 
+• 0 : frequency control disabled 
+1 
+J+1 
+Trf 
+(s) frequency measurement transducer time constant 
+0.02 
+J+4 
+Trocof 
+(s) RoCoF Filter time constant 
+0.02 
+J+9 
+Dup 
+(pu) reciprocal of droop for under-frequency conditions (> 0) 
+0 
+J+10 
+fdbd1 
+(pu) deadband for frequency control, lower threshold (<= 0) 
+-0.005 
+J+11 
+fdbd2 
+(pu) deadband for frequency control, upper threshold (>= 0) 
+1 
+J+12 
+femax 
+(pu) freq. error upper limit 
+99 
+J+13 
+femin 
+(pu) freq. error lower limit 
+-99 
+J+14 
+Pmax 
+(pu) max. power limit 
+1 
+J+15 
+Pmin 
+(pu) min. power limit 
+0 
+J+16 
+dPmax 
+(pu/s) power reference maximum ramp rate (> 0) 
+0 
+J+17 
+dPmin 
+(pu/s) Power reference minimum ramp rate (< 0) 
+-99 
+J+18 
+Tpord 
+(s) Power filter time constant 
+0.02 
+J+19 
+Kpg 
+(pu) PI controller proportional gain 
+0 
+J+20 
+Kig 
+(pu) PI controller integral gain 
+10 
+Table 23 
+Frequency control parameters in the DERAEMO1 model that vary between regions 
+Parameter 
+Name 
+Description 
+Value 
+NSW 
+VIC 
+QLD 
+SA 
+TAS 
+J+8 
+Ddn 
+(pu) reciprocal of droop for over-
+frequency conditions (< 0) 
+8.09 
+7.75 
+7.49 
+7.19 
+6.43 
+
+
+===== PAGE 42 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+42 
+ 
+A2.4 Frequency tripping parameters 
+Table 24 
+Frequency tripping parameters in the DERAEMO1 model (identical for all regions) 
+Parameter 
+Name 
+Description 
+Value 
+M+5 
+FtripFlag 
+flag to enable/disable frequency trip logic:  
+• 1 : enable 
+• 0 : disable 
+1 
+J+38 
+Vpr 
+(pu) voltage below which frequency tripping is disabled 
+0.90 
+J+41 
+fl1 
+(Hz) low frequency trip limit 1 
+49.60 
+J+42 
+fl2 
+(Hz) low frequency trip limit 2 
+49.01 
+J+43 
+fl3 
+(Hz) low frequency trip limit 3 
+49.00 
+J+44 
+fl4 
+(Hz) low frequency trip limit 4 
+49.00 
+J+45 
+fl5 
+(Hz) low frequency trip limit 5 
+49.00 
+J+46 
+fl6 
+(Hz) low frequency trip limit 6 
+48.52 
+J+47 
+fl7 
+(Hz) low frequency trip limit 7 
+47.60 
+J+48 
+fl8 
+(Hz) low frequency trip limit 8 
+47.55 
+J+49 
+fl9 
+(Hz) low frequency trip limit 9 
+47.50 
+J+50 
+fl10 
+(Hz) low frequency trip limit 10 
+47.10 
+J+51 
+fl11 
+(Hz) low frequency trip limit 11 
+47.00 
+J+52 
+fl12 
+(Hz) low frequency trip limit 12 
+47.00 
+J+53 
+fl13 
+(Hz) low frequency trip limit 13 
+47.00 
+J+54 
+tfl1 
+(s) pick-up time for low frequency trip 1  
+1.90 
+J+55 
+tfl2 
+(s) pick-up time for low frequency trip 2 
+0.18 
+J+56 
+tfl3 
+(s) pick-up time for low frequency trip 3  
+0.06 
+J+57 
+tfl4 
+(s) pick-up time for low frequency trip 4  
+1.96 
+J+58 
+tfl5 
+(s) pick-up time for low frequency trip 5  
+2.00 
+J+59 
+tfl6 
+(s) pick-up time for low frequency trip 6  
+2.00 
+J+60 
+tfl7 
+(s) pick-up time for low frequency trip 7  
+1.80 
+J+61 
+tfl8 
+(s) pick-up time for low frequency trip 8  
+0.20 
+J+62 
+tfl9 
+(s) pick-up time for low frequency trip 9  
+1.80 
+J+63 
+tfl10 
+(s) pick-up time for low frequency trip 10  
+1.80 
+J+64 
+tfl11 
+(s) pick-up time for low frequency trip 11 
+1.60 
+J+65 
+tfl12 
+(s) pick-up time for low frequency trip 12 
+0.10 
+J+66 
+tfl13 
+(s) pick-up time for low frequency trip 13 
+1.65 
+J+80 
+fh1 
+(Hz) high frequency trip limit 1  
+50.50 
+J+81 
+fh2 
+(Hz) high frequency trip limit 2 
+50.80 
+J+82 
+fh3 
+(Hz) high frequency trip limit 3  
+51 
+J+83 
+fh4 
+(Hz) high frequency trip limit 4  
+51 
+J+84 
+fh5 
+(Hz) high frequency trip limit 5  
+51 
+J+85 
+fh6 
+(Hz) high frequency trip limit 6  
+51.58 
+J+86 
+fh7 
+(Hz) high frequency trip limit 7  
+51.90 
+
+
+===== PAGE 43 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+43 
+ 
+Parameter 
+Name 
+Description 
+Value 
+J+87 
+fh8 
+(Hz) high frequency trip limit 8 
+52.00 
+J+88 
+fh9 
+(Hz) high frequency trip limit 9  
+52.00 
+J+89 
+fh10 
+(Hz) high frequency trip limit 10  
+52.45 
+J+90 
+fh11 
+(Hz) high frequency trip limit 11 
+52.90 
+J+91 
+fh12 
+(Hz) high frequency trip limit 12 
+53 
+J+92 
+fh13 
+(Hz) high frequency trip limit 13 
+53 
+J+93 
+tfh1 
+(s) pick-up time for high frequency trip 1  
+1.9 
+J+94 
+tfh2 
+(s) pick-up time for high frequency trip 2 
+1.9 
+J+95 
+tfh3 
+(s) pick-up time for high frequency trip 3  
+0.06 
+J+96 
+tfh4 
+(s) pick-up time for high frequency trip 4  
+1.96 
+J+97 
+tfh5 
+(s) pick-up time for high frequency trip 5  
+2 
+J+98 
+tfh6 
+(s) pick-up time for high frequency trip 6  
+2 
+J+99 
+tfh7 
+(s) pick-up time for high frequency trip 7  
+1.8 
+J+100 
+tfh8 
+(s) pick-up time for high frequency trip 8  
+1.6 
+J+101 
+tfh9 
+(s) pick-up time for high frequency trip 9  
+0.15 
+J+102 
+tfh10 
+(s) pick-up time for high frequency trip 10  
+0.2 
+J+103 
+tfh11 
+(s) pick-up time for high frequency trip 11 
+1.8 
+J+104 
+tfh12 
+(s) pick-up time for high frequency trip 12 
+0.1 
+J+105 
+tfh13 
+(s) pick-up time for high frequency trip 13 
+0.16 
+ 
+Table 25 
+Frequency tripping parameters in the DERAEMO1 model that vary between regions 
+Parameter 
+Name 
+Description 
+Value 
+NSW 
+VIC 
+QLD 
+SA 
+TAS 
+J+67 
+frac_fl1 
+fraction for low frequency trip 1 
+1.19% 
+1.23% 
+1.26% 
+1.28% 
+1.36% 
+J+68 
+frac_fl2 
+fraction for low frequency trip 2 
+1.17% 
+2.54% 
+1.35% 
+0.94% 
+0.51% 
+J+69 
+frac_fl3 
+fraction for low frequency trip 3 
+7.68% 
+8.21% 
+5.86% 
+6.19% 
+11.18% 
+J+70 
+frac_fl4 
+fraction for low frequency trip 4 
+2.34% 
+5.08% 
+2.17% 
+1.64% 
+2.41% 
+J+71 
+frac_fl5 
+fraction for low frequency trip 5 
+0.06% 
+0.18% 
+0.06% 
+0.18% 
+0.00% 
+J+72 
+frac_fl6 
+fraction for low frequency trip 6 
+0.77% 
+0.31% 
+0.50% 
+0.58% 
+0.48% 
+J+73 
+frac_fl7 
+fraction for low frequency trip 7 
+4.88% 
+2.08% 
+1.20% 
+2.05% 
+0.68% 
+J+74 
+frac_fl8 
+fraction for low frequency trip 8 
+1.73% 
+1.35% 
+1.51% 
+2.63% 
+1.36% 
+J+75 
+frac_fl9 
+fraction for low frequency trip 9 
+4.82% 
+3.19% 
+6.62% 
+2.82% 
+5.16% 
+J+76 
+frac_fl10 
+fraction for low frequency trip 10 
+5.48% 
+5.64% 
+11.86% 
+4.93% 
+14.86% 
+J+77 
+frac_fl11 
+fraction for low frequency trip 11 
+0.83% 
+1.10% 
+0.50% 
+0.51% 
+0.07% 
+J+78 
+frac_fl12 
+fraction for low frequency trip 12 
+29.00% 
+30.76% 
+30.52% 
+40.67% 
+30.13% 
+J+79 
+frac_fl13 
+fraction for low frequency trip 13 
+40.04% 
+38.34% 
+36.58% 
+35.59% 
+31.82% 
+J+106 
+frac_fh1 
+fraction for high frequency trip 1 
+4.17% 
+4.29% 
+4.41% 
+4.48% 
+4.75% 
+J+107 
+frac_fh2 
+fraction for high frequency trip 2 
+1.76% 
+1.90% 
+2.08% 
+2.12% 
+2.43% 
+J+108 
+frac_fh3 
+fraction for high frequency trip 3 
+6.04% 
+7.56% 
+3.95% 
+3.77% 
+7.73% 
+
+
+===== PAGE 44 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+44 
+ 
+Parameter 
+Name 
+Description 
+Value 
+NSW 
+VIC 
+QLD 
+SA 
+TAS 
+J+109 
+frac_fh4 
+fraction for high frequency trip 4 
+1.84% 
+4.68% 
+1.46% 
+1.00% 
+1.67% 
+J+110 
+frac_fh5 
+fraction for high frequency trip 5 
+0.04% 
+0.16% 
+0.04% 
+0.11% 
+0.00% 
+J+111 
+frac_fh6 
+fraction for high frequency trip 6 
+0.77% 
+0.31% 
+0.50% 
+0.58% 
+0.48% 
+J+112 
+frac_fh7 
+fraction for high frequency trip 7 
+4.88% 
+2.08% 
+1.20% 
+2.05% 
+0.68% 
+J+113 
+frac_fh8 
+fraction for high frequency trip 8 
+5.66% 
+4.29% 
+8.14% 
+5.44% 
+5.23% 
+J+114 
+frac_fh9 
+fraction for high frequency trip 9 
+0.00% 
+0.00% 
+1.24% 
+0.00% 
+0.00% 
+J+115 
+frac_fh10 
+fraction for high frequency trip 10 
+1.73% 
+1.35% 
+11.86% 
+4.93% 
+1.36% 
+J+116 
+frac_fh11 
+fraction for high frequency trip 11 
+5.48% 
+5.64% 
+0.50% 
+0.51% 
+14.86% 
+J+117 
+frac_fh12 
+fraction for high frequency trip 12 
+29.00% 
+30.76% 
+30.52% 
+40.67% 
+30.13% 
+J+118 
+frac_fh13 
+fraction for high frequency trip 13 
+38.63% 
+36.98% 
+34.09% 
+34.34% 
+30.69% 
+A2.5 RoCoF tripping parameters 
+Table 26 
+Frequency tripping parameters in the DERAEMO1 model (identical for all regions) 
+Parameter 
+Name 
+Description 
+Value 
+J+119 
+RoCoF_1 
+(pu/s)29 RoCoF trip limit 1   
+0.008 
+J+120 
+RoCoF_2  
+(pu/s) RoCoF trip limit 2 
+0.02 
+J+121 
+RoCoF_3 
+(pu/s) RoCoF trip limit 3 
+0.08 
+J+122 
+tRoCoF_1 
+(s) pick up time for RoCoF trip 1 
+1.41 
+J+123 
+tRoCoF_2 
+(s) pick up time for RoCoF trip 2 
+0.83 
+J+124 
+tRoCoF_3 
+(s) pick up time for RoCoF trip 3 
+0.29 
+ 
+Table 27 
+Frequency tripping parameters in the DERAEMO1 model that vary between regions 
+Parameter 
+Name 
+Description 
+Value 
+NSW 
+VIC 
+QLD 
+SA 
+TAS 
+J+125 
+frac_RoCOF_1 
+fraction for RoCoF trip 1 
+3.72% 
+3.60% 
+4.03% 
+3.53% 
+3.56% 
+J+126 
+frac_RoCOF_2 
+fraction for RoCoF trip 2 
+4.37% 
+4.62% 
+9.71% 
+4.49% 
+7.32% 
+J+127 
+frac_RoCOF_3 
+fraction for RoCoF trip 3 
+0.00% 
+0.00% 
+0.00% 
+0.00% 
+0.00% 
+ 
+ 
+ 
+29 Base frequency is 50 Hz 
+
+
+===== PAGE 45 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+45 
+ 
+A3. CMLD summary 
+This Appendix provides a summary of the functionality of the CMLD model, intended to represent composite load 
+in the NEM.  
+A3.1 CMLD overview 
+The composite load model (CMLD) breaks load down into six components:  Motor A, Motor B, Motor C, Motor D, 
+power electronics, and static load.  Each model component is represented as follows: 
+• The Motor A, B and C components are represented in the model with motor models with varying inertia, 
+impedance, and torque properties.   
+• Motor D is a specially developed performance model, based on laboratory tests, designed to represent single 
+phase residential and light commercial refrigerator compressor motors which are prone to stalling behaviour 
+(this component is believed to be small in Australia).   
+• The power electronics component includes under-voltage tripping behaviour, but is otherwise relatively 
+insensitive to voltage or frequency.   
+• The static load is represented by a ZIP model, which does not have any tripping parameters, but scales active 
+power with bus voltage. 
+The CMLD model parameters are intended to represent aggregate load behaviour. 
+A3.2 Under-voltage response of CMLD 
+The most important feature of the CMLD model is the under-voltage trip settings.  These are crucial to represent 
+aggregate load loss in severe under-voltage events, and accurately represent the net continency that can occur 
+when distributed PV and load interact during a fault.  This is a key distinguishing factor between CMLD and the 
+previously used ZIP model (which cannot represent load tripping in severe voltage disturbances).  The under-
+voltage trip settings are the main reason why it is important to use the CMLD model when applying the 
+DERAEMO1 model to represent distributed PV, and a significant reason why the CMLD model provides an 
+important improvement over the previous ZIP model. 
+The under-voltage trip settings applied to each component of the model are listed in Table 1. A percentage of the 
+model (Ftr) will disconnect if the bus voltage remains below the trip voltage (Vtr) for longer than the trip delay time 
+(Ttr). Some components will reconnect as indicated in the fifth column. These components will reconnect if 
+voltages recover above required thresholds (0.6 to 0.75 pu, not shown) within the required time (0.05s to 0.11s, 
+not shown), which does occur for typical transmission faults.  
+
+
+===== PAGE 46 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+46 
+ 
+Table 1 - CMLD under-voltage trip stages 
+  
+Trip Voltage 
+(pu) (Vtr) 
+Trip Delay 
+(s) (Ttr) 
+Percentage that 
+disconnects (Ftr) 
+Does it 
+Reconnect? 
+Load proportion (%)  
+(annual average) 
+Motor A 1st Setpoint 
+0.75 
+0.06 
+10% 
+No 
+12.5 to 15.3% 
+Motor A 2nd Setpoint 
+0.62 
+0.021 
+20% 
+Yes 
+Motor B 1st Setpoint 
+0.7 
+0.02 
+10% 
+Yes 
+15.5 to 23.7% 
+Motor B 2nd Setpoint 
+0.45 
+0.021 
+20% 
+Yes 
+Motor C 1st Setpoint 
+0.8 
+0.03 
+10% 
+No 
+12.4 to 13.9% 
+Motor C 2nd Setpoint 
+0.5 
+0.03 
+20% 
+Yes 
+Motor D 1st Setpoint 
+0.6 
+0.02 
+33% 
+No 
+0.2 to 0.4% 
+Power Electronic Load  
+0.85 to 0.5 
+- 
+(30%) 
+No 
+33.7 to 15.3% 
+Static load 
+None 
+None 
+None 
+None 
+14.1 to 21.4% 
+For Power Electronic load, the proportion that trips reduces linearly from 100% to 0% as voltage reduces from 
+0.85pu to 0.5pu.  The fraction that then reconnects following a fault is 70%. This means that 30% of the power 
+electronics load remains disconnected. 
+The tripping components of the load model represent aggregate tripping behaviour, calibrated to match aggregate 
+field observations in numerous field disturbances. They do not represent actual trip settings on individual devices.  
+A3.2.1 General voltage response (beyond tripping) 
+The static load model component does not include any trip settings, but is sensitive to bus voltage (scaling to 
+increase active power when voltage is high, and decreasing active power when voltage is low). The Motor A, B 
+and C components of the model are also somewhat sensitive to bus voltages.  If the fraction of load in the static 
+load component is large, this voltage response can dominate the response of the CMLD model, even during 
+severe frequency disturbances. 
+A3.3 Over-voltage response of CMLD 
+There are no over-voltage tripping parameters in the CMLD model. As for under-voltage, the active power 
+response from the static load model scales with voltage, and this can dominate the response of the load model. 
+A3.4 Frequency response of CMLD 
+The Motor B, C and D and components of CMLD deliver a small amount of load relief (increase in active power as 
+frequency rises and decrease in active power as frequency falls). The Motor B, C and D components of the model 
+reduce their load by 1-2% for every 0.5 Hz decline in frequency. These Motor components typically contribute 30-
+
+
+===== PAGE 47 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+47 
+ 
+50% of the power system load, so this equates to approximately the 0.5% load relief factor30 assumed by AEMO 
+for the NEM31. 
+The same is delivered in reverse during over-frequency events.  
+The power electronic and static load components do not respond to frequency at all.  The Motor A component 
+demonstrates a very small change in active power when exposed to a changing frequency. 
+The CMLD model does not have explicit frequency or RoCoF tripping parameters. 
+In general, the voltage response of the load model is more influential than the frequency response of the load 
+model. 
+ 
+ 
+ 
+ 
+30 For a 1% change in frequency (0.5Hz), the total demand is assumed to change by 0.5%. 
+31 AEMO, Load Relief, https://aemo.com.au/en/energy-systems/electricity/national-electricity-market-nem/system-operations/ancillary-
+services/load-relief  
+
+
+===== PAGE 48 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+48 
+ 
+A4. CMLD Parameters (version 2) 
+This section summarises the recommended version 2 input parameters for the CMLD model for application in the 
+NEM. 
+A4.1 CMLD composition parameters 
+A4.1.1 Large Industrial Load (LIL) composition parameters 
+Where there is a known Large Industrial Load (LIL) at a single transmission bus that does not already have a 
+bespoke load model, the composition parameters summarised in Table 28 are applied. 
+Table 28 
+Load composition parameters for Auxiliary and Large Industrial Loads 
+ 
+Auxiliary 
+loads 
+Non-metal 
+manufacturing 
+Metal 
+manufacturing 
+Water 
+pumping 
+Metal ore 
+mining 
+Paper 
+milling 
+Metal 
+smelting 
+LNG 
+Motor A 
+5% 
+15% 
+20% 
+0% 
+15% 
+10% 
+10% 
+20% 
+Motor B 
+50% 
+25% 
+25% 
+0% 
+30% 
+25% 
+0% 
+25% 
+Motor C 
+25% 
+40% 
+25% 
+90% 
+30% 
+40% 
+0% 
+45% 
+Motor D 
+0% 
+0% 
+0% 
+0% 
+0% 
+0% 
+0% 
+0% 
+Power 
+Electronic 
+15% 
+15% 
+25% 
+10% 
+20% 
+20% 
+15% 
+10% 
+Constant 
+Current 
+5% 
+5% 
+5% 
+0% 
+5% 
+5% 
+75% 
+0% 
+Constant 
+Impedance 
+0% 
+0% 
+0% 
+0% 
+0% 
+0% 
+0% 
+0% 
+ 
+A4.1.2 General end-use load composition parameters 
+All other loads are considered “general” load, and assigned the region specific composition parameters 
+summarised in Table 29 and Table 30.   
+Table 29 
+Load composition parameters for general end-use-load – Annual average 
+ 
+NSW 
+VIC 
+QLD 
+SA 
+Motor A 
+15.2% 
+15.3% 
+13.3% 
+12.5% 
+Motor B 
+16.6% 
+18.7% 
+23.7% 
+16.5% 
+Motor C 
+12.9% 
+12.4% 
+13.9% 
+12.8% 
+Motor D 
+0.2% 
+0.2% 
+0.2% 
+0.4% 
+Power Electronic 
+33.7% 
+35.0% 
+34.7% 
+40.1% 
+Constant Current 
+4.5% 
+4.6% 
+4.1% 
+3.8% 
+Constant Impedance 
+16.9% 
+13.9% 
+10.0% 
+13.9% 
+
+
+===== PAGE 49 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+49 
+ 
+Table 30 
+Load composition parameters for general end-use-load – Peak Summer 
+ 
+NSW 
+VIC 
+QLD 
+SA 
+Motor A 
+16.1% 
+15.2% 
+13.1% 
+11.3% 
+Motor B 
+16.4% 
+19.6% 
+24.5% 
+17.2% 
+Motor C 
+12.3% 
+11.2% 
+12.5% 
+11.7% 
+Motor D 
+3.0% 
+2.9% 
+2.4% 
+3.2% 
+Power Electronic 
+34.0% 
+35.2% 
+35.9% 
+42.0% 
+Constant Current 
+3.8% 
+3.8% 
+3.5% 
+3.1% 
+Constant Impedance 
+14.4% 
+12.1% 
+8.1% 
+11.5% 
+ 
+A4.2 CMLD feeder parameters 
+The CMLD model includes an equivalent representation of the feeder.  The recommended parameters are 
+summarised in the tables below. 
+Table 31 
+Feeder configuration parameters (depending on load type) 
+CON 
+Parameter 
+Description 
+Units 
+General load 
+Auxiliary load 
+Large Industrial Loads 
+J+2 
+Rfdr 
+Feeder resistance 
+pu on load base 
+0.04 
+0 
+0.01 
+J+3 
+Xfdr 
+Feeder reactance 
+pu on load base 
+0.04 
+0 
+0.01 
+J+5 
+Xxf 
+Transformer reactance 
+pu on load base* 
+0.08 
+0.06 
+0.08 
+J+8 
+LTC 
+LTC flag  
+1 = active 0 = inactive 
+0 
+0 
+0 
+* A feeder with a transformer reactance of zero bypasses the step-down transformer within the CMLD model. 
+Table 32 
+Common feeder parameters 
+CON 
+Parameters 
+Description 
+Value 
+J 
+LoadBase 
+Load base for xfr & feeder - MVA or calculated if <= 0 
+-0.8 
+J+1 
+compB 
+Substation compensation B - pu on load base 
+0 
+J+4 
+Fb 
+Not used - Fb = 0.0 
+0.75 
+J+6 
+Tfixhs 
+High side fixed transformer tap 
+1 
+J+7 
+Tfixls 
+Low side fixed transformer tap 
+1 
+J+9 
+Tmin 
+LTC min tap (on low side) 
+0.9 
+J+10 
+Tmax 
+LTC max tap (on low side) 
+1.1 
+J+11 
+Step 
+LTC Tstep (on low side) 
+0.00625 
+J+12 
+Vmin 
+Min value of V target range on xfr low side 
+1 
+J+13 
+Vmax 
+Max value of V target range on xfr low side 
+1.02 
+J+14 
+TD 
+LTC control time delay - s 
+30 
+J+15 
+TC 
+LTC tap adjustment time delay - s 
+5 
+J+16 
+Rcmp 
+xfr compensating R - pu on load base 
+0 
+J+17 
+Xcmp 
+xfr compensating X - pu on load base 
+0 
+ 
+
+
+===== PAGE 50 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+50 
+ 
+A4.3 CMLD performance parameters 
+The tables below provide the recommended version 2 parameters to represent the performance of each of the 
+CMLD model components. 
+Table 33 
+Power electronics performance parameters 
+CON 
+Parameters 
+Description 
+Value 
+J+23 
+PFel 
+Electronic load power factor 
+1 
+J+24 
+Vd1 
+Voltage electronic loads start to drop 
+0.85 
+J+25 
+Vd2 
+Voltage all electronic load has dropped 
+0.5 
+J+132 
+frcel 
+Fraction electronic load that can reconnect 
+0.7 
+Table 34 
+Static load performance parameters 
+CON 
+Parameters 
+Description 
+Value 
+J+26 
+PFs 
+Static load lower factor 
+1 
+J+27 
+P1e 
+First exponent for static load P 
+1 
+J+29 
+P2e 
+Second exponent for static load P 
+2 
+J+31 
+Pfrq 
+Frequency sensitivity for static P 
+0 
+J+32 
+Q1e 
+First exponent for static load Q 
+1 
+J+34 
+Q2e 
+Second exponent for static load Q 
+2 
+J+36 
+Qfrq 
+Frequency sensitivity for static load Q 
+-1 
+Table 35 
+Motor A performance parameters 
+CON 
+Parameters 
+Description 
+Value 
+J+37 
+Mtyp 
+Motor A phase - always 3 
+3 
+J+38 
+LF 
+Motor A real power to power base ratio 
+0.75 
+J+39 
+Ra 
+Motor A stator resistance - pu on motor base 
+0.02 
+J+40 
+X 
+Motor A synchronous reactance - pu 
+1.8 
+J+41 
+X' 
+Motor A transient reactance - pu 
+0.12 
+J+42 
+X" 
+Motor A subtransient reactance - pu 
+0.104 
+J+43 
+To' 
+Motor A transient open circuit time constant - s 
+0.095 
+J+44 
+To" 
+Motor A subtransient open circuit time constant - s 
+0.0021 
+J+45 
+H 
+Motor A inertia constant 
+0.1 
+J+46 
+etrq 
+Motor A exp for variation of torque with speed 
+0 
+J+47 
+Vtr1 
+Motor A 1st undervoltage trip voltage - pu 
+0.75 
+J+48 
+Ttr1 
+Motor A 1st undervoltage trip delay - s 
+0.06 
+J+49 
+Ftr1 
+Motor A 1st undervoltage trip fraction 
+0.1 
+J+50 
+Vrc1 
+Motor A 1st undervoltage reclose voltage - pu 
+0.8 
+J+51 
+Trc2 
+Motor A 1st undervoltage reclose delay - s 
+99999 
+J+52 
+Vtr2 
+Motor A 2nd undervoltage trip voltage - pu 
+0.62 
+J+53 
+Ttr2 
+Motor A 2nd undervoltage trip delay - s 
+0.021 
+
+
+===== PAGE 51 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+51 
+ 
+CON 
+Parameters 
+Description 
+Value 
+J+54 
+Ftr2 
+Motor A 2nd undervoltage trip fraction 
+0.2 
+J+55 
+Vrc2 
+Motor A 2nd undervoltage reclose voltage - pu 
+0.7 
+J+56 
+Trc2 
+Motor A 2nd undervoltage reclose delay - s 
+0.1 
+Table 36 
+Motor B performance parameters 
+CON 
+Parameters 
+Description 
+Value 
+J+57 
+Mtyp 
+Motor B phase - always 3 
+3 
+J+58 
+LF 
+Motor B real power to power base ratio 
+0.75 
+J+59 
+Ra 
+Motor B stator resistance - pu on motor base 
+0.03 
+J+60 
+X 
+Motor B synchronous reactance - pu 
+1.8 
+J+61 
+X' 
+Motor B transient reactance - pu 
+0.19 
+J+62 
+X" 
+Motor B subtransient reactance - pu 
+0.14 
+J+63 
+To' 
+Motor B transient open circuit time constant - s 
+0.2 
+J+64 
+To" 
+Motor B subtransient open circuit time constant - s 
+0.0026 
+J+65 
+H 
+Motor B inertia constant 
+0.5 
+J+66 
+etrq 
+Motor B torque speed exponent 
+2 
+J+67 
+Vtr1 
+Motor B 1st undervoltage trip voltage - pu 
+0.7 
+J+68 
+Ttr1 
+Motor B 1st undervoltage trip delay - s 
+0.02 
+J+69 
+Ftr1 
+Motor B 1st undervoltage trip fraction 
+0.1 
+J+70 
+Vrc1 
+Motor B 1st undervoltage reclose voltage - pu 
+0.75 
+J+71 
+Trc2 
+Motor B 1st undervoltage reclose delay - s 
+0.05 
+J+72 
+Vtr2 
+Motor B 2nd undervoltage trip voltage - pu 
+0.45 
+J+73 
+Ttr2 
+Motor B 2nd undervoltage trip delay - s 
+0.021 
+J+74 
+Ftr2 
+Motor B 2nd undervoltage trip fraction 
+0.2 
+J+75 
+Vrc2 
+Motor B 2nd undervoltage reclose voltage - pu 
+0.6 
+J+76 
+Trc2 
+Motor B 2nd undervoltage reclose delay - s 
+0.05 
+Table 37 
+Motor C performance parameters 
+CON 
+Parameters 
+Description 
+Val 
+J+77 
+Mtyp 
+Motor C phase - always 3 
+3 
+J+78 
+LF 
+Motor C real power to power base ratio 
+0.75 
+J+79 
+Ra 
+Motor C stator resistance - pu on motor base 
+0.03 
+J+80 
+X 
+Motor C synchronous reactance - pu 
+1.8 
+J+81 
+X' 
+Motor C transient reactance - pu 
+0.19 
+J+82 
+X" 
+Motor C subtransient reactance - pu 
+0.14 
+J+83 
+To' 
+Motor C transient open circuit time constant - s 
+0.2 
+J+84 
+To" 
+Motor C subtransient open circuit time constant - s 
+0.0026 
+J+85 
+H 
+Motor C inertia constant 
+0.1 
+J+86 
+etrq 
+Motor C torque speed exponent 
+2 
+J+87 
+Vtr1 
+Motor C 1st undervoltage trip voltage - pu 
+0.8 
+
+
+===== PAGE 52 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+52 
+ 
+CON 
+Parameters 
+Description 
+Val 
+J+88 
+Ttr1 
+Motor C 1st undervoltage trip delay - s 
+0.03 
+J+89 
+Ftr1 
+Motor C 1st undervoltage trip fraction 
+0.1 
+J+90 
+Vrc1 
+Motor C 1st undervoltage reclose voltage - pu 
+0.8 
+J+91 
+Trc1 
+Motor C 1st undervoltage reclose delay - s 
+9999 
+J+92 
+Vtr2 
+Motor C 2nd undervoltage trip voltage - pu 
+0.5 
+J+93 
+Ttr2 
+Motor C 2nd undervoltage trip delay - s 
+0.03 
+J+94 
+Ftr2 
+Motor C 2nd undervoltage trip fraction 
+0.2 
+J+95 
+Vrc2 
+Motor C 2nd undervoltage reclose voltage - pu 
+0.6 
+J+96 
+Trc2 
+Motor C 2nd undervoltage reclose delay - s 
+0.11 
+Table 38 
+Motor D performance parameters 
+CON 
+Parameters 
+Description 
+Value 
+J+97 
+Tstall 
+Motor D stall delay time - s 
+0.04 
+J+98 
+Trestart 
+Motor D restart from stall delay time - s 
+0.3 
+J+99 
+Tv 
+Motor D voltage time constant for contactors - s 
+0.025 
+J+100 
+Tf 
+Motor D frequency time constant for contactors - s 
+0.05 
+J+101 
+CompLF 
+Motor D real power to motor base ratio 
+1 
+J+102 
+CompPF 
+Motor D power factor at 1.0 pu voltage 
+1 
+J+103 
+Vstall 
+Motor D stall Voltage - pu 
+0.6 
+J+104 
+Rstall 
+Motor D stall resistance - pu of motor base 
+0.17 
+J+105 
+Xstall 
+Motor D stall reactance - pu of motor base 
+0.07 
+J+106 
+LFadj 
+Adjustment to stall voltage if COMPLF /= 1.0 
+0 
+J+107 
+Kp1 
+Motor D real power coeff when voltage > Vbrk 
+0 
+J+108 
+Np1 
+Motor D real power exp when voltage > Vbrk 
+1 
+J+109 
+Kq1 
+Motor D reactive power coeff when voltage > Vbrk 
+6 
+J+110 
+Nq1 
+Motor D reactive power exp when voltage>Vbrk 
+2 
+J+111 
+Kp2 
+Motor D real power coeff when voltage < Vbrk 
+12 
+J+112 
+Np2 
+Motor D real power exp when voltage < Vbrk 
+3.2 
+J+113 
+Kq2 
+Motor D reactive power coeff when voltage < Vbrk 
+11 
+J+114 
+Nq2 
+Motor D reactive power exp when voltage < Vbrk 
+2.5 
+J+115 
+Vbrk 
+Motor D "break-down" voltage 
+0.86 
+J+116 
+Frst 
+Motor D fraction capable of restart after stall 
+0.55 
+J+117 
+Vrst 
+Motor D voltage for restart after stall - pu 
+0.90 
+J+118 
+CmpKpf 
+Motor D real power frequency dependency 
+1 
+J+119 
+CmpKqf 
+Motor D reactive power freq dependency 
+-3.3 
+J+120 
+Vc1off 
+Motor D voltage contactors start opening - pu 
+0.5 
+J+121 
+Vc2off 
+Motor D voltage all contactors opened - pu 
+0.4 
+J+122 
+Vc1on 
+Motor D voltage all contactors closed - pu 
+0.6 
+J+123 
+Vc2on 
+Motor D voltage contactors start closing - pu 
+0.5 
+J+124 
+Tth 
+Motor D heating time constant - s 
+16 
+
+
+===== PAGE 53 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+53 
+ 
+CON 
+Parameters 
+Description 
+Value 
+J+125 
+Th1t 
+Motor D temperature where tripping begins - pu 
+0.7 
+J+126 
+Th2t 
+Motor D temperature where completely tripped 
+1.9 
+J+127 
+Fuvr 
+Motor D fraction with undervoltage relays 
+0.1 
+J+128 
+UVtr1 
+Motor D 1st undervoltage pick-up - pu 
+0.6 
+J+129 
+Ttr1 
+Motor D 1st undervoltage trip delay - s 
+0.02 
+J+130 
+UVtr2 
+Motor D 2nd undervoltage pick-up - pu 
+0 
+J+131 
+Ttr2 
+Motor D 2nd under voltage trip delay - s 
+9999 
+ 
+ 
+ 
+
+
+===== PAGE 54 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+54 
+ 
+A5. CMLD version 1 and version 2 
+comparison 
+This appendix provides a comparison between the CMLD version 1 and CMLD version 2 parameters for two 
+cases: 
+1. An actual power system event for which there are high-speed monitoring (HSM) measurements available 
+(8 March 2018).  This event provides a comparison of the model transient behaviour with real measured 
+data.  However, the depth of the fault is not sufficient to lead to Motor D stall behaviour, and therefore 
+does not illustrate the differences between the two model versions.  At the time of this report, no historical 
+actual events were available with measured data and a sufficiently low voltage dip to lead to Motor D stall 
+behaviour. 
+2. A hypothetical event.  This allows comparison of the transient behaviours of the two models in response to 
+a deeper (credible) fault that does lead to Motor D stall behaviour.  However, no actual measurements are 
+available for comparison with the model outcomes. 
+A5.1.1 Actual power system event (8 March 2018) 
+On 8 March 2018, the Loy Yang Power Station B1 generator tripped due to an explosion/fire at the generator 
+transformer. More details on this event can be found in the original CMLD and DER model report published in 
+202232 . Figure 15 shows the voltage, active power and reactive power at two key nodes: Loy Yang 500kV 
+(location of the fault) and Bendigo 22kV terminal stations.  The transient response of the version 1 and version 2 
+CMLD models is similar.  The voltage at most buses remains above the threshold where Motor D stall behaviour 
+would be observed, so the updates to the Motor D parameters in the CMLD model do not lead to a significant 
+difference between the two model versions. 
+Figure 15 
+CMLD version 1 vs CMLD version 2 during the modelled event on 8/3/18 
+ 
+ 
+ 
+ 
+ 
+32 Section 5.1, at https://aemo.com.au/-/media/files/initiatives/der/2022/psse-models-for-load-and-distributed-pv-in-the-nem.pdf?la=en 
+
+
+===== PAGE 55 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+55 
+ 
+ 
+ 
+A5.1.2 Hypothetical event 
+To further explore the differences between the two versions of the CMLD models, a hypothetical case used in the 
+VNI limit investigation (as outlined in Section 2.4) was studied. This case modelled a 2 phase to ground fault and 
+trip of Hazelwood-South Morang 500 kV line 2 in a randomly selected night-time snapshot (19th September 2023 
+at 5:00am). This contingency is used to define the VNI export transient stability limit as outlined in the Victorian 
+transfer limit advice report33. This fault results in a deeper voltage depression, so the response of the CMLD model 
+under more onerous network conditions can be studied.  
+Figure 16 shows the voltage response of both the CMLD version 1 and CMLD version 2 model at Hazelwood 
+500kV (location of the fault) and Bendigo 22kV terminal stations, and the total underlying load response in Victoria. 
+There is a more noticeable difference between the model versions in this case. This deeper fault stalls Motor D in 
+the CMLD model, which is the component of the model designed to replicate Fault Induced Delayed Voltage 
+Recovery (FIDVR) (refer to Section 2.1.1). The differences between the version 1 and version 2 CMLD parameters 
+(detailed in Section 2) mean that the dynamics caused by FIDVR are less severe in the version 2 response. This 
+results in a smaller impact to the transient stability limits. 
+Figure 16 
+CMLD version 1 vs CMLD version 2 during Hazelwood-South Morang 2PH-G fault 
+ 
+ 
+ 
+33 Section 2, at https://www.aemo.com.au/-/media/files/electricity/nem/security_and_reliability/congestion-information/2024/victorian-transfer-
+limit-advice-system-normal_v28.pdf?la=en 
+
+
+===== PAGE 56 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+56 
+ 
+ 
+ 
+Note: PLOAD AREA [VIC] is a proxy for total underlying load in Victoria. This channel is set up using a channel subsystem (pssy.chsb()) API 
+command in PSSE to measure the power totals across Victoria. 
+Figure 17 shows the difference in flows across the VIC-NSW cutset.  
+Figure 17 
+CMLD version 1 vs CMLD version 2 during Hazelwood-South Morang1PH-G fault: impact to Vic-NSW flows 
+ 
+  
+ 
+ 
+Until recently, there hasn’t been a real event that has caused a deep transmission fault throughout the network to 
+validate FIDVR behaviours in the CMLD model.  
+However, on 13th February 2024, the Moorabool (MLTS) – Sydenham (SYTS) No. 1 and 2 500 kilovolt (kV) lines 
+tripped following the failure of six 500 kV towers34. This event is under investigation at present for preparation of 
+an incident report, and might be suitable for use in validating the CMLD and DPV model dynamics in the future. 
+ 
+ 
+ 
+ 
+34 AEMO (February 2024) Preliminary Report – Trip of Moorabool – Sydenham 500 kV No. 1 and No. 2 lines on 13 February 2024, at 
+https://aemo.com.au/-/media/files/electricity/nem/market_notices_and_events/power_system_incident_reports/2024/preliminary-report---loss-
+of-moorabool---sydenham-500-kv-lines-on-13-feb-2024.pdf?la=en 
+
+
+===== PAGE 57 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+57 
+ 
+A6. Transient behaviour validation testing 
+This appendix provides further detail on the SLIB testing of the CMLD and DERAEMO1 models against 
+observations for a series of deep voltage disturbances in the Victorian network, where high speed monitoring is 
+available at radial load locations.  Further discussion and a summary of these results is provided in Section 3.2.3. 
+A6.1 25/07/2022 
+ 
+Details 
+Incident report 
+Incident Report 
+Lowest measured voltage 
+0.63 pu at Red Cliffs Terminal Station (RCTS) 
+Event description 
+Failed bushing at Buronga resulting in a 220 kV phase to ground fault. 
+Event sequence 
+Simultaneous trip of: 
+RCTS – Buronga 220 kV transmission line (0X1) 
+Buronga – Broken Hill 220 kV transmission line (X2) at the Buronga end only 
+Buronga – Balranald 220 kV transmission line (X3) at both ends. 
+Buronga Synchronous Condenser No. 1, No. 2 and No. 3 
+HSM available 
+Red Cliffs Terminal Station (RCTS) – 0.63pu 
+PSS®E modelling approach 
+Using playback model to replicate measured voltage and frequency traces from HSM data, as 
+described in Section 3.2.2. 
+
+
+===== PAGE 58 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+58 
+ 
+Figure 18 
+Red Cliffs (RCTS) 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+A6.2 18/01/2018 
+ 
+Details 
+Incident report link 
+Incident report 
+Lowest measured voltage 
+0.64pu at Cranbourne Terminal Station (CBTS) 
+Event description 
+Failed 500 kV current transformer (CT) associated with the A2 transformer at ROTS. 
+Event sequence 
+Simultaneous trip of: 
+Rowville No. 2 500kV busbar 
+A2 500/220kV Transformer 
+ROTS-SMTS 500 kV line at SMTS side only. 
+HSM available 
+Brooklyn (BLTS) – 0.82pu 
+Cranbourne (CBTS) – 0.64 pu 
+Rowville (ROTS) / Springvale (SVTS) – 0.68pu 
+Templestowe (TSTS) – 0.70 pu 
+
+
+===== PAGE 59 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+59 
+ 
+ 
+Details 
+PSS®E modelling approach 
+Using playback model to replicate measured voltage and frequency traces from HSM data, as described 
+in Section 3.2.2. 
+Figure 19 
+Brooklyn (BLTS) 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+===== PAGE 60 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+60 
+ 
+Figure 20 
+Cranbourne (CBTS) 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+===== PAGE 61 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+61 
+ 
+Figure 21 
+Rowville (ROTS) / Springvale (SVTS) 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+===== PAGE 62 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+62 
+ 
+Figure 22 
+Templestowe (TSTS) 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+A6.3 31/01/2020 
+ 
+Details 
+Incident report link 
+Incident Report 
+Lowest measured voltage 
+0.74pu at Brooklyn Terminal Station (BLTS) 
+Event description 
+Major weather event led to the collapse of several steel transmission towers on the MLTS-MOPS and 
+MLTS-HGTS 500 kV lines, resulting in a Victoria and South Australia separation event. 
+Event sequence 
+Simultaneous trip of: 
+MLTS-MOPS 500 kV line 
+MLTS-HGTS 500 kV line  
+HGTS-TGTS 500 kV line. 
+HSM available 
+Brooklyn (BLTS) – 0.74pu 
+Cranbourne (CBTS) – 0.76pu 
+Rowville (ROTS) / Springvale (SVTS) – 0.76pu 
+Templestowe (TSTS) – 0.77pu 
+
+
+===== PAGE 63 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+63 
+ 
+ 
+Details 
+PSS®E modelling approach 
+Using playback model to replicate measured voltage and frequency traces from HSM data, as described 
+in Section 3.2.2. 
+Figure 23 
+Brooklyn (BLTS) 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+===== PAGE 64 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+64 
+ 
+Figure 24 
+Cranbourne (CBTS) 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+===== PAGE 65 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+65 
+ 
+Figure 25 
+Rowville (ROTS) / Springvale (SVTS) 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+===== PAGE 66 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+66 
+ 
+Figure 26 
+Templestowe (TSTS) 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+A6.4 8/03/2018 
+ 
+Details 
+Lowest measured voltage 
+0.75pu at Rowville (ROTS) / Springvale (SVTS) 
+Details 
+Explosion/fire at Loy Yang 500/20 kV transformer leads to the trip of Loy Yang B1 unit. 
+Event sequence 
+LYB1 generator trip. 
+HSM available 
+Rowville (ROTS) / Springvale (SVTS) – 0.75pu 
+Templestowe (TSTS) – 0.77pu 
+PSS®E modelling approach 
+Using playback model to replicate measured voltage and frequency traces from HSM data, as described 
+in Section 3.2.2. 
+ 
+ 
+
+
+===== PAGE 67 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+67 
+ 
+Figure 27 
+Rowville (ROTS) / Springvale (SVTS) 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+===== PAGE 68 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+68 
+ 
+Figure 28 
+Templestowe (TSTS) 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+A6.5 18/02/2019 
+ 
+Table text 
+Incident report link 
+Incident report 
+Lowest measured voltage 
+0.84pu at Rowville (ROTS) / Springvale (SVTS) 
+Event description 
+A phase to ground fault led to the trip of the Sydenham-Moorabool No. 2 500kV line and the Sydenham-
+Keilor 500kV line. 
+Event sequence 
+Simultaneous trip of: 
+SYTS-MLTS 500 kV 2 line 
+SYTS-KTS 500 kV line. 
+This led to the outage of SYTS No 2 500kV busbar. 
+HSM available 
+Rowville (ROTS) / Springvale (SVTS) – 0.84pu 
+PSS®E modelling approach 
+Using playback model to replicate measured voltage and frequency traces from HSM data, as described 
+in Section 3.2.2. 
+
+
+===== PAGE 69 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+69 
+ 
+Figure 29 
+Rowville (ROTS) / Springvale (SVTS) 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+===== PAGE 70 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+70 
+ 
+A7. Motor D composition estimates 
+This Appendix provides further detail on the approach for estimating the seasonal proportions of Motor D load.  An 
+estimate of the total Motor D load was calculated by multiplying: 
+• The estimated number of Motor D units operating by  
+• The estimated power consumption per unit  
+with both factors varying by season and day/night. 
+A7.1 Estimating the number of residential AC units operating 
+The 2021 Residential Baseline Study35 (RBS) provides estimates of the stock of all residential appliances for all of 
+Australia. The 2023 stocks of AC ducted and AC non-ducted were taken from Table 22 of that study.  
+The RBS dataset does not provide a breakdown of appliances into those that are single-phase induction motor 
+driven, versus those that are inverter driven (and therefore should not be represented in the Motor D category). To 
+estimate this proportion, an estimate from the EES report36 was applied (Figure 33, estimated stock of inverter 
+driven air conditioners in Australia by year).  It was estimated that in 2023, ~5% of residential ACs in Australia are 
+single-phase motor driven.  The same proportion was applied for both ducted and non-ducted ACs. 
+The CSIRO study37 provides an estimate of the relationship between AC usage on a given day versus the ambient 
+temperature (also accounting for the difference between the maximum temperature of a given day and the 
+previous day). The average temperature for each seasonal interval in each region was used to select a designated 
+temperature curve38, and the average value used to determine an approximate proportion of AC units online in 
+that interval, in each region. 
+A7.2 Estimating power consumption per unit 
+Average seasonal estimates 
+Seasonal day/night estimates of power consumption by ducted and non-ducted AC units were estimated based on 
+the CSIRO study39.  This study monitored power consumption for a sample of individual residential AC units in 
+Brisbane, Melbourne and Adelaide during 2012 to 2017.  Estimated individual unit load profiles from the EES 
+ 
+35 Australian Government (11 November 2022) 2021 Residential Baseline Study for Australia and New Zealand for 2000 to 2040, 
+https://www.energyrating.gov.au/industry-information/publications/report-2021-residential-baseline-study-australia-and-new-zealand-2000-
+2040  
+36 Energy Efficient Strategies (31 July 2020) Single Phase Induction Motor Loads on the NEM from Refrigeration and Air Conditioners, 
+https://aemo.com.au/-/media/files/initiatives/der/2020/2020-08-05-ees-ac-load-composition.pdf?la=en  
+37 M..Goldsworthy, CSIRO, (24 August 2017). “Towards a Residential Air-Conditioner Usage Model for Australia”, https://www.mdpi.com/1996-
+1073/10/9/1256  
+38 Figure 7, Probability of a/c usage on the given day versus the difference between the given days maximum apparent ambient temperature 
+and the maximum apparent temperature on the preceding day for different values of today’s maximum apparent temperature. 
+39 M..Goldsworthy, CSIRO, (24 August 2017). “Towards a Residential Air-Conditioner Usage Model for Australia”, https://www.mdpi.com/1996-
+1073/10/9/1256  
+
+
+===== PAGE 71 =====
+Section heading 
+ 
+© AEMO 2023 | PSS®E composite load and distributed PV model updates 
+71 
+ 
+report40 were also used (Figures 37 to 42). Non-ducted AC power consumption per unit was determined from wall 
+split AC load profiles. Monthly traces were averaged into seasonal periods. 
+For non-ducted AC units, a scaling factor was used to convert power consumption per ducted AC unit to that of a 
+non-ducted AC unit (comparing the peaks of the average ducted and non-ducted AC load profiles from Figures 37 
+to 42 in the EES report). Since NSW was not included in the CSIRO study, VIC load profiles and hourly graphs 
+were used as a proxy for the power consumption per unit for NSW.  
+Peak summer estimates 
+For estimating power consumption per unit for the peak summer periods, Figures 44 to 46 from the EES report 
+were used.  These figures show the hourly variation in the power consumption of a ducted AC unit for different 
+cities. The peak summer power consumption per unit ducted AC was selected to be the maximum power 
+consumed.  
+Conversion from inverter based to motor driven AC units 
+It is assumed that majority of the AC units monitored in the CSIRO study are inverter based. As a result of this, the 
+power consumption per unit determined from the load profiles are likely more representative of an inverter driven 
+unit rather than a motor driven unit. A 1.44 scaling factor was applied to the power per unit obtained from the 
+CSIRO load profiles to convert the inverter-based power consumption per unit to a motor-based value. This 
+scaling factor was sourced from an air conditioner power consumption study41 which indicated a 44% increase in 
+power consumption for motor driven ACs vs inverter driven ACs when monitoring the power consumption of 
+inverter and non-inverter AC units over a 108-day period. 
+ 
+ 
+ 
+ 
+40 Energy Efficient Strategies (31 July 2020) Single Phase Induction Motor Loads on the NEM from Refrigeration and Air Conditioners, 
+https://aemo.com.au/-/media/files/initiatives/der/2020/2020-08-05-ees-ac-load-composition.pdf?la=en  
+41 Almogbel et al. (7 December 2020) “Comparison of energy consumption between non-inverter and inverter-type air conditioner in Saudi 
+Arabia”, https://link.springer.com/article/10.1007/s41825-020-00033-
+y#:~:text=The%20cooling%20period%20in%20Jeddah,AC's%20is%206230%20KWh%2Fyear  

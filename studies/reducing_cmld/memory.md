@@ -27,6 +27,38 @@ equivalent motor reproduces the 3-motor CMLD — **PASS** (RoCoF 0.0%, nadir dip
 - Tolerance tiers (lossy): PASS scalar<5% & trace MAE<5%/MaxE<10%; matched-MW disturbance; gate =
   same pre-disturbance P (& V within 0.005 pu).
 
+## ⚑ GRID INERTIA — the "stress"/"nominal" corners are NOT weak/low-inertia (revisit; 2026-07-15)
+Flagged from the `effective_inertia` study. **The M_g1 corners here represent HIGH-inertia grids.**
+Measured rig mapping (static `true_static`, SCR=5, matched-ΔP, RoCoF→`E=f0·ΔP/2·RoCoF`, on the
+2405 MW load base):
+
+| M_g1 | grid H, 20 ms (pure inertia) | grid H, 500 ms (incl. governor+relief) |
+|---|---|---|
+| 1.0 | **2.6 s** (6,264 MW·s) | 6.9 s (16,572 MW·s) |
+| 1.5 | 3.9 s (9,276) | 7.6 s |
+| 2.0 | 5.1 s (12,276) | 8.5 s |
+| **3.0 = "stress"** | **7.6 s** (18,287) | 10.8 s (25,911) |
+| **5.5 = "nominal"** | **13.9 s** (33,315) | 16.8 s |
+
+- **Clean linear rule:** pure grid inertia `H_grid ≈ 2.5·M_g1 s ≈ 6,000·M_g1 MW·s` (on the 2405 MW
+  base). The 500 ms value adds a ~roughly-constant ~10,000 MW·s of governor + static-load relief on
+  top — so use the **20 ms** value as the physical grid inertia. This is the "M_g1 ≠ physical H,
+  ~2.5× factor" base mismatch, now quantified.
+- **Research grounding (compare in H seconds, NOT absolute MW·s — system sizes differ):** real grids
+  H ≈ 2–10 s; synchronous-gen H ≈ 2–7 s; **weak/low-inertia ≈ 2–3 s and below** ([arXiv 1312.6435];
+  Wiley 2050-7038.12128). Victoria secure = 15,400 MW·s / min-threshold 12,600 MW·s over ~3–9 GW
+  demand → H ≈ 1.4–4 s ([AEMO 2024 Inertia Report]). So **M=3 (H=7.6 s) and M=5.5 (H=13.9 s) are
+  both HEALTHY/high-inertia**, not stressed.
+- **Recommendation for whoever updates this study:** the corner labelled "stress/weak" should be a
+  genuinely low-inertia grid. Use **M_g1 ≈ 1.0 (H ≈ 2.6 s, weak/at-risk)**; optionally M_g1 ≈ 1.5
+  (H ≈ 3.9 s, tight). Keep M_g1 ≈ 2–3 (H ≈ 5–7.6 s) only as a *healthy* contrast, not as "stress".
+  At the current M=3/5.5, the CMLD load's ~0.4–1.5 s (≈900–3,600 MW·s) effective inertia is only a
+  3–14 % increment on the grid — its role is understated. At M_g1≈1 it becomes a much larger,
+  operationally meaningful fraction. **SCR=5 IS genuinely weak (system strength) — that part stands;
+  only the inertia (M) label was wrong.** Re-run L1/L2 verdicts at the low-inertia corner too, since
+  motor pull-out / voltage behaviour differ when the grid is actually weak.
+- Same correction applies to `effective_inertia` (shares these corners) and the sensitivity study.
+
 ## Model status (`studies/reducing_cmld/models/`)
 | model | role | state |
 |---|---|---|

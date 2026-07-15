@@ -1,0 +1,508 @@
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+WECC Composite Load Model Specification  
+Modeling and Validation Subcommittee  
+April 2021  
+  
+
+WECC Compos ite Load Model Specification  
+   2 
+Table of Contents  
+Introduction  ................................ ................................ ................................ ................................ ............................. 3 
+Substation and Feeder Model  ................................ ................................ ................................ .............................. 4 
+Substation Transformer Model  ................................ ................................ ................................ ......................... 4 
+Substation Shunt Capacito r ................................ ................................ ................................ ............................... 5 
+Distribution Feeder Equivalent  ................................ ................................ ................................ ......................... 5 
+Load Component Models  ................................ ................................ ................................ ................................ ......6 
+Static Load Model ................................ ................................ ................................ ................................ ................ 6 
+Electronic Load Model  ................................ ................................ ................................ ................................ ........ 7 
+Three-phase Motor Model  ................................ ................................ ................................ ................................ .8 
+Single -phase Air Conditioner Performance -based Model  ................................ ................................ .......... 11 
+Output Variables  ................................ ................................ ................................ ................................ .................. 17 
+Load Shedding  ................................ ................................ ................................ ................................ ...................... 18 
+Handling of extra vars due to end -use l oad tripping  ................................ ................................ ..................... 19 
+Version History  ................................ ................................ ................................ ................................ ..................... 21 
+  
+WECC Compos ite Load Model Specification  
+   3 
+This document provides the specifications for the WECC dynamic composite load model (CMPLDW ) as 
+currently in use.  This model is referred to as CMPLDW in GE PLSF™; CMLDxxU2 (where xx could be BL, AR, 
+OW, XN or AL) in Siemens PTI PSS®E. Power World and DSATools can read these models in both PSS®E and 
+PSLF formats  
+Introduction  
+The overall structure  of the CMPLDW model is shown in  Figure 1. The “System Bus” is the bus where 
+the load is located in the power flow model. The rest is part of the model. Any power flow load can be 
+represented in dynamic simulations by a single CMPLDW model. All the P and Q (constant MVA, 
+constant current, and constant admittance) of the load will be included in the model, initialized at the 
+solved voltage at the bus. The “low -side bus” and “load bus” (also called “far -end bus”) do no t exist in 
+the power flow. They are added to the system during initialization of the model . The nominal voltage 
+for the internal buses can be set , although , the actual voltage level could be  34.5 kV, 33  kV, 12  kV. 
+It is important to note , while using the composite load model, the user must check  the voltage level of 
+the load bus at which the composite load model is being connected. If the distribution transformer is 
+already modeled in the power flow file, the parameter Xxf needs to be set to zero in the dynamic file. It 
+is also advisable that the composite load model be used only at those buses at which  the pu voltage  in 
+the power flow solution is above a certain pu level , and the P/Q ratio is above a certain thresh old. 
+These checks ensure the composite load model will be initialized without error during dynamic 
+studies. For example, the composite load model for the WECC case can be applied to all buses with a 
+load greater than 5 MW, voltage greater t han 0.98 pu , and a P/Q ratio greater than 1. 61 (P/Q= 1.61 ~ 0.85 
+pu.). In PSLF, the minimum megawatt threshold can be adjusted by setting the dypar[0]. cmp_pmin  
+prior to initialization and the minimum  P/Q ratio can be adjusted by setting the dypar [0].cmp_pqmin  
+prior to initialization.  
+ 
+Figure 1: CMPLDW model structure  
+
+WECC Compos ite Load Model Specification  
+   4 
+Substation and Feeder Model  
+A single substation transformer, substation shunt capacitor, and an equivalent distribution feeder can 
+be represented by the model. Any of these can be omitted by setting their input parameters to zero.  
+Substation Transformer Model  
+The transformer is modeled as an on -load tap changing (LT C) transformer that can regulate its low -
+side voltage. A compensating impedance can be input to represent line -drop compensation. The input 
+parameters for the transformer are:  
+MVA = xxx  MVA base for the transformer (also used for shunt capacitance and feed er) 
+The following  options are  provided  for specifying  the MVA  base:  
+xxx > 0 xxx is the  MVA  base  
+xxx < 0  abs(xxx) is the loading factor – MVA base = load MW / abs(xxx)  
+xxx = 0 loading factor = default value of 0.8  
+Xxf transformer reactance – pu of xfmr MVA base . If Xxf = 0., transformer is omitted.  (Note: 
+xfmr R = 0.)  
+Tfixhs  fixed xfmr  tap ratio on high -voltage  side 
+Tfixls  fixed xfmr tap ratio on low -voltage  
+side 
+LTC  LTC  flag – (non-zero =active  during both initialization and dynamic run ; 0=active during 
+initialization and inactive  during dynamic run ) -PSLF  
+LTC  flag – (1=active  during both initialization and dynamic run ; 0=inactive  during 
+initialization and dynamic run, -1=) active during initialization and inactive  during 
+dynamic run) - PSS®E 
+Tmin  LTC minimum tap (pu)  
+Tmax  LTC maximum tap (pu)  
+Step  LTC  step size (pu) Vmin  
+Vmin  LTC  Vmin  (low  side pu) 
+Vmax  LTC  Vmax  (low  side pu) 
+Tdel  LTC time delay to initiate tap adjustment ( sec.)  
+Ttap  LTC time  delay  between tap steps  (sec.)  
+Rcmp  LTC  compensating  resistance  
+Xcmp  LTC  compensating  reactance  (pu). If Rcmp  and/or Xcmp  are non-zero,  the LTC  regulates  
+the value  of Vls – (Rcmp +  j Xcmp)  * Ils. Where Vls is the voltage at the low -side bus and 
+Ils is the complex current arriving at the low -side bus on the transformer  
+If the transformer is included (Xxf> jumper impedance) and Vmax > Vmin + 2*step, the (low -side) 
+variable ta p will be adjusted to set the low -side voltage at approximately the mid point of Vmin -- Vmax 
+WECC Compos ite Load Model Specification  
+   5 
+unless Tmin or Tmax is exceeded. During dynamic simulation, If LTC = 1, the transformer tap moves in 
+discrete steps to control the low -side voltage. If the voltag e is less than Vmin or greater than Vmax for a 
+period greater than Tdel, the transformer tap moves in steps until the voltage is within range. Ttap is 
+the delay time between successive tap step movements .1 
+Substation Shunt Capacitor  
+A single shunt c apacitor is represented on the low -side bus with a susceptance of Bss per unit on the 
+transformer MVA base . 
+Distribution Feeder Equivalent  
+As indicated in  Figure 1, the feeder equivalent includes series resistance and reactance and shunt 
+capacitors at both ends. The input parameters are:  
+Rfdr  feeder R (pu of MVA base)  
+Xfdr  feeder X (pu of MVA base)  
+Fb fraction of feeder reactive compensation applied at the substation end of the feeder  
+The value of the total feeder reactive compensation (Bfdr) is computed during initialization of the 
+model to balance the reactive consumption of the load devic es and of the transformer and feeder with 
+the load Q value specified in the power flow data. If Fb is not zero, iteration is required to obtain the 
+specified distribution of Bfdr between the two ends. If Xfdr = 0., the feeder is omitted, but the feeder 
+reactive compensation is included as a single shunt element.  Note , in PSS®E, the parameter FB is 
+always set to 0.  
+Note that, although the user specifies the values of Rfdr and Xfdr, the software tools will adjust these 
+values during initialization to ensure that the voltage at the load bus of the composite load model (see  
+Figure 1) does not drop below 0.95 pu. The changes are reported by some but not all software tools in 
+the initialization report .2 
+A detailed description of the process to initialize  the distribution equivalent tr ansformer, feeder , and 
+two additional buses can be found in  the PowerWorld We bHelp Manual .3 The final  page of the 
+reference provides  a step -by-step process for initializing . 
+ 
+1 GE PSLF™ User’s Manual  
+2 Technical Guide on Composite Load Modeling : EPRI, Palo Alto, CA: 2017. 3002019209  
+3 PowerWorld WebHelp  Manual   
+WECC Compos ite Load Model Specification  
+   6 
+Load Component Models  
+The load at the far -end load bus can be represented by a combination of static load model, electronic 
+load model, and up to four motor models, any of which can be either a three -phase motor or a single -
+phase air conditioner (A/C) performance -based model. The fraction of the load P represented by each 
+model is specified by the following input parameters:  
+Fma  Motor A fraction  
+Fmb  Motor B fraction  
+Fmc  Motor C fraction  
+Fmd  Motor D fraction  
+Fel Electronic load fraction  
+If these fractions sum to less than 1 , the remainder is represented by the static load model.  
+If these fractions sum to more than 1 , the static load fraction is set to zero and the other fractions are 
+normalized to sum to 1.  
+For each motor model, the type o f motor is indicated by the input parameters: Mtypa, Mtypb, Mtypc, 
+and Mtypd. A value of 3 indicates the three -phase motor model, 1 indicates that single -phase A/C 
+performance -based model, and other values may be used in the future for other types of mod els. 
+Static Load Model  
+The input parameters for the static load model are as follows:  
+PFs Power Factor  
+P1e P1 exponent  
+P1c P1 coefficient  
+P2e P2 exponent  
+P2c P2 coefficient  
+Pfrq  P frequency sensitivity  
+Q1e Q1 exponent  
+Q1c Q1 coefficient  
+Q2e Q2 exponent  
+Q2c Q2 coefficient  
+Qfrq  Q frequency  sensitivity  
+The static  load model is represented  by the following  equations:   
+Psto=  Pload (1. – Fma  – Fmb – Fmc – Fmd  - Fel) 
+Po = Pst o/( P1c * (V o)^P1e + P2c * (V o)^P2e + P3 )  (where Po is the power at 1 pu terminal voltage)  
+Qo =  Po * tan (acos(PFs)  ) 
+P= Po * (P1c * (V) P1e + P2c * (V) P2e + P3) * (1 + Pfrq  * f) 
+WECC Compos ite Load Model Specification  
+   7 
+Q= Qo * (Q1c  * (V) Q1e + Q2c * (V) Q2e + Q3) * (1 + Qfrq  * f) 
+P3= 1. – P1c – P2c 
+Q3= 1. – Q1c – Q2c 
+Pload is the initial value of P at the far-end load bus. Vo is the initial value of V at the far -end load bus . 
+Note that the value Po in the equations above is calculated as:  
+Electronic Load Model  
+The input parameters for the electronic load model are as follows:  
+PFel  Electronic  load power  factor  
+Vd1 Voltage  below  which  electronic  load  decreases  (pu) 
+Vd2 Voltage below which electronic load is zero (pu)  
+frcel  Fraction of electronic load that recovers from low voltage trip  
+The logic for the electronic load model low voltage tripping is as follows:  
+  If (V < Vmin) Vmin = V                           [Initially, Vmin = Vo]  
+  If( Vmin < Vd2) Vmin = Vd2               [Vmin tracks the lowest voltage during the  
+      simulation but not below Vd2]  
+    If (V < Vd2)  
+ Fv1 = 0.0    [All load is t ripped for V below Vd2] else if (V< Vd1)  
+    Else If (V<vd1)  
+           if (V <= Vmin)   [While decreasing between Vd1 and Vd2]  
+Fv1 = (V – Vd2)/ (Vd1 - Vd2)  
+           else                                        [While recovering above Vmin, partial reconnection]  
+              Fv1 = (( Vmin – Vd2) + frcel * (V – Vmin))  / (Vd1 – Vd2)  
+           endif  
+  else  
+ if (Vmin >= Vd1)  
+  Fv1 = 1.0  [if V has not gone below Vd1]  
+ else   [V has been below Vd1 but has recovered]  
+  Fv1 = ( (Vmin – Vd2) + frcel * (Vd1 – Vmin) / (Vd1 – Vd2)  
+ endif  
+endif  
+Pel = Fv1 * Pe10  
+Qel = Fv1 * Qe10  
+WECC Compos ite Load Model Specification  
+   8 
+Note : The Vmin used in the pseudocode is an internal variable not to be confused with the Vmin use d 
+for the transformer model. More details on this model can be found in the PowerWorld WebHelp 
+Manual .4 
+Three -phase Motor Model  
+The three -phase motor models are not exactly the same in PSS®E and PSLF. PSS®E uses the CIM5/6 
+family of the three -phase  induction motor model to represent the three -phase  motors in the composite 
+load model ; PSLF uses the Motorw model. The CIM 5/6 models are fundamentally different than 
+Motorw, which has additional approximations. It is being proposed that the future versions of the 
+composite load model in PSLF will use the Motor1 equations , which are similar to the CIM5/6 model 
+family in PSS®E. To that end, a  new three -phase motor model that uses the same equations as the 
+CIM5/6 family  has been implemented in PSLF as a component of the modular composite load model, 
+cmpldw2  (called cmp_mo3_2 ), currently in beta state , and will be available in Version 23 and higher . 
+The three -phase  motor model block diagram is shown in  Figure 2. The input parameters for this model 
+are as follows:  
+LFm  Loading factor – used to set motor MVA base  
+Rs Stator resistance (pu)  
+Ls Synchronous reactance (pu)  
+Lp Transient reactance (pu)  
+Ll Leakage reactance (pu)5 
+Lpp Subtransient reactance (pu)  
+Tpo Transient open circuit time constant (sec.)  
+Tppo  Subtransient open circuit time constant (sec.)  
+ 
+4 PowerWorld WebHelp Manual  
+5 Ll is not required in cmpldw or CMLDXXU2 , but is an input parameter for CMLDXXDGU2  
+WECC Compos ite Load Model Specification  
+   9 
+ 
+Figure 2: Three -phase motor electrical model in PSS®E 
+
+WECC Compos ite Load Model Specification  
+   10 
+ 
+Figure 3: Three -phase motor electrical model in PSLF  
+In the block diagram above , the three -phase  induction motor model in PSS®E (Figure 2) requires a 
+parameter leakage reactance Ll . In the CMLDXXU2 model the leakage reactance ( Ll) is set equal to 0.80 
+times  Lpp" for double cage machine, 0.6 times  Lp' for a single cage . However, this parameter is an 
+input parameter for the CMLDXXDGU2 model. Also note that if Lp=Lpp in the above models or if 
+Tppo=0, the three -phase motor model is t reated as a single cage three -phase induction motor . In PSLF 
+(Figure 3) the parameter Ll is not needed since the three -phase motor model in PSLF (Motorw) uses a 
+different set of assumptions. However, as mentioned before , the new version of the motor model in the 
+modular cmpldw2 in PSLF ( cmp_mo3_2 ) has  Ll as an input parameter that is set to a default of up to 
+0.80 times  Lpp if no input value for Ll is provided.  
+The input parameters for the mechanical model are:  
+H Inertia constant (sec.)  
+Etrq  Speed exponent for mechanical to rque.  
+
+WECC Compos ite Load Model Specification  
+   11 
+The equations  for the mechanical model  are: 
+𝑇𝑚=𝑇𝑚𝑜×𝜔𝐸𝑡𝑟𝑞 
+𝑑𝜔
+𝑑𝑡=(𝑇𝑒−𝑇𝑚)
+2𝐻 
+The value of Tmo is calculated as part of the initialization . Initializing this model gives a rotor speed 
+and electrical power being transmitted to the mechanical load . The Tmo is calculated from this.  
+Two levels of undervoltage tripping are represented with the following input parameters:  
+Vtr1 x First U/V  Trip V  (pu) 
+Ttr1x First  U/V Trip delay  time  (sec)  
+Ftr1x First U/V  Trip fraction  
+Vrc1 x First U/V reconnection V (pu)  
+Trc1 x First U/V reconnection delay time (sec)  
+Vtr2 x Second U/V Trip V (pu)  
+Ttr2x Second U/V Trip delay time (sec)  
+Ftr2x Second U/V Trip fraction  
+Vrc2 x Second U/V reconnection V (pu)  
+Trc2 x Second  U/V reconnection delay  time  (sec)  
+The fractions tripped by each level are cumulative.  
+Single -phase Air Conditioner Performance -based Model  
+The single -phase A/C performance -based model was developed by WECC Load Modeling Task Force 
+members based on extensive laboratory testing of a variety of A/C units. The model is intended to 
+represent a composite of many individual single -phase A/C compressors and their protective devices 
+as shown schematically in  Figure 4. 
+WECC Compos ite Load Model Specification  
+   12 
+ 
+Figure 4: CMPLDW 1 -Phase A/C Performance -based Model Schematic  
+The compressor  motor  model  is divided  into two  parts:  
+Motor A  Those compressors that cannot restart soon after stalling   
+Motor  B  Those compressors  that can  restart  soon after  stalling  
+The motors are represented by algebraic equations, as follows:  
+If V > 0.86:  
+𝑃=𝑃𝑜×(1+Δ𝑓) 
+𝑄=[𝑄′𝑜+6×(𝑉−0.86)2]×(1−3.3×Δ𝑓) 
+If V < 0.86 and V  > V’stall:  
+𝑃=[𝑃𝑜+12×(0.86−𝑉)3.2]×(1+Δ𝑓) 
+𝑄=[𝑄′𝑜+11×(0.86−𝑉)2.5]×(1−3.3×Δ𝑓) 
+If V < V’stall:  
+𝑃=𝐺𝑠𝑡𝑎𝑙𝑙×𝑉×𝑉 
+𝑄=−𝐵𝑠𝑡𝑎𝑙𝑙×𝑉×𝑉 
+If V < Vstall  for t > Tstall,  motor  stays  in stalled state.  
+For “B” motor,  if V > Vrst for  t > Trst, the  motor  restarts.  
+
+WECC Compos ite Load Model Specification  
+   13 
+Note that Δf in this equation is calculated as f-1, which means Δf is negative for an underfrequency 
+event. Also, if Tstall is less than zero , a voltage -and-time -dependent stall characteristic is used , as 
+shown in  Figure 5. 
+ 
+Figure 5: Inverse time Vstall -Tstall characteristic used when tstall = -1 
+Initialization  calculations:  
+𝑄′𝑜=𝑃𝑜×tan(𝑎𝑐𝑜𝑠(𝐶𝑜𝑚𝑝𝑃𝐹 ))−6×(1−0.86)2 
+The three code segments above show the three different characteristics of the motor D model, called the 
+run state I, the run state II , and the stall state. The point at which  the stall state curve and the run state 
+II curve intersect is called the Vstallbrk point. This intersection point is calculated during initialization 
+by the software programs using an iterative scheme  similar to the one shown below6:  
+for ( V = 0.4; V <  Vstall;  V +=  0.01 ) 
+{ 
+pst = Gstall  * V2 
+p_comp  = Po + 12 * (0.86  – V) 3.2 
+if ( p_comp  <= pst ) 
+{ 
+V’stall = V  
+break  
+} 
+} 
+The algorithm above shows the calculation of this intersection to be precision of 0.01 per unit voltage . 
+Note that this algorithm is only indicative , and software vendors may use different algorithms to 
+ 
+6 Technical Guide on Composite Load Modeling : EPRI, Palo Alto, CA: 2017. 3002019209  
+
+WECC Compos ite Load Model Specification  
+   14 
+calculate Vstallbrk. For example , some software vendors use Newton’s method to solve for this 
+intersection point to a hard -coded accuracy in per unit instead (PowerWorld Simulator uses a precision 
+0.0001 per unit voltage).  The input parameters for the single -phase A/C model are as follow s : 
+LFm  Loading factor – used to set MVA base  
+CompPF  Power factor  
+Vstall  Stall voltage (pu)  
+Rstall  Stall resistance (pu)  
+Xstall  Stall reactance (pu)  
+Tstall  Stall time delay (sec.)  
+Frst Fraction of load that can restart after stalling  
+Vrst Voltage at which restart can occur (pu)  
+Trst Restart time delay (sec.)  
+Fuvr  Fraction of load with undervoltage relay protection  
+Vtr1  First U/V Trip V (pu)  
+Ttr1 First U/V Trip delay time (sec)  
+Vtr2  Second U/V  Trip V  (pu) 
+Ttr2 Second U/V Trip delay time (sec)  
+Vc1off  Contactor voltage at which tripping starts (pu)  
+Vc2off  Contactor voltage at which tripping is complete (pu)  
+Vc1on  Contactor voltage at which reconnection is complete (pu)  
+Vc2on  Contactor voltage at which reconnection starts (pu)  
+Tth Thermal time constant (sec)  
+Th1t  Thermal protection trip start level (pu temperature)  
+Th2t  Thermal protection trip completion level (pu temperature)  
+Tv Voltage measurement lag (sec.)  
+Based on the values of Vstall, Tstall, Vrst , and Trst , the motor D component transitions between the run 
+and the stall conditions. The transition of the model between the different states is explained as follows:  
+a. Transition from run state to the stall state : When the voltage at the composite load  model 
+terminal dips below the user specified Vstall  for a duration of Tstall , the motor transitions to the 
+stall condition.  
+b. Transition from stall state to the run state : When the voltage at the terminal of the composite 
+load model at which moto r D has stalled recovers over Vrst for a duration of Trst, the 
+restartable portion of the composite load model ( as listed above ) transitions back to the run 
+state. Note that the non -restartable portion  of the motor D remains stalled state for the 
+rema inder of the simulation once it has stalled.  
+WECC Compos ite Load Model Specification  
+   15 
+Depending on the values of the Vstall  and Tstall , the transition of motor D from a run to a stall 
+condition can vary notably with the change in the terminal voltage .7 These different cases are shown in  
+Figure 6, Figure 7, and  Figure 8. More details on this can be found in  the Technical Guide on Composite 
+Load Modeling .8  
+ 
+Figure 6: Motor D active power change with voltage with Vstall = any value, Tstall = 9999  
+ 
+Figure 7: Motor D active power change with voltage with Vstall < Vstallbrk and Tstall = 2 -3 cycles  
+ 
+7 Reference: Technical Guide on Composite Load Modeling : EPRI, Palo Alto, CA: 2017. 3002019 209 
+8 Ibid 
+
+WECC Compos ite Load Model Specification  
+   16 
+ 
+Figure 8: Motor D active power change with voltage when Vstall > Vstallbrk and Tstall = 2 -3 cycles  
+The motor D component has an undervoltage relay representation that can be used to trip the fraction 
+fuvr. Once tripped, t he fraction fuvr does not reconnect for the remainder  of the simulation. The 
+undervoltage relay can be set by adjusting the parameter pairs vtr1, ttr1 and vtr2, ttr2. These two 
+parameters set a t inverse time characteristics, which implies that , if the voltage drops below vtr1 for 
+time ttr1 or below vtr2 for time ttr2, the fraction fuvr trips.  
+The models  for the contactor  and thermal  relays  are shown  in Figure 9 and Figure 10. Additional 
+documentation on this model can be found in  the PowerWorld WebHelp Manual .9 
+ 
+Figure 9: Contractor Model  
+ 
+9 PowerWorld WebHelp Manual  
+
+WECC Compos ite Load Model Specification  
+   17 
+ 
+Figure 10: Thermal Relay Model  
+Output Variables  
+The following output variables should be available for plotting . Some software vendors may have 
+provisions to monitor extra channels as well and the level of recording shown here is indicative.  
+Level 1  
+Pld Total MW at system bus  
+Qld Total MVAr at system bus  
+Level 2 
+Pshd  load[].pshed value for this load MW  
+Vls pu voltage at substation low -side bus  
+Vld pu voltage at load end of feeder  
+Level 3  
+Pst load[].pshed value for this load MW  
+Qst pu voltage at substation low -side bus  
+Pel pu voltage at load end of feeder  
+Qel Electronic load MVAr  
+For each motor (n) in use:  
+Pmn Motor P, MW  
+Qmn Motor  Q, MVAr  
+Level 4  
+For each Type 3 motor ( n) in use:  
+spdn motor  speed, pu  
+Tmn Motor  mechanical  torque,  pu 
+Ten Motor  electrical  torque,  pu 
+fuvn Fraction of motor not tripped by UV relay  
+For each Type  1 motor( n) in use:  
+fuvn Fraction of motor not tripped by UV relay  
+fcnn Fraction  of motor  not tripped  by contactor  
+crAn current in non-restarting part of load, pu  
+
+WECC Compos ite Load Model Specification  
+   18 
+crBn current in restarting  part of  load, pu  
+Level 5  
+Fmn Fraction of  motor  not tripped by  load -shedding relay  
+Level 9—For Type 1 motors  
+tmpA  temperature  in non -restarting  part of load,  pu 
+fthA  Fraction of  non-restarting part of load not tripped by thermal protection  
+tmpB  temperature  in restarting  part of  load, pu  
+fthB  Fraction  of restarting  part of  load  not tripped  by thermal  protection  
+Load Shedding  
+If a load -shedding relay is applied to the load, the output of each of the load components is reduced in 
+proportion to the load shed fraction. The feeder s R and X are increased to simulate the effect of a 
+fraction of the distribution feeders being tripped . The substation transformer and shunt capacitor  at the 
+substation bus  are not changed.   
+  
+WECC Compos ite Load Model Specification  
+   19 
+Handling of extra vars due to end -use load tripping  
+During initialization of the composite load model shunt reactance is added to the feeder to match the 
+composite load Q with the power flow Q at  the power flow bus. This Q is added to Bf2 and/or Bf1 as 
+shown in Figure 11. When each of the load component trips due to the end -use protection, this shunt 
+capacitance is not held constant and tripped in proportion to the MW of each component tripped. An 
+example is shown here to highlight this. Consider the CMLD/CMPLDW instance shown in Figure 11. 
+ 
+Figure 11: CMLD/CMPLDW initialization  
+The summation of the initial megawatt  values is 100 . The initial extra vars added to the model to 
+balance Q is internally allocated to each component as follows:  
+  Initial 
+MW  Initial 
+Mvar  Initial 
+MVA  Weighting Factor  Allocation 
+of ExtraVars  Per Unit admittance 
+on 100 MVA Base  
+Motor A  40 9 41.00  40/100 = 0.40  -14.4 0.144  
+Motor B  20 6 20.88  20/100 = 0.20  -7.2 0.072  
+Motor C  5 4 6.40 5/100 = 0.05  -1.8 0.018  
+Motor D  15 1 15.03  15/100 = 0.15  -5.4 0.054  
+Electronic  10 -2 10.20  10/100 = 0.10  -3.6 0.036  
+Static  10 -2 10.20  10/100 = 0.10  -3.6 0.036  
+Total  100 16 103.71    -36.0 0.360  
+Remember , for simplicity we are assuming the initial voltage per unit is 1.000 at the load bus . 
+Otherwise, we would need to divide the per unit B values above by the square of initial voltage.  
+ 
+
+WECC Compos ite Load Model Specification  
+   20 
+Now, assume we are at a point at which  various fractions of the load components have tripped. The 
+table below shows how the extra vars will be tripped as each component of the load model is tripped. 
+This calculation is done internally and will not be reported by the software t ool.  
+ Modeling ExtraVars 
+as per unit admittance 
+on 100 MVA base for 
+initial condition  Fraction of Nominal 
+Load component that is 
+still in service  
+(Value of 0.70 means 
+that 30% has tripped)  New portion of 
+“ExtraVar” Admittance 
+from this load 
+component  
+Motor A  0.144  0.20 0.0288  
+Motor B  0.072  0.70 0.0504  
+Motor C  0.018  0.40 0.0072  
+Motor D  0.054  1.00 0.0540  
+Electronic  0.036  0.80 0.0288  
+Static  0.036  1.00 
+(static is always 1.00)  0.0360  
+ 
+Total  0.360   0.2052  
+  
+WECC Compos ite Load Model Specification  
+   21 
+Version History  
+Modified Date  Modified By  Description  
+January 27, 2015  MVWG  Drafted and approved document  
+April 2021  MVS  Updated branding  and added in  
+Disclaimer  
+WECC receives data used in its analyses from a wide variety of sources. WECC strives to source its data from reliable 
+entities and undertakes reasonable efforts to validate the accuracy of the data used. WECC believes the data contained herein  
+and used in its analyses is accurate and re liable. However, WECC disclaims any and all representations, guarantees, 
+warranties, and liability for the information contained herein and any use thereof. Persons who use and rely on the 
+information contained herein do so at their own risk.  
+ 

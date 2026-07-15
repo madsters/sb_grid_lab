@@ -6,9 +6,15 @@ results/
 studies/**/*_raw/
 studies/**/*.db
 studies/**/*.mat
+# regenerable intermediate (report_effective_inertia); the results live in results_*.md
+studies/**/results_tables.md
 
 # Vendor reference PDFs / source docs (reference inputs, not repo source)
 studies/**/source_docs/
+# ...except effective_inertia, whose source_docs are tracked deliberately (the
+# formulation-under-test + reference set the study validates against).
+!studies/effective_inertia/source_docs/
+!studies/effective_inertia/source_docs/**
 
 # Simulink build/compile caches
 **/slprj/
